@@ -1,0 +1,210 @@
+{
+  "event": "Budhi Gandaki landslide/avalanche-dam burst flood, Gorkha, Nepal, 11 Oct 2026",
+  "label_source": "unosat_FL20261011NPL",
+  "proc": "/home/linux1/evac-ai/data/proc",
+  "arch": "s390x",
+  "label_rule": "y=1 cell centre in extent (inside AOI); y=0 centre in AOI, outside extent, not masked; else no row",
+  "terrain": {
+    "grid_shape": [
+      2748,
+      1357
+    ],
+    "crs": "EPSG:32645",
+    "d8_downhill_fraction": 0.9971,
+    "source_lonlat": [
+      84.9627,
+      28.474
+    ],
+    "source_ref": "replay/oct11.json source (Syar Khola near Chumling, approximate); radius 15 as engine/escape.py (prediction mode)",
+    "snap_offset_m": 483.5,
+    "path_cells": 2702,
+    "path_km": 94.36
+  },
+  "primary_label_parts": [
+    {
+      "files": {
+        "extent": [
+          "unosat_dl/FL20261011NPL_SHP.zip.x/FL20261011NPL_SHP/S2_20261011_MudslideExtent.shp"
+        ],
+        "aoi": [
+          "unosat_dl/FL20261011NPL_SHP.zip.x/FL20261011NPL_SHP/S2_20261011_AnalysisExtent.shp"
+        ],
+        "masks": []
+      },
+      "extent_features": 1,
+      "extent_km2": 18.216,
+      "aoi_km2": 473.096,
+      "mask_km2": 0.0,
+      "extent_outside_aoi_km2": 0.0,
+      "grid_cells": {
+        "extent": 20212,
+        "aoi": 525676,
+        "masked_in_aoi": 0,
+        "extent_outside_aoi_or_masked": 0
+      }
+    }
+  ],
+  "secondary_label_parts": {},
+  "positive_only_layers": {},
+  "rows_le_500m": {
+    "y1": 12258,
+    "y0": 75396
+  },
+  "rows_le_2km": {
+    "y1": 14792,
+    "y0": 309027
+  },
+  "rows_by_dist_km": {
+    "<= 250 m": {
+      "y1": 11710,
+      "y0": 33075
+    },
+    "<= 500 m": {
+      "y1": 12258,
+      "y0": 75396
+    },
+    "<= 1000 m": {
+      "y1": 13216,
+      "y0": 159124
+    },
+    "<= 2000 m": {
+      "y1": 14792,
+      "y0": 309027
+    }
+  },
+  "corridor_cells_le_max_dist": 380072,
+  "dropped_corridor_cells": {
+    "outside_aoi_or_masked": 56253,
+    "nonfinite_features": 0
+  },
+  "extent_cells_accounting": {
+    "labelled_y1_cells_on_grid": 20212,
+    "kept_le_500m": 12258,
+    "kept_le_max_dist": 14792,
+    "not_draining_to_path": 0,
+    "draining_but_beyond_max_dist": 5420,
+    "positives_dist_to_path_m": {
+      "p50": 84.9,
+      "p90": 4042.1,
+      "p99": 5075.0,
+      "max": 5440.3
+    }
+  },
+  "path_cells_labelled": {
+    "y1": 2240,
+    "y0": 156,
+    "unlabelled": 306,
+    "note": "share of the D8 flood path itself inside the mapped extent (channel mapped or not)"
+  },
+  "labelled_river_km_le_500m": {
+    "min": 0.0,
+    "max": 83.8
+  },
+  "sanity_hand_bands_le_500m": [
+    {
+      "hand_m": "[-inf,2)",
+      "n": 4560,
+      "affected": 4201,
+      "share_affected": 0.921
+    },
+    {
+      "hand_m": "[2,5)",
+      "n": 1869,
+      "affected": 1634,
+      "share_affected": 0.874
+    },
+    {
+      "hand_m": "[5,10)",
+      "n": 2549,
+      "affected": 1722,
+      "share_affected": 0.676
+    },
+    {
+      "hand_m": "[10,20)",
+      "n": 4433,
+      "affected": 1653,
+      "share_affected": 0.373
+    },
+    {
+      "hand_m": "[20,50)",
+      "n": 13078,
+      "affected": 1459,
+      "share_affected": 0.112
+    },
+    {
+      "hand_m": "[50,inf)",
+      "n": 61165,
+      "affected": 1589,
+      "share_affected": 0.026
+    }
+  ],
+  "sanity_dist_bands": [
+    {
+      "dist_m": "[0,30)",
+      "n": 2396,
+      "affected": 2240,
+      "share_affected": 0.935
+    },
+    {
+      "dist_m": "[30,60)",
+      "n": 6680,
+      "affected": 5423,
+      "share_affected": 0.812
+    },
+    {
+      "dist_m": "[60,100)",
+      "n": 9491,
+      "affected": 3035,
+      "share_affected": 0.32
+    },
+    {
+      "dist_m": "[100,200)",
+      "n": 16827,
+      "affected": 831,
+      "share_affected": 0.049
+    },
+    {
+      "dist_m": "[200,500)",
+      "n": 52260,
+      "affected": 729,
+      "share_affected": 0.014
+    },
+    {
+      "dist_m": "[500,1000)",
+      "n": 84686,
+      "affected": 958,
+      "share_affected": 0.011
+    },
+    {
+      "dist_m": "[1000,2000.01)",
+      "n": 151479,
+      "affected": 1576,
+      "share_affected": 0.01
+    }
+  ],
+  "hand_median_le_500m": {
+    "y1": 5.647735595703125,
+    "y0": 132.5030059814453
+  },
+  "secondary_vs_primary_le_500m": {},
+  "kind_feature": "2 = cell (0 building, 1 bridge)",
+  "features": [
+    "hand",
+    "river_km",
+    "dist_channel_m",
+    "slope_deg",
+    "valley_width_m",
+    "channel_slope",
+    "bend_curv",
+    "outside_bend",
+    "log_acc",
+    "ls_500m",
+    "kind"
+  ],
+  "ls_500m_note": "Nepal-only feature; 0 outside Nepal",
+  "timing_s": {
+    "path_context": 0.93,
+    "features": 0.85,
+    "total": 3.08
+  }
+}
