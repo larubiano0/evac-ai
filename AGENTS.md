@@ -11,15 +11,13 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 5. When you finish or stop, update your row (status, what's next, what's broken).
 6. Never commit secrets: keys (`*.pem`/`*.cer`), the VM IP, tokens, **or anyone's personal email address** (in files *or* as the git author). Use GitHub usernames and `…@users.noreply.github.com` addresses. The repo is **PUBLIC**.
 
-## ⚠️ ACTION REQUIRED (every agent and human with a clone): private email scrub, Sat 14:51
-`main` was rewritten and force-pushed (old tip `9f5061a`, new tip `7df63d3`) to remove a teammate's private email from `AGENTS.md`. Old copies of that history must not survive anywhere. Do this in **every** clone you have: laptop, VM `~/evac-ai` and `~/work-*`, containers.
-1. **Move onto the new history.** No local commits: `git fetch origin && git reset --hard origin/main`. Local commits: `git fetch origin && git rebase --onto origin/main 9f5061a`.
-2. **Purge the old commits locally.** Delete any branch, tag or stash still holding them (`git branch --contains 9f5061a`, `git stash list`), then:
-   `git reflog expire --expire=now --all && git gc --prune=now`
-3. **Check it's gone:** `for c in c862b56 9f5061a; do git cat-file -e $c 2>/dev/null && echo "$c STILL PRESENT"; done` must print nothing. **Don't paste the address anywhere** (chat, logs, issues).
-4. **Never push the old SHAs back** (no `git push --force` from an un-purged clone; no merging old branches).
-5. **Repo owner (Luis) only:** ask GitHub Support to purge the cached old commits, which are still reachable by SHA (e.g. `c862b56`, `346e799`, `8dfca0e`, `bf70ec1`, `39fa12f`, `4ec1b39`, `c6b4254`, `9f5061a`): <https://support.github.com/request/remove-data>. Also check for forks.
-6. When done, add a log line `[your-id] email scrub done` so we know every clone is clean.
+## ⚠️ ACTION REQUIRED: resync after the Sat 15:10 privacy rewrite
+All published branches were rewritten to remove personal email addresses from tracked text and Git author/committer metadata. The previous branch tips are now obsolete. **Do not push from an old clone until it is resynced**, or it may restore the removed history.
+1. Save unpublished work outside the clone first. Then fetch the rewritten refs: `git fetch origin --prune`.
+2. For a clone with no unpublished commits, switch to `main` and run `git reset --hard origin/main`. Recreate any other local branches from their corresponding rewritten `origin/*` refs. If you have unpublished commits, ask Luis to help replay them onto the new history without reintroducing private data.
+3. Delete old branches, tags and stashes that still retain pre-rewrite commits. Then run `git reflog expire --expire=now --all && git gc --prune=now`.
+4. Check that the old tips `c4b1617` and `9f5061a` no longer resolve with `git cat-file -e`. Record `[your-id] email scrub done` in the log after checking each clone, including VM directories and containers.
+5. Luis: request GitHub Support removal of cached pre-rewrite commits at <https://support.github.com/request/remove-data> and check for forks. Do not paste any private address into tickets or logs.
 
 ## Agent registry
 | Agent ID | Human / git author | Host / branch | Owns (don't edit without asking) | Status | Updated (ET) |
@@ -27,7 +25,7 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 | `claude-luis` | Luis Rubiano (GitHub `larubiano0`) | Mac `luissmacbookpro` → drives the L1CC VM over SSH; pushes to `main` | `pipeline/`, `engine/terrain.py` `flood.py` `safety.py` `scenario.py` `alerts.py`, `api/`, `web/`, `replay/oct11.json`, VM `~/evac-ai` | Working: E (offline plan). B fallback at 15:30 | Sat 14:22 |
 | `agent-lcpizani` | `lcpizani` | Mac (lucas) → pushes to `main`; VM `~/work-agent-lcpizani` | `data/processed/`, `data/docs/`, `scripts/{common,extract_osm,extract_landslides,fetch_dem,fetch_worldpop,record_dhm}.py`, `engine/damage_model.py`, `engine/route_reliability.py` (B2), `models/damage/`, `scripts/damage/` | **B model DONE** (models/damage/README.md); waiting on claude-luis to wire `predict_scenario` into /api/scenario. Then B2 (approved) | Sat 14:52 |
 | `agent-aayush` | Aayush Poudel (GitHub `apoudel20`) | Windows desktop (local); push to `main` | `replay/aug26.json`, `README.md`, `docs/` (video script) | C ✅ F ✅ G draft ✅. Next: fill G numbers when D lands; help D | Sat 14:42 |
-| `codex-luis` | Luis (GitHub `larubiano0`; GitHub no-reply author) | Mac `luissmacbookpro` → `main` | Repository history and private-address scrub across Git refs; `AGENTS.md` coordination notice | Working: preparing coordinated rewrite; hold pushes until resync instructions land | Sat 15:09 |
+| `codex-luis` | Luis (GitHub `larubiano0`; GitHub no-reply author) | Mac `luissmacbookpro` → `main` | Repository history and private-address scrub across Git refs; `AGENTS.md` coordination notice | Rewrite prepared and validated; all agents must resync before pushing | Sat 15:10 |
 | _(teammate 4)_ | | | | add yourself, then take packet C, E or F | |
 
 ### ⚠️ For `agent-lcpizani`: your branch vs. `main`
@@ -110,6 +108,7 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 - BIPAD API `bipadportal.gov.np/api/v1/{river,rain,incident,alert}` is public. Its query filters seem to be ignored.
 
 ## Log (newest first; one line per entry)
+- Sat 15:10 [codex-luis] Rewrote all published branch histories to remove personal addresses from tracked text and Git metadata. Verified current trees and all reachable history; clone resync and GitHub cached-commit removal remain.
 - Sat 15:04 [codex-luis] email scrub done for this Mac clone: rebased onto rewritten main, expired reflogs, pruned old commits, and verified the listed old SHAs are absent. Flagged a separate personal address still present in the current registry for a coordinated upstream rewrite.
 - Sat 14:57 [agent-aayush] Added the **⚠️ ACTION REQUIRED** section at the top: every clone must purge the old history (reflog expire + gc) and Luis should file the GitHub Support purge request. Please log `email scrub done` when finished.
 - Sat 14:52 [agent-lcpizani] **Packet B model DONE** (trained + evaluated on L1CC s390x; full write-up models/damage/README.md). Spatial holdout on Aug 26 (split river km 51.8, 2 km gap, 500 m corridor): downstream test v2 ROC AUC 0.968 / PR 0.740, flags 1,043 of 1,474 affected (engine footprint rule: 0.713 / 672); upstream test v1 0.818 vs HAND 0.751 vs rule 0.699. Platt-calibrated (Brier 0.086->0.068). Oct 11 (trained on Aug only): expected affected buildings v2 146 vs v1 271 vs engine footprint 365 vs ~62-72 reported; Dobhan-area bridge #1/49, Sirdibas #3. Soti + Arughat still missed: at Arughat the D8 channel is >=175 m from the real river (HAND 17 m at the bridge vs ~6 m flood line) -> suggest stream-burning the OSM river in pipeline/ (claude-luis); no motorable bridge near Soti exists in OSM. **For claude-luis (api/scenario.py are yours):** `from engine import damage_model as dm; res = dm.predict_scenario(S)` (read-only, ~0.5 s per new path + ~0.3 s; cached). Proposed NEW keys only: per building `p_destroyed` (res['p_building'], aligned with S.V.b_ll; NaN outside corridor); per settlement `p_destroyed_mean`, `expected_destroyed` (sum of p); per bridge in bridges_at_risk `p_destroyed` (res['bridges'], aligned with S.V.bridge_meta; bridges scored at their river-crossing point). Do NOT threshold at 0.5 (Oct probabilities are low); use as colour scale / rank / sums. Models are s390x pickles: load on the VM. Next: B2 once B is in /api/scenario.
