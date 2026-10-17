@@ -1,0 +1,829 @@
+{
+ "host": {
+  "machine": "s390x",
+  "byteorder": "big"
+ },
+ "valley_load_s": 1.14,
+ "scenario_new_s": 5.1,
+ "walk_s": 4.7,
+ "arrival": [
+  {
+   "place": "Paiyu",
+   "km": 20.23,
+   "reported": "04:00",
+   "reported_min": 15,
+   "use": "calibration",
+   "pred_all_min": 15.0,
+   "err_all_min": 0.0,
+   "in_band": true,
+   "pred_loo_min": 53.4,
+   "err_loo_min": 38.4
+  },
+  {
+   "place": "Arughat",
+   "km": 62.54,
+   "reported": "06:30",
+   "reported_min": 165,
+   "use": "calibration",
+   "pred_all_min": 165.0,
+   "err_all_min": 0.0,
+   "in_band": true,
+   "pred_loo_min": 46.4,
+   "err_loo_min": -118.6
+  },
+  {
+   "place": "Soti",
+   "km": 49.26,
+   "reported": "07:30",
+   "reported_min": 225,
+   "use": "excluded",
+   "pred_all_min": 117.9,
+   "err_all_min": -107.1,
+   "in_band": false
+  }
+ ],
+ "triggers": {
+  "community_relay": {
+   "time": "03:30",
+   "warning": "03:30",
+   "settlements_at_risk": 20,
+   "people_at_risk": 1456.0,
+   "people_without_time": 0.0,
+   "red": 0,
+   "amber": 2
+  },
+  "police_informed": {
+   "time": "05:30",
+   "warning": "05:30",
+   "settlements_at_risk": 20,
+   "people_at_risk": 1456.0,
+   "people_without_time": 1340.0,
+   "red": 17,
+   "amber": 2
+  },
+  "ndrrma_official": {
+   "time": "06:20",
+   "warning": "06:20",
+   "settlements_at_risk": 20,
+   "people_at_risk": 1456.0,
+   "people_without_time": 1456.0,
+   "red": 20,
+   "amber": 0
+  },
+  "official_sms": {
+   "time": "06:40",
+   "warning": "06:40",
+   "settlements_at_risk": 20,
+   "people_at_risk": 1456.0,
+   "people_without_time": 1456.0,
+   "red": 20,
+   "amber": 0
+  }
+ },
+ "settlements": {
+  "03:30": [
+   {
+    "name": "Konzer (2280 m)",
+    "status": "amber",
+    "slack_min": 8.033481470743816,
+    "people_at_risk": 8.0,
+    "people_without_time": 0.0,
+    "buildings_at_risk": 2,
+    "river_km": 0.0,
+    "arrival_early": "03:45",
+    "walk_min_median": 1.9422244389851888,
+    "walk_min_max": 1.9665185292561849
+   },
+   {
+    "name": "Nyak Phedi",
+    "status": "amber",
+    "slack_min": 12.898984616309217,
+    "people_at_risk": 4.0,
+    "people_without_time": 0.0,
+    "buildings_at_risk": 1,
+    "river_km": 8.487199128346433,
+    "arrival_early": "03:49",
+    "walk_min_median": 1.8210309346516926,
+    "walk_min_max": 1.8210309346516926
+   },
+   {
+    "name": "Philim",
+    "status": "green",
+    "slack_min": 15.99572503453366,
+    "people_at_risk": 4.0,
+    "people_without_time": 0.0,
+    "buildings_at_risk": 1,
+    "river_km": 14.273666658163684,
+    "arrival_early": "03:52",
+    "walk_min_median": 1.9423388163248698,
+    "walk_min_max": 1.9423388163248698
+   },
+   {
+    "name": "Saglet",
+    "status": "green",
+    "slack_min": 15.375429377829349,
+    "people_at_risk": 24.0,
+    "people_without_time": 0.0,
+    "buildings_at_risk": 6,
+    "river_km": 15.190357133746804,
+    "arrival_early": "03:53",
+    "walk_min_median": 2.7177747090657554,
+    "walk_min_max": 3.0891207377115886
+   },
+   {
+    "name": "Ghatte Khola",
+    "status": "green",
+    "slack_min": 15.373347220930963,
+    "people_at_risk": 92.0,
+    "people_without_time": 0.0,
+    "buildings_at_risk": 23,
+    "river_km": 15.679768388716345,
+    "arrival_early": "03:53",
+    "walk_min_median": 1.0187035878499349,
+    "walk_min_max": 3.138392384847005
+   },
+   {
+    "name": "Sirdibas",
+    "status": "green",
+    "slack_min": 15.213567186623436,
+    "people_at_risk": 128.0,
+    "people_without_time": 0.0,
+    "buildings_at_risk": 32,
+    "river_km": 16.351311678041853,
+    "arrival_early": "03:54",
+    "walk_min_median": 2.971814727783203,
+    "walk_min_max": 3.879944610595703
+   },
+   {
+    "name": "Salleri",
+    "status": "green",
+    "slack_min": 16.34952976211617,
+    "people_at_risk": 232.0,
+    "people_without_time": 0.0,
+    "buildings_at_risk": 58,
+    "river_km": 18.87256059485213,
+    "arrival_early": "03:55",
+    "walk_min_median": 2.674778111775716,
+    "walk_min_max": 4.129448954264323
+   },
+   {
+    "name": "Jagat",
+    "status": "green",
+    "slack_min": 18.872812952661203,
+    "people_at_risk": 128.0,
+    "people_without_time": 0.0,
+    "buildings_at_risk": 7,
+    "river_km": 20.18653029104883,
+    "arrival_early": "03:56",
+    "walk_min_median": 1.957827123006185,
+    "walk_min_max": 2.1326520284016928
+   },
+   {
+    "name": "Jagat Bagar",
+    "status": "green",
+    "slack_min": 19.45122829447122,
+    "people_at_risk": 144.0,
+    "people_without_time": 0.0,
+    "buildings_at_risk": 36,
+    "river_km": 23.486012972767732,
+    "arrival_early": "03:57",
+    "walk_min_median": 2.398825836181641,
+    "walk_min_max": 3.526197052001953
+   },
+   {
+    "name": "Dobhan",
+    "status": "green",
+    "slack_min": 31.53615718769573,
+    "people_at_risk": 84.0,
+    "people_without_time": 0.0,
+    "buildings_at_risk": 21,
+    "river_km": 27.62248050258498,
+    "arrival_early": "04:07",
+    "walk_min_median": 1.8496930440266928,
+    "walk_min_max": 4.065237426757813
+   },
+   {
+    "name": "Tatopani",
+    "status": "green",
+    "slack_min": 45.945335405654575,
+    "people_at_risk": 24.0,
+    "people_without_time": 0.0,
+    "buildings_at_risk": 6,
+    "river_km": 30.395272708720764,
+    "arrival_early": "04:22",
+    "walk_min_median": 0.5,
+    "walk_min_max": 2.17515131632487
+   },
+   {
+    "name": "Khorlabesi",
+    "status": "green",
+    "slack_min": 51.428299470429884,
+    "people_at_risk": 24.0,
+    "people_without_time": 0.0,
+    "buildings_at_risk": 6,
+    "river_km": 33.562953441973605,
+    "arrival_early": "04:29",
+    "walk_min_median": 2.1314887364705406,
+    "walk_min_max": 3.4088897705078125
+   },
+   {
+    "name": "Machhakhola",
+    "status": "green",
+    "slack_min": 59.812922053288005,
+    "people_at_risk": 264.0,
+    "people_without_time": 0.0,
+    "buildings_at_risk": 66,
+    "river_km": 36.5845324446738,
+    "arrival_early": "04:37",
+    "walk_min_median": 1.9647814432779949,
+    "walk_min_max": 3.6795949300130206
+   },
+   {
+    "name": "Labsibot",
+    "status": "green",
+    "slack_min": 69.304397155676,
+    "people_at_risk": 4.0,
+    "people_without_time": 0.0,
+    "buildings_at_risk": 1,
+    "river_km": 39.32732465080958,
+    "arrival_early": "04:47",
+    "walk_min_median": 2.7239915213802326,
+    "walk_min_max": 2.7239915213802326
+   },
+   {
+    "name": "Thumi",
+    "status": "green",
+    "slack_min": 110.3487917523567,
+    "people_at_risk": 20.0,
+    "people_without_time": 0.0,
+    "buildings_at_risk": 5,
+    "river_km": 54.44348914259381,
+    "arrival_early": "05:26",
+    "walk_min_median": 1.5869672139485678,
+    "walk_min_max": 1.8701764424641927
+   },
+   {
+    "name": "Arkhet Bazar",
+    "status": "green",
+    "slack_min": 111.0399512345028,
+    "people_at_risk": 52.0,
+    "people_without_time": 0.0,
+    "buildings_at_risk": 13,
+    "river_km": 54.96804758382097,
+    "arrival_early": "05:27",
+    "walk_min_median": 1.7279626210530599,
+    "walk_min_max": 2.2755584716796875
+   },
+   {
+    "name": "Aruarbang",
+    "status": "green",
+    "slack_min": 114.5494865840221,
+    "people_at_risk": 104.0,
+    "people_without_time": 0.0,
+    "buildings_at_risk": 26,
+    "river_km": 56.21323048345326,
+    "arrival_early": "05:31",
+    "walk_min_median": 2.0681838989257812,
+    "walk_min_max": 2.2638816833496094
+   },
+   {
+    "name": "Aaru Chanuate",
+    "status": "green",
+    "slack_min": 122.49394681115379,
+    "people_at_risk": 4.0,
+    "people_without_time": 0.0,
+    "buildings_at_risk": 1,
+    "river_km": 58.74753026553987,
+    "arrival_early": "05:38",
+    "walk_min_median": 1.16852658589681,
+    "walk_min_max": 1.16852658589681
+   },
+   {
+    "name": "Ārughāt Bāzār",
+    "status": "green",
+    "slack_min": 127.74961748487715,
+    "people_at_risk": 108.0,
+    "people_without_time": 0.0,
+    "buildings_at_risk": 27,
+    "river_km": 62.00458654038758,
+    "arrival_early": "05:44",
+    "walk_min_median": 1.8330145517985026,
+    "walk_min_max": 2.333014551798503
+   },
+   {
+    "name": "Dhawa",
+    "status": "green",
+    "slack_min": 152.65451503740175,
+    "people_at_risk": 4.0,
+    "people_without_time": 0.0,
+    "buildings_at_risk": 1,
+    "river_km": 70.43053675192374,
+    "arrival_early": "06:09",
+    "walk_min_median": 2.0705206553141275,
+    "walk_min_max": 2.0705206553141275
+   }
+  ],
+  "06:40": [
+   {
+    "name": "Konzer (2280 m)",
+    "status": "red",
+    "slack_min": -181.96651852925618,
+    "people_at_risk": 8.0,
+    "people_without_time": 8.0,
+    "buildings_at_risk": 2,
+    "river_km": 0.0,
+    "arrival_early": "03:45",
+    "walk_min_median": 1.9422244389851888,
+    "walk_min_max": 1.9665185292561849
+   },
+   {
+    "name": "Nyak Phedi",
+    "status": "red",
+    "slack_min": -177.1010153836908,
+    "people_at_risk": 4.0,
+    "people_without_time": 4.0,
+    "buildings_at_risk": 1,
+    "river_km": 8.487199128346433,
+    "arrival_early": "03:49",
+    "walk_min_median": 1.8210309346516926,
+    "walk_min_max": 1.8210309346516926
+   },
+   {
+    "name": "Philim",
+    "status": "red",
+    "slack_min": -174.00427496546635,
+    "people_at_risk": 4.0,
+    "people_without_time": 4.0,
+    "buildings_at_risk": 1,
+    "river_km": 14.273666658163684,
+    "arrival_early": "03:52",
+    "walk_min_median": 1.9423388163248698,
+    "walk_min_max": 1.9423388163248698
+   },
+   {
+    "name": "Saglet",
+    "status": "red",
+    "slack_min": -174.62457062217067,
+    "people_at_risk": 24.0,
+    "people_without_time": 24.0,
+    "buildings_at_risk": 6,
+    "river_km": 15.190357133746804,
+    "arrival_early": "03:53",
+    "walk_min_median": 2.7177747090657554,
+    "walk_min_max": 3.0891207377115886
+   },
+   {
+    "name": "Ghatte Khola",
+    "status": "red",
+    "slack_min": -174.62665277906905,
+    "people_at_risk": 92.0,
+    "people_without_time": 92.0,
+    "buildings_at_risk": 23,
+    "river_km": 15.679768388716345,
+    "arrival_early": "03:53",
+    "walk_min_median": 1.0187035878499349,
+    "walk_min_max": 3.138392384847005
+   },
+   {
+    "name": "Sirdibas",
+    "status": "red",
+    "slack_min": -174.78643281337656,
+    "people_at_risk": 128.0,
+    "people_without_time": 128.0,
+    "buildings_at_risk": 32,
+    "river_km": 16.351311678041853,
+    "arrival_early": "03:54",
+    "walk_min_median": 2.971814727783203,
+    "walk_min_max": 3.879944610595703
+   },
+   {
+    "name": "Salleri",
+    "status": "red",
+    "slack_min": -173.65047023788384,
+    "people_at_risk": 232.0,
+    "people_without_time": 232.0,
+    "buildings_at_risk": 58,
+    "river_km": 18.87256059485213,
+    "arrival_early": "03:55",
+    "walk_min_median": 2.674778111775716,
+    "walk_min_max": 4.129448954264323
+   },
+   {
+    "name": "Jagat",
+    "status": "red",
+    "slack_min": -171.1271870473388,
+    "people_at_risk": 128.0,
+    "people_without_time": 128.0,
+    "buildings_at_risk": 7,
+    "river_km": 20.18653029104883,
+    "arrival_early": "03:56",
+    "walk_min_median": 1.957827123006185,
+    "walk_min_max": 2.1326520284016928
+   },
+   {
+    "name": "Jagat Bagar",
+    "status": "red",
+    "slack_min": -170.54877170552876,
+    "people_at_risk": 144.0,
+    "people_without_time": 144.0,
+    "buildings_at_risk": 36,
+    "river_km": 23.486012972767732,
+    "arrival_early": "03:57",
+    "walk_min_median": 2.398825836181641,
+    "walk_min_max": 3.526197052001953
+   },
+   {
+    "name": "Dobhan",
+    "status": "red",
+    "slack_min": -158.46384281230428,
+    "people_at_risk": 84.0,
+    "people_without_time": 84.0,
+    "buildings_at_risk": 21,
+    "river_km": 27.62248050258498,
+    "arrival_early": "04:07",
+    "walk_min_median": 1.8496930440266928,
+    "walk_min_max": 4.065237426757813
+   },
+   {
+    "name": "Tatopani",
+    "status": "red",
+    "slack_min": -144.0546645943454,
+    "people_at_risk": 24.0,
+    "people_without_time": 24.0,
+    "buildings_at_risk": 6,
+    "river_km": 30.395272708720764,
+    "arrival_early": "04:22",
+    "walk_min_median": 0.5,
+    "walk_min_max": 2.17515131632487
+   },
+   {
+    "name": "Khorlabesi",
+    "status": "red",
+    "slack_min": -138.5717005295701,
+    "people_at_risk": 24.0,
+    "people_without_time": 24.0,
+    "buildings_at_risk": 6,
+    "river_km": 33.562953441973605,
+    "arrival_early": "04:29",
+    "walk_min_median": 2.1314887364705406,
+    "walk_min_max": 3.4088897705078125
+   },
+   {
+    "name": "Machhakhola",
+    "status": "red",
+    "slack_min": -130.18707794671198,
+    "people_at_risk": 264.0,
+    "people_without_time": 264.0,
+    "buildings_at_risk": 66,
+    "river_km": 36.5845324446738,
+    "arrival_early": "04:37",
+    "walk_min_median": 1.9647814432779949,
+    "walk_min_max": 3.6795949300130206
+   },
+   {
+    "name": "Labsibot",
+    "status": "red",
+    "slack_min": -120.69560284432401,
+    "people_at_risk": 4.0,
+    "people_without_time": 4.0,
+    "buildings_at_risk": 1,
+    "river_km": 39.32732465080958,
+    "arrival_early": "04:47",
+    "walk_min_median": 2.7239915213802326,
+    "walk_min_max": 2.7239915213802326
+   },
+   {
+    "name": "Thumi",
+    "status": "red",
+    "slack_min": -79.65120824764328,
+    "people_at_risk": 20.0,
+    "people_without_time": 20.0,
+    "buildings_at_risk": 5,
+    "river_km": 54.44348914259381,
+    "arrival_early": "05:26",
+    "walk_min_median": 1.5869672139485678,
+    "walk_min_max": 1.8701764424641927
+   },
+   {
+    "name": "Arkhet Bazar",
+    "status": "red",
+    "slack_min": -78.9600487654972,
+    "people_at_risk": 52.0,
+    "people_without_time": 52.0,
+    "buildings_at_risk": 13,
+    "river_km": 54.96804758382097,
+    "arrival_early": "05:27",
+    "walk_min_median": 1.7279626210530599,
+    "walk_min_max": 2.2755584716796875
+   },
+   {
+    "name": "Aruarbang",
+    "status": "red",
+    "slack_min": -75.45051341597791,
+    "people_at_risk": 104.0,
+    "people_without_time": 104.0,
+    "buildings_at_risk": 26,
+    "river_km": 56.21323048345326,
+    "arrival_early": "05:31",
+    "walk_min_median": 2.0681838989257812,
+    "walk_min_max": 2.2638816833496094
+   },
+   {
+    "name": "Aaru Chanuate",
+    "status": "red",
+    "slack_min": -67.50605318884621,
+    "people_at_risk": 4.0,
+    "people_without_time": 4.0,
+    "buildings_at_risk": 1,
+    "river_km": 58.74753026553987,
+    "arrival_early": "05:38",
+    "walk_min_median": 1.16852658589681,
+    "walk_min_max": 1.16852658589681
+   },
+   {
+    "name": "Ārughāt Bāzār",
+    "status": "red",
+    "slack_min": -62.250382515122865,
+    "people_at_risk": 108.0,
+    "people_without_time": 108.0,
+    "buildings_at_risk": 27,
+    "river_km": 62.00458654038758,
+    "arrival_early": "05:44",
+    "walk_min_median": 1.8330145517985026,
+    "walk_min_max": 2.333014551798503
+   },
+   {
+    "name": "Dhawa",
+    "status": "red",
+    "slack_min": -37.34548496259825,
+    "people_at_risk": 4.0,
+    "people_without_time": 4.0,
+    "buildings_at_risk": 1,
+    "river_km": 70.43053675192374,
+    "arrival_early": "06:09",
+    "walk_min_median": 2.0705206553141275,
+    "walk_min_max": 2.0705206553141275
+   }
+  ]
+ },
+ "reported_places": {
+  "Paiyu": {
+   "osm_places": [],
+   "predicted_at_risk": []
+  },
+  "Bagar": {
+   "osm_places": [
+    "Jagat Bagar"
+   ],
+   "predicted_at_risk": [
+    "Jagat Bagar"
+   ]
+  },
+  "Ghatte": {
+   "osm_places": [
+    "Ghatte Khola"
+   ],
+   "predicted_at_risk": [
+    "Ghatte Khola"
+   ]
+  },
+  "Jagat": {
+   "osm_places": [
+    "Jagat",
+    "Jagat Bagar"
+   ],
+   "predicted_at_risk": [
+    "Jagat",
+    "Jagat Bagar"
+   ]
+  },
+  "Salleri": {
+   "osm_places": [
+    "Salleri"
+   ],
+   "predicted_at_risk": [
+    "Salleri"
+   ]
+  },
+  "Sirdibas": {
+   "osm_places": [
+    "Sirdibas"
+   ],
+   "predicted_at_risk": [
+    "Sirdibas"
+   ]
+  },
+  "Nyak": {
+   "osm_places": [
+    "Nyak",
+    "Nyak Phedi"
+   ],
+   "predicted_at_risk": [
+    "Nyak Phedi"
+   ]
+  },
+  "Machhakhola": {
+   "osm_places": [
+    "Machhakhola"
+   ],
+   "predicted_at_risk": [
+    "Machhakhola"
+   ]
+  },
+  "Dobhan": {
+   "osm_places": [
+    "Dobhan"
+   ],
+   "predicted_at_risk": [
+    "Dobhan"
+   ]
+  },
+  "Soti": {
+   "osm_places": [],
+   "predicted_at_risk": []
+  },
+  "Arughat": {
+   "osm_places": [],
+   "predicted_at_risk": []
+  },
+  "Shanti": {
+   "osm_places": [
+    "Shanti Bazar"
+   ],
+   "predicted_at_risk": []
+  },
+  "Syauli": {
+   "osm_places": [
+    "Syauli Dada"
+   ],
+   "predicted_at_risk": []
+  },
+  "Philim": {
+   "osm_places": [
+    "Philim"
+   ],
+   "predicted_at_risk": [
+    "Philim"
+   ]
+  }
+ },
+ "bridges_at_risk": [
+  {
+   "label": "bridge near Konzer (2280 m)",
+   "name": "",
+   "kind": "path",
+   "river_km": 0.0,
+   "lon": 84.9704879,
+   "lat": 28.4715726
+  },
+  {
+   "label": "bridge near Chumling",
+   "name": "Tsum Valley Path",
+   "kind": "path",
+   "river_km": 1.0,
+   "lon": 84.9579091,
+   "lat": 28.4671254
+  },
+  {
+   "label": "bridge near Lokpha",
+   "name": "Tsum Valley Path",
+   "kind": "path",
+   "river_km": 5.3,
+   "lon": 84.9306176,
+   "lat": 28.4453849
+  },
+  {
+   "label": "bridge near Nyak Phedi",
+   "name": "",
+   "kind": "path",
+   "river_km": 9.1,
+   "lon": 84.8997015,
+   "lat": 28.4377052
+  },
+  {
+   "label": "bridge near Nyak Phedi",
+   "name": "Manaslu Circuit",
+   "kind": "",
+   "river_km": 9.5,
+   "lon": 84.8972546,
+   "lat": 28.4342886
+  },
+  {
+   "label": "bridge near Ghatte Khola",
+   "name": "",
+   "kind": "path",
+   "river_km": 15.3,
+   "lon": 84.8909048,
+   "lat": 28.3866015
+  },
+  {
+   "label": "bridge near Ghatte Khola",
+   "name": "Manaslu Circuit",
+   "kind": "unclassified",
+   "river_km": 15.3,
+   "lon": 84.8920693,
+   "lat": 28.3867393
+  },
+  {
+   "label": "bridge near Salleri",
+   "name": "",
+   "kind": "path",
+   "river_km": 18.1,
+   "lon": 84.8876044,
+   "lat": 28.3658342
+  },
+  {
+   "label": "bridge near Dobhan",
+   "name": "Manaslu Circuit",
+   "kind": "path",
+   "river_km": 27.6,
+   "lon": 84.9065458,
+   "lat": 28.2960696
+  },
+  {
+   "label": "bridge near Dobhan",
+   "name": "",
+   "kind": "path",
+   "river_km": 28.1,
+   "lon": 84.9029338,
+   "lat": 28.2937084
+  },
+  {
+   "label": "Tatopani Foot-Bridge",
+   "name": "Tatopani Foot-Bridge",
+   "kind": "path",
+   "river_km": 29.8,
+   "lon": 84.9000526,
+   "lat": 28.2805632
+  },
+  {
+   "label": "bridge near Khorlabesi",
+   "name": "",
+   "kind": "path",
+   "river_km": 33.6,
+   "lon": 84.8833463,
+   "lat": 28.2535062
+  },
+  {
+   "label": "bridge near Machhakhola",
+   "name": "",
+   "kind": "path",
+   "river_km": 36.6,
+   "lon": 84.8761908,
+   "lat": 28.229697
+  },
+  {
+   "label": "bridge near Labsibot",
+   "name": "",
+   "kind": "footway",
+   "river_km": 39.5,
+   "lon": 84.8753601,
+   "lat": 28.2072463
+  },
+  {
+   "label": "bridge near Lapu Besi",
+   "name": "",
+   "kind": "path",
+   "river_km": 48.3,
+   "lon": 84.8609023,
+   "lat": 28.1411822
+  },
+  {
+   "label": "bridge near Borlang",
+   "name": "",
+   "kind": "path",
+   "river_km": 72.6,
+   "lon": 84.7800162,
+   "lat": 27.9819667
+  },
+  {
+   "label": "bridge near Kyamuntar",
+   "name": "",
+   "kind": "path",
+   "river_km": 80.8,
+   "lon": 84.7398238,
+   "lat": 27.9394008
+  },
+  {
+   "label": "bridge near Kyamuntar",
+   "name": "",
+   "kind": "unclassified",
+   "river_km": 80.9,
+   "lon": 84.7390516,
+   "lat": 27.9391035
+  }
+ ],
+ "bridges_total_osm": 220,
+ "cached_payload_s": [
+  0.033,
+  0.032,
+  0.033
+ ],
+ "new_trigger_s": 5.24,
+ "new_trigger_walk_s": 4.82,
+ "peak_rss_mb": {
+  "python": 899,
+  "grass_children": 757
+ },
+ "n_buildings": 112515
+}

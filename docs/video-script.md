@@ -3,8 +3,7 @@
 Packet G · owner `agent-aayush` · follows `latinos-ibmz-datathon-plan.md` §9 · **Draft, Sat 14:40 ET**
 
 Spoken narration is about **400 words** (~150 wpm ≈ 2:40), which leaves ~20 s for pauses and UI waits.
-Numbers in **[brackets]** are placeholders until packet D (validation) and packet B (damage model) report.
-The values next to them are the provisional numbers from the `AGENTS.md` log. **Don't record before they're confirmed.**
+Numbers were checked by packet D (Sat 17:30 ET); sources and caveats are in [`validation.md`](validation.md).
 
 Recording: screen capture at 1920×1080. The UI runs through the SSH tunnel at `http://localhost:8000`. Keep a
 terminal open on the L1CC VM in a second window. Record the narration separately and lay it over the capture.
@@ -40,12 +39,12 @@ footprint yet. Two time stamps fade in on the map: **03:30 Dharche**, **06:40 SM
 | 1:00 | Click **Place trigger**, click the river near the Oct 11 source, burst 03:45, warning 03:30 | "A report comes in: the river has stopped upstream. We drop a pin." |
 | 1:08 | Path appears with arrival times. Drag the **wave clock** slider: the front moves downstream | "The engine traces the flood path down the river and gives an arrival-time band for every kilometre, calibrated on what really happened." |
 | 1:20 | Footprint fills in | "The footprint comes from height above the river, measured against this flood's path, not a generic flood map." |
-| 1:30 | Settlements turn red / amber / green; escape routes as green dashed lines | "For each of [112,515] buildings, GRASS works out the walking time uphill to safe ground, on the same bank. Then slack: arrival, minus warning, minus the walk." |
+| 1:30 | Settlements turn red / amber / green; escape routes as green dashed lines | "For each of 112,515 buildings, GRASS works out the walking time uphill to safe ground, on the same bank. Then slack: arrival, minus warning, minus the walk." |
 | 1:45 | Alert list on the left; open the top settlement, show the EN and NE short alerts | "Alerts come out ranked: who gets hit first and who has the least time. The SMS says when, which way to go and which bridge not to cross, in Nepali and English, in one message." |
 | 1:55 | Bridges at risk highlighted; hover Dobhan / Machhakhola | "These are the bridges in the flood's path. Several of them are bridges that were really lost." |
-| 2:02 | Header badges: `s390x`, `big-endian`, `compute X s` | "A new scenario takes about [4.5] seconds on LinuxONE." |
+| 2:02 | Header badges: `s390x`, `big-endian`, `compute X s` | "A new scenario takes about five seconds on LinuxONE. A cached one, thirty milliseconds." |
 
-*(If B is integrated by recording time, add at ~1:35: "A gradient-boosting model trained on 2,759 buildings destroyed on August 26 flags the ones most likely to go." Use the real AUC from packet B; otherwise cut this line.)*
+*(Add at ~1:35 only if `p_destroyed` is visible in the UI by recording time: "A gradient-boosting model trained on 2,759 buildings destroyed on August 26 ranks the ones most likely to go: AUC 0.97 on a part of the river it never saw." Otherwise move this line to the results card.)*
 
 ## 2:10–2:35 · Results
 
@@ -53,11 +52,12 @@ footprint yet. Two time stamps fade in on the map: **03:30 Dharche**, **06:40 SM
 
 **Narration:**
 > We replayed October 11 with the warning at two times. With the villagers' three-thirty relay,
-> **[0]** people are left without time. With the official six-forty SMS, **[all ~1,456]** are.
-> Predicted arrival times are within **[± X min]** of the reported ones, and the footprint contains **[Y %]**
-> of the buildings destroyed on August 26.
+> **zero** people are left without time. With the official six-forty SMS, **all fourteen hundred** are.
+> It flags nine of the ten destroyed places we can map, and four of six lost bridges.
+> On August 26, with the flood line fitted on one half of the river, the footprint holds three quarters or more
+> of the destroyed buildings on the other half.
 
-**Results card (on screen):** people without time at 03:30 vs. 06:40 · arrival-time error · footprint vs. destroyed buildings · latency on L1CC · *(damage-model AUC if B is done)*.
+**Results card (on screen):** Oct 11: 0 vs. 1,456 people without time (03:30 relay vs. 06:40 SMS) · 9 of 10 reported places, 4 of 6 lost bridges · Aug 26 footprint: 75–83 % of destroyed buildings (cross-validated) · damage model AUC 0.97 · arrival error 0–38 min held out · 5 s per new scenario on L1CC.
 
 ## 2:35–3:00 · Why IBM Z, limits, next steps
 
@@ -94,7 +94,7 @@ footprint yet. Two time stamps fade in on the map: **03:30 Dharche**, **06:40 SM
 
 ## Recording checklist (Sun 06:00–08:30 ET)
 
-- [ ] D numbers filled in above; brackets removed
+- [x] D numbers filled in above; brackets removed (Sat 17:30, `docs/validation.md`)
 - [ ] Nepali alerts reviewed (packet H, `NE_REVIEWED = True`), or say "draft" on screen
 - [ ] Container rebuilt from the frozen `main` (Sun 02:00) and `docker ps` freshly captured
 - [ ] Cached scenarios warmed (`scripts/serve_test.sh` or one call per warning time) so the UI doesn't stall on camera

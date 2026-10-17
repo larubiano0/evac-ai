@@ -40,10 +40,10 @@ A settlement is **red** if any of its at-risk buildings has slack < 0, **amber**
 | Study-area data | [`data/`](data/README.md), [`scripts/`](scripts/) | Committed, clipped layers for Gorkha/Rasuwa/Nuwakot: Copernicus DEM, WorldPop, OSM (incl. Aug 26 damage labels), 2015 landslides, DHM feed snapshot. Fetch/extract scripts |
 | Container | [`scripts/docker_run.sh`](scripts/docker_run.sh) | Runs the `evac-ai:latest` image on L1CC, serving on `127.0.0.1:8000` |
 
-**In progress** (see [`AGENTS.md`](AGENTS.md) for who and when): the ML building-damage model
-(`engine/damage_model.py`, packet B), route reliability (B2), the printable offline plan (E), validation
-numbers (D), and wiring the Aug 26 replay to the Trishuli terrain build (today the API loads only the Budhi
-Gandaki valley; see Limitations).
+**Done since:** the ML building-damage model (`engine/damage_model.py` + `models/damage/`, packet B), prediction
+mode (`web/predict.html`, "where should I go?"), the Three.js replay (`viewer/`) and validation (D,
+[`docs/validation.md`](docs/validation.md)). **In progress** (see [`AGENTS.md`](AGENTS.md)): showing `p_destroyed` in
+`/api/scenario` and the map, and serving the Aug 26 replay from the API (validation already runs it on the Trishuli build).
 
 ### API
 
@@ -156,19 +156,34 @@ without s390x wheels (`requirements-extract.txt`), so they run on a laptop and t
 
 ---
 
-## Results so far (Oct 11 replay, on L1CC)
+## Results so far (validated on L1CC, details in [`docs/validation.md`](docs/validation.md))
 
-These are the engine's first numbers as logged in [`AGENTS.md`](AGENTS.md). Packet D will check them and add
-validation.
+Two real 2026 floods, five timed observations and one set of volunteer damage tags, so read these as case studies.
 
-- **112,515** OSM buildings scored per scenario. **20** settlements at risk, about **1,456** people (4 per building).
-- **Warning at 03:30 (community relay): 0 people without time.** Warning at **06:40 (official SMS): all ~1,456 without time.**
+- **Headline, Oct 11:** with the community relay (03:30), **0** of ~1,456 people at risk are left without time. With the
+  official SMS (06:40), **all ~1,456** are (20 of 20 settlements red). With the police notification (05:30), 1,340 are.
   This matches the reports: no confirmed deaths, because people got calls from upstream and ran uphill.
-- Walking to safe ground takes only **1–3 min** from Jagat, Salleri and Soti, so the warning lead time is what decides survival.
-- Bridges at risk include the reported losses at Dobhan, Machhakhola and Sirdibas. The **Soti and Arughat bridges are missed**
-  (the lower-valley height envelope is too low).
-- Latency: **~4.5 s per new scenario** (r.walk ~3.9 s), **0.05 s cached**. The target was under 10 s.
-- The short Nepali alert is 62–69 characters, so it fits one UCS-2 SMS (≤161 bytes) and a Meshtastic payload.
+- **Headline, Aug 26:** with the 09:15 SMS, ~12,300 of ~20,900 people in the footprint had no time (27 of 44 settlements
+  red). An alert at the 08:37 seismic signal cuts that to ~1,600 in the model. The flood line is reconstructed from
+  damage marks, so this is in-sample.
+- **Settlements (Oct 11):** **9 of the 10** reported destroyed/inundated places we can locate are flagged, all red at
+  06:40 (miss: Soti). 11 more are flagged but not on the reported list. Philim (reported safe) has 1 flagged building.
+- **Bridges (Oct 11):** **4 of 6** reported losses are matched. The **Soti and Arughat** misses have known causes: the
+  Soti bridge isn't in OSM, and at Arughat the 30 m D8 channel drifts ≥175 m from the real river.
+- **Footprint (Aug 26):** with the flood line fitted on one half of the river, the footprint holds **83 % / 75 %** of
+  destroyed buildings on the other half, and 21 % / 49 % of footprint buildings carry no damage tag.
+- **Damage model** (`agent-lcpizani`, spatial holdout on Aug 26): ROC AUC **0.968** downstream (v2) and **0.818**
+  upstream (v1), vs. 0.713 / 0.699 for the footprint rule. Oct 11 expected damaged buildings: 146, vs. 365 in the
+  footprint and ~62–72 reported.
+- **Arrival times (leave-one-out):** **0–38 min** off between observations, and 71–119 min **early** (the safe side)
+  when extrapolating past the last gauge. Oct 11 has only two timed points, so its LOO is weak. The Oct 11 wave speed
+  does **not** transfer to Aug 26 (up to 163 min late), so each flood type needs its own calibration.
+- **Latency on L1CC:**
+  - New scenario: **5.1 s** (r.walk 4.7 s; Aug 26 grid: 10.8 s).
+  - Cached response with all alerts: **0.03 s**.
+  - Prediction mode "where should I go?" query: **2–5 ms**.
+- The short Nepali alert is 62–69 characters, so it fits one UCS-2 SMS (≤161 bytes) and a Meshtastic payload. It is
+  still a draft (`NE_REVIEWED = False`).
 
 ---
 
@@ -177,7 +192,7 @@ validation.
 - **Not a hydrodynamic or debris-flow model.** Arrival and height are interpolated curves along river km,
   calibrated on a handful of reported times and gauge readings. That's why we show bands, not single numbers.
 - **Few calibration points, and some are weak.** Oct 11 uses 2 points (Jagat area 04:00 and 20–25 m; Arughat 06:30 and 8.43 m),
-  and its timestamps conflict (Soti 07:30 after Arughat 06:30, so Soti is excluded). Aug 26 uses 5 points. Several are upper bounds
+  and its timestamps conflict (Soti 07:30 after Arughat 06:30, so Soti is excluded). Aug 26 has 3 arrival points inside the Trishuli grid and **no height point** (Kali Khola and Devghat lie west of the grid), so its flood line is reconstructed from damage marks. Several are upper bounds
   (a gauge going silent) or peak times rather than first arrivals. The Devghat arrival time has no inline source.
 - **Gauge stage is not height above the DEM channel.** Gauge peaks are converted with an assumed ~2.4 m normal stage.
 - **Population is an assumption:** 4 people per OSM building, plus hard-coded trekker counts (100 in Jagat on Oct 11).
@@ -185,8 +200,8 @@ validation.
 - **Fixed assumptions:** 5 min from warning to people moving, 5 m safety margin above the conservative height, 15 min amber threshold.
 - **Walking only, no congestion.** `r.walk` walking cost on a 30 m DEM, with no trail network. The cells r.walk can't reach are
   filled by straight-line walking at 1 m/s from the nearest reached cell.
-- **The API serves the Budhi Gandaki valley only.** `replay/aug26.json` loads, but it still has to be run on `data/proc_trishuli`.
-  Devghat (Narayani, Chitwan) is south of the study-area DEM, so its observation can't be placed on that grid yet.
+- **The planner API serves the Budhi Gandaki valley only.** `/api/scenario?replay=aug26` returns 501 rather than running on the wrong grid.
+  The Aug 26 numbers come from `docs/validation/run_aug26.py` on `data/proc_trishuli`. Prediction mode (`/api/predict/*`) has both valleys.
 - **New triggers reuse the curves calibrated on a replay.** A different valley or failure type can behave very differently.
 - **Nepali alert text is an unreviewed draft.** The DHM live feed and BIPAD are recorded or probed, but **not yet used as live triggers**.
 - **This is a research prototype, not an official warning service.** DHM can't legally order evacuations, and neither can this.

@@ -1,0 +1,764 @@
+{
+ "host": {
+  "machine": "s390x",
+  "byteorder": "big"
+ },
+ "valley_load_s": 3.32,
+ "path_km": 121.4,
+ "arrival": [
+  {
+   "place": "Syabrubesi gauge",
+   "km": 14.46,
+   "reported": "08:50",
+   "reported_min": 13,
+   "use": "calibration",
+   "pred_all_min": 13.0,
+   "err_all_min": 0.0,
+   "pred_with_oct11_curve_min": 10.7,
+   "pred_loo_min": 12.9,
+   "err_loo_min": -0.1
+  },
+  {
+   "place": "Betrawati gauge",
+   "km": 48.11,
+   "reported": "09:20",
+   "reported_min": 43,
+   "use": "calibration",
+   "pred_all_min": 43.0,
+   "err_all_min": 0.0,
+   "pred_with_oct11_curve_min": 113.8,
+   "pred_loo_min": 68.2,
+   "err_loo_min": 25.2
+  },
+  {
+   "place": "Trishuli",
+   "km": 55.78,
+   "reported": "09:20",
+   "reported_min": 43,
+   "use": "excluded",
+   "pred_all_min": 58.7,
+   "err_all_min": 15.7,
+   "pred_with_oct11_curve_min": 141.0
+  },
+  {
+   "place": "Malekhu / Phurke gauge",
+   "km": 109.51,
+   "reported": "11:26",
+   "reported_min": 169,
+   "use": "calibration",
+   "pred_all_min": 169.0,
+   "err_all_min": 0.0,
+   "pred_with_oct11_curve_min": 331.5,
+   "pred_loo_min": 97.7,
+   "err_loo_min": -71.3
+  },
+  {
+   "place": "Mugling",
+   "km": NaN,
+   "reported": "13:00",
+   "reported_min": 263,
+   "use": "excluded"
+  },
+  {
+   "place": "Kali Khola gauge",
+   "km": NaN,
+   "reported": null,
+   "reported_min": null,
+   "use": "excluded"
+  },
+  {
+   "place": "Devghat gauge",
+   "km": NaN,
+   "reported": "15:20",
+   "reported_min": 403,
+   "use": "excluded"
+  },
+  {
+   "place": "Galchhi",
+   "km": 83.86,
+   "reported": null,
+   "reported_min": null,
+   "use": "excluded"
+  },
+  {
+   "place": "Timure",
+   "km": 4.04,
+   "reported": null,
+   "reported_min": null,
+   "use": "excluded"
+  }
+ ],
+ "arrival_knots": [
+  [
+   14.46,
+   13
+  ],
+  [
+   48.11,
+   43
+  ],
+  [
+   109.51,
+   169
+  ]
+ ],
+ "footprint": {
+  "all_labelled_in_grid": 3111,
+  "draining_to_path": 3111,
+  "in_500m_corridor": 3099,
+  "in_sample_corridor": [
+   {
+    "band": "mid",
+    "labelled_affected": 3099,
+    "labelled_destroyed": 2752,
+    "affected_inside": 0.909,
+    "destroyed_inside": 0.919,
+    "footprint_buildings": 4668,
+    "footprint_unlabelled_share": 0.397
+   },
+   {
+    "band": "hi",
+    "labelled_affected": 3099,
+    "labelled_destroyed": 2752,
+    "affected_inside": 0.983,
+    "destroyed_inside": 0.984,
+    "footprint_buildings": 6376,
+    "footprint_unlabelled_share": 0.522
+   }
+  ],
+  "in_sample_all_draining": [
+   {
+    "band": "mid",
+    "labelled_affected": 3111,
+    "labelled_destroyed": 2764,
+    "affected_inside": 0.905,
+    "destroyed_inside": 0.915,
+    "footprint_buildings": 4718,
+    "footprint_unlabelled_share": 0.403
+   },
+   {
+    "band": "hi",
+    "labelled_affected": 3111,
+    "labelled_destroyed": 2764,
+    "affected_inside": 0.98,
+    "destroyed_inside": 0.98,
+    "footprint_buildings": 6560,
+    "footprint_unlabelled_share": 0.535
+   }
+  ],
+  "cross_side": {
+   "train_up_test_down": {
+    "band": "hi",
+    "labelled_affected": 1512,
+    "labelled_destroyed": 1191,
+    "affected_inside": 0.782,
+    "destroyed_inside": 0.831,
+    "footprint_buildings": 1506,
+    "footprint_unlabelled_share": 0.214
+   },
+   "train_down_test_up": {
+    "band": "hi",
+    "labelled_affected": 1486,
+    "labelled_destroyed": 1484,
+    "affected_inside": 0.752,
+    "destroyed_inside": 0.752,
+    "footprint_buildings": 2169,
+    "footprint_unlabelled_share": 0.485
+   },
+   "knots_up": [
+    [
+     2.5,
+     55.89282226562499
+    ],
+    [
+     7.5,
+     42.5
+    ],
+    [
+     12.5,
+     142.658935546875
+    ],
+    [
+     17.5,
+     47.1524658203125
+    ],
+    [
+     47.5,
+     25.66558837890625
+    ]
+   ],
+   "knots_down": [
+    [
+     52.5,
+     29.71868896484375
+    ],
+    [
+     57.5,
+     27.787084960937502
+    ],
+    [
+     62.5,
+     24.508514404296875
+    ],
+    [
+     67.5,
+     21.376007080078125
+    ],
+    [
+     72.5,
+     24.089611816406258
+    ],
+    [
+     92.5,
+     13.136706542968751
+    ],
+    [
+     97.5,
+     16.490386962890625
+    ]
+   ]
+  }
+ },
+ "scenario_new_s": 10.77,
+ "walk_s": 9.38,
+ "n_buildings": 386668,
+ "n_bridges": 748,
+ "triggers": {
+  "seismic_signal": {
+   "time": "08:37",
+   "warning": "08:37",
+   "settlements_at_risk": 44,
+   "people_at_risk": 20876.0,
+   "people_without_time": 1596.0,
+   "red": 7,
+   "amber": 10
+  },
+  "dhm_informed": {
+   "time": "09:00",
+   "warning": "09:00",
+   "settlements_at_risk": 44,
+   "people_at_risk": 20876.0,
+   "people_without_time": 7264.0,
+   "red": 24,
+   "amber": 3
+  },
+  "community_calls": {
+   "time": "09:10",
+   "warning": "09:10",
+   "settlements_at_risk": 44,
+   "people_at_risk": 20876.0,
+   "people_without_time": 10884.0,
+   "red": 26,
+   "amber": 3
+  },
+  "official_sms": {
+   "time": "09:15",
+   "warning": "09:15",
+   "settlements_at_risk": 44,
+   "people_at_risk": 20876.0,
+   "people_without_time": 12324.0,
+   "red": 27,
+   "amber": 2
+  },
+  "downstream_forecast": {
+   "time": "10:28",
+   "warning": "10:28",
+   "settlements_at_risk": 44,
+   "people_at_risk": 20876.0,
+   "people_without_time": 20356.0,
+   "red": 38,
+   "amber": 3
+  }
+ },
+ "settlements_0915": [
+  {
+   "name": "Dalgaun",
+   "status": "red",
+   "slack_min": -41.741818237304685,
+   "people_at_risk": 1128.0,
+   "people_without_time": 1128.0,
+   "river_km": 3.911909088590096,
+   "arrival_early": "08:46",
+   "walk_min_median": 4.271515909830729,
+   "walk_min_max": 8.491818237304688
+  },
+  {
+   "name": "Rasuwa Gadhi",
+   "status": "red",
+   "slack_min": -42.40540110270182,
+   "people_at_risk": 796.0,
+   "people_without_time": 796.0,
+   "river_km": 1.3045584412271571,
+   "arrival_early": "08:46",
+   "walk_min_median": 5.322537231445312,
+   "walk_min_max": 9.155401102701823
+  },
+  {
+   "name": "Dalphedi",
+   "status": "red",
+   "slack_min": -41.203697713216144,
+   "people_at_risk": 340.0,
+   "people_without_time": 340.0,
+   "river_km": 5.925290039756336,
+   "arrival_early": "08:46",
+   "walk_min_median": 5.3013758341471355,
+   "walk_min_max": 7.953697713216146
+  },
+  {
+   "name": "Pajung",
+   "status": "red",
+   "slack_min": -42.49769795735677,
+   "people_at_risk": 84.0,
+   "people_without_time": 84.0,
+   "river_km": 13.261828996322947,
+   "arrival_early": "08:46",
+   "walk_min_median": 5.979849243164063,
+   "walk_min_max": 9.24769795735677
+  },
+  {
+   "name": "Lingling",
+   "status": "red",
+   "slack_min": -41.94111073811849,
+   "people_at_risk": 56.0,
+   "people_without_time": 56.0,
+   "river_km": 10.047199128346431,
+   "arrival_early": "08:46",
+   "walk_min_median": 6.435492706298827,
+   "walk_min_max": 8.691110738118489
+  },
+  {
+   "name": "Shyaphru Bensi",
+   "status": "red",
+   "slack_min": -41.40930808427281,
+   "people_at_risk": 472.0,
+   "people_without_time": 472.0,
+   "river_km": 15.258519471906068,
+   "arrival_early": "08:46",
+   "walk_min_median": 5.152635955810547,
+   "walk_min_max": 8.781783040364584
+  },
+  {
+   "name": "Shyaphru",
+   "status": "red",
+   "slack_min": -41.18550824070232,
+   "people_at_risk": 676.0,
+   "people_without_time": 676.0,
+   "river_km": 15.705504320004417,
+   "arrival_early": "08:47",
+   "walk_min_median": 4.8483332316080725,
+   "walk_min_max": 8.739943695249048
+  },
+  {
+   "name": "Sano Bharkhu",
+   "status": "red",
+   "slack_min": -31.092364018808464,
+   "people_at_risk": 4.0,
+   "people_without_time": 4.0,
+   "river_km": 18.53439825669286,
+   "arrival_early": "08:49",
+   "walk_min_median": 0.5667016347249348,
+   "walk_min_max": 0.5667016347249348
+  },
+  {
+   "name": "Thulo Bharkhu",
+   "status": "red",
+   "slack_min": -29.78103347951996,
+   "people_at_risk": 4.0,
+   "people_without_time": 4.0,
+   "river_km": 20.472337649086256,
+   "arrival_early": "08:50",
+   "walk_min_median": 0.5511700948079427,
+   "walk_min_max": 0.5511700948079427
+  },
+  {
+   "name": "Pasture and Fodder Research Station, Dhunche",
+   "status": "red",
+   "slack_min": -34.26103591878001,
+   "people_at_risk": 24.0,
+   "people_without_time": 24.0,
+   "river_km": 22.35542422773727,
+   "arrival_early": "08:51",
+   "walk_min_median": 5.722127787272135,
+   "walk_min_max": 6.2418665568033855
+  },
+  {
+   "name": "Haku Besi",
+   "status": "red",
+   "slack_min": -30.636734670876454,
+   "people_at_risk": 8.0,
+   "people_without_time": 8.0,
+   "river_km": 24.72490690945617,
+   "arrival_early": "08:53",
+   "walk_min_median": 4.250342559814453,
+   "walk_min_max": 4.250342559814453
+  },
+  {
+   "name": "Thade",
+   "status": "red",
+   "slack_min": -28.85575526373291,
+   "people_at_risk": 4.0,
+   "people_without_time": 4.0,
+   "river_km": 29.619902576697278,
+   "arrival_early": "08:56",
+   "walk_min_median": 5.742391459147135,
+   "walk_min_max": 5.742391459147135
+  },
+  {
+   "name": "Gogne",
+   "status": "red",
+   "slack_min": -28.355226512901112,
+   "people_at_risk": 84.0,
+   "people_without_time": 84.0,
+   "river_km": 31.333283527863518,
+   "arrival_early": "08:58",
+   "walk_min_median": 5.649838256835937,
+   "walk_min_max": 6.387511189778646
+  },
+  {
+   "name": "Mailung",
+   "status": "red",
+   "slack_min": -27.0954371999782,
+   "people_at_risk": 352.0,
+   "people_without_time": 352.0,
+   "river_km": 33.88276620958242,
+   "arrival_early": "08:59",
+   "walk_min_median": 4.369789377848307,
+   "walk_min_max": 6.986020151954777
+  },
+  {
+   "name": "Dharna bhadaure",
+   "status": "red",
+   "slack_min": -26.518965756105942,
+   "people_at_risk": 8.0,
+   "people_without_time": 8.0,
+   "river_km": 34.83052270234352,
+   "arrival_early": "09:00",
+   "walk_min_median": 4.47939097095623,
+   "walk_min_max": 6.913885752540714
+  },
+  {
+   "name": "Chipleti",
+   "status": "red",
+   "slack_min": -26.130587034429514,
+   "people_at_risk": 384.0,
+   "people_without_time": 384.0,
+   "river_km": 35.95614716074866,
+   "arrival_early": "09:00",
+   "walk_min_median": 4.951718139738782,
+   "walk_min_max": 6.8395746866861975
+  },
+  {
+   "name": "Simle",
+   "status": "red",
+   "slack_min": -23.296245924215754,
+   "people_at_risk": 148.0,
+   "people_without_time": 148.0,
+   "river_km": 40.25415797989142,
+   "arrival_early": "09:02",
+   "walk_min_median": 3.9847559611002605,
+   "walk_min_max": 6.768055216471354
+  },
+  {
+   "name": "Salim Bhitta",
+   "status": "red",
+   "slack_min": -21.022540899272116,
+   "people_at_risk": 48.0,
+   "people_without_time": 48.0,
+   "river_km": 41.038422048603344,
+   "arrival_early": "09:04",
+   "walk_min_median": 4.372314707438151,
+   "walk_min_max": 5.427230580828475
+  },
+  {
+   "name": "Shanti Bazar",
+   "status": "red",
+   "slack_min": -20.647680627563425,
+   "people_at_risk": 380.0,
+   "people_without_time": 380.0,
+   "river_km": 42.64937659289839,
+   "arrival_early": "09:04",
+   "walk_min_median": 4.473888142903646,
+   "walk_min_max": 6.374781799316406
+  },
+  {
+   "name": "Uttargaya",
+   "status": "red",
+   "slack_min": -21.53932942844057,
+   "people_at_risk": 96.0,
+   "people_without_time": 96.0,
+   "river_km": 43.07665581351197,
+   "arrival_early": "09:05",
+   "walk_min_median": 5.652686564127604,
+   "walk_min_max": 7.346998596191407
+  },
+  {
+   "name": "Karki Gaun",
+   "status": "red",
+   "slack_min": -21.140228055456113,
+   "people_at_risk": 420.0,
+   "people_without_time": 420.0,
+   "river_km": 44.058493475352705,
+   "arrival_early": "09:05",
+   "walk_min_median": 4.809718322753906,
+   "walk_min_max": 7.221846008300782
+  },
+  {
+   "name": "Naubisephat",
+   "status": "red",
+   "slack_min": -19.44997175767585,
+   "people_at_risk": 1480.0,
+   "people_without_time": 1480.0,
+   "river_km": 45.664300833390136,
+   "arrival_early": "09:06",
+   "walk_min_median": 4.30935312906901,
+   "walk_min_max": 6.5453638712565105
+  },
+  {
+   "name": "Betrawati",
+   "status": "red",
+   "slack_min": -19.254990749876526,
+   "people_at_risk": 1792.0,
+   "people_without_time": 1792.0,
+   "river_km": 47.47797615707161,
+   "arrival_early": "09:08",
+   "walk_min_median": 3.550249226888021,
+   "walk_min_max": 8.122508239746093
+  },
+  {
+   "name": "Bhainse",
+   "status": "red",
+   "slack_min": -17.01716798390185,
+   "people_at_risk": 1368.0,
+   "people_without_time": 1368.0,
+   "river_km": 49.41378351510904,
+   "arrival_early": "09:09",
+   "walk_min_median": 3.584535090128581,
+   "walk_min_max": 7.958518981933594
+  },
+  {
+   "name": "Jafati",
+   "status": "red",
+   "slack_min": -10.951317245687711,
+   "people_at_risk": 396.0,
+   "people_without_time": 396.0,
+   "river_km": 52.07900212811602,
+   "arrival_early": "09:14",
+   "walk_min_median": 3.6532269795735677,
+   "walk_min_max": 6.110734558105468
+  },
+  {
+   "name": "Bhyagute",
+   "status": "red",
+   "slack_min": -9.760527449851075,
+   "people_at_risk": 1060.0,
+   "people_without_time": 1060.0,
+   "river_km": 54.341794334251794,
+   "arrival_early": "09:15",
+   "walk_min_median": 2.6216420491536456,
+   "walk_min_max": 8.128877258300781
+  },
+  {
+   "name": "Bidur",
+   "status": "red",
+   "slack_min": -4.342382082687493,
+   "people_at_risk": 1988.0,
+   "people_without_time": 712.0,
+   "river_km": 58.18340905032667,
+   "arrival_early": "09:21",
+   "walk_min_median": 3.3428553263346354,
+   "walk_min_max": 8.15405527750651
+  },
+  {
+   "name": "Pipaltar",
+   "status": "amber",
+   "slack_min": 4.354987149235065,
+   "people_at_risk": 804.0,
+   "people_without_time": 0.0,
+   "river_km": 63.58840471756777,
+   "arrival_early": "09:30",
+   "walk_min_median": 3.1646855672200522,
+   "walk_min_max": 8.000360616048177
+  },
+  {
+   "name": "Devighat",
+   "status": "amber",
+   "slack_min": 8.968942177652075,
+   "people_at_risk": 2812.0,
+   "people_without_time": 0.0,
+   "river_km": 66.27546099241547,
+   "arrival_early": "09:34",
+   "walk_min_median": 3.4606056213378906,
+   "walk_min_max": 7.3383433024088545
+  },
+  {
+   "name": "Galchhi",
+   "status": "green",
+   "slack_min": 37.88098883256651,
+   "people_at_risk": 576.0,
+   "people_without_time": 0.0,
+   "river_km": 83.8589047048133,
+   "arrival_early": "10:00",
+   "walk_min_median": 1.9725079854329428,
+   "walk_min_max": 4.855944315592448
+  },
+  {
+   "name": "MaheshDovan",
+   "status": "green",
+   "slack_min": 44.40111318603688,
+   "people_at_risk": 540.0,
+   "people_without_time": 0.0,
+   "river_km": 86.42169691094908,
+   "arrival_early": "10:07",
+   "walk_min_median": 2.307755788167318,
+   "walk_min_max": 3.7024871826171877
+  },
+  {
+   "name": "Mastar",
+   "status": "green",
+   "slack_min": 47.676479586859074,
+   "people_at_risk": 392.0,
+   "people_without_time": 0.0,
+   "river_km": 90.63059084763752,
+   "arrival_early": "10:10",
+   "walk_min_median": 1.9084943135579426,
+   "walk_min_max": 4.156464131673177
+  },
+  {
+   "name": "Keurintar Village",
+   "status": "green",
+   "slack_min": 49.79563854530383,
+   "people_at_risk": 52.0,
+   "people_without_time": 0.0,
+   "river_km": 89.7614739651832,
+   "arrival_early": "10:13",
+   "walk_min_median": 2.974079132080078,
+   "walk_min_max": 3.559643046061198
+  },
+  {
+   "name": "Keurintar Village Area",
+   "status": "green",
+   "slack_min": 51.217895599453634,
+   "people_at_risk": 20.0,
+   "people_without_time": 0.0,
+   "river_km": 90.16603240641037,
+   "arrival_early": "10:13",
+   "walk_min_median": 2.590496826171875,
+   "walk_min_max": 2.590496826171875
+  },
+  {
+   "name": "Adamghat",
+   "status": "green",
+   "slack_min": 49.5205507231797,
+   "people_at_risk": 440.0,
+   "people_without_time": 0.0,
+   "river_km": 91.55242850947825,
+   "arrival_early": "10:15",
+   "walk_min_median": 2.3363367716471353,
+   "walk_min_max": 6.19145762125651
+  },
+  {
+   "name": "Adamghat",
+   "status": "green",
+   "slack_min": 56.12268403971097,
+   "people_at_risk": 188.0,
+   "people_without_time": 0.0,
+   "river_km": 94.60161681868193,
+   "arrival_early": "10:18",
+   "walk_min_median": 2.512818145751953,
+   "walk_min_max": 3.531231689453125
+  },
+  {
+   "name": "Ghatbesi",
+   "status": "green",
+   "slack_min": 58.96135685408313,
+   "people_at_risk": 656.0,
+   "people_without_time": 0.0,
+   "river_km": 98.14109950040083,
+   "arrival_early": "10:21",
+   "walk_min_median": 2.0779340108235678,
+   "walk_min_max": 3.947772216796875
+  },
+  {
+   "name": "Gajuri",
+   "status": "green",
+   "slack_min": 64.97336031594547,
+   "people_at_risk": 300.0,
+   "people_without_time": 0.0,
+   "river_km": 100.45448045156706,
+   "arrival_early": "10:28",
+   "walk_min_median": 1.8990582784016927,
+   "walk_min_max": 3.5973780314127604
+  },
+  {
+   "name": "Purano Malekhu",
+   "status": "green",
+   "slack_min": 73.59200479149185,
+   "people_at_risk": 320.0,
+   "people_without_time": 0.0,
+   "river_km": 107.0346233050658,
+   "arrival_early": "10:35",
+   "walk_min_median": 1.6781259536743165,
+   "walk_min_max": 2.94396489461263
+  },
+  {
+   "name": "Malekhu",
+   "status": "green",
+   "slack_min": 84.06391221539198,
+   "people_at_risk": 32.0,
+   "people_without_time": 0.0,
+   "river_km": 111.40594364862542,
+   "arrival_early": "10:45",
+   "walk_min_median": 1.7330096562703452,
+   "walk_min_max": 1.9544134775797526
+  },
+  {
+   "name": "Salanghat",
+   "status": "green",
+   "slack_min": 85.24810957090524,
+   "people_at_risk": 48.0,
+   "people_without_time": 0.0,
+   "river_km": 112.44884732764415,
+   "arrival_early": "10:46",
+   "walk_min_median": 1.4660870869954428,
+   "walk_min_max": 2.2430389404296873
+  },
+  {
+   "name": "Ghyalchok",
+   "status": "green",
+   "slack_min": 92.25257193026286,
+   "people_at_risk": 48.0,
+   "people_without_time": 0.0,
+   "river_km": 116.35667524715461,
+   "arrival_early": "10:53",
+   "walk_min_median": 1.1628716786702473,
+   "walk_min_max": 2.0350634256998696
+  },
+  {
+   "name": "Bishaltar",
+   "status": "green",
+   "slack_min": 96.65687267895423,
+   "people_at_risk": 16.0,
+   "people_without_time": 0.0,
+   "river_km": 119.7825540319414,
+   "arrival_early": "10:58",
+   "walk_min_median": 1.816147804260254,
+   "walk_min_max": 1.9729565938313802
+  },
+  {
+   "name": "Dhussa",
+   "status": "green",
+   "slack_min": 99.05177216583479,
+   "people_at_risk": 32.0,
+   "people_without_time": 0.0,
+   "river_km": 121.1689501350093,
+   "arrival_early": "11:01",
+   "walk_min_median": 2.3205785115559894,
+   "walk_min_max": 2.642377471923828
+  }
+ ],
+ "engine_footprint_check": {
+  "affected_inside": 0.98,
+  "footprint_buildings": 6560,
+  "footprint_unlabelled_share": 0.535
+ }
+}
