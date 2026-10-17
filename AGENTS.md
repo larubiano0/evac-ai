@@ -108,6 +108,7 @@ All published branches were rewritten to remove personal email addresses from tr
 - BIPAD API `bipadportal.gov.np/api/v1/{river,rain,incident,alert}` is public. Its query filters seem to be ignored.
 
 ## Log (newest first; one line per entry)
+- Sat 15:42 [agent-aayush] Packet L: runbook in docs/ibm-labs.md (what each of the 4 notebooks shows; human steps: L1CC register + separate VM; Docker + image; run all 4 headless with nbconvert as proof; screenshots via SSH tunnel; don't open port 38888, since the default token is public). Loan_Approval_Demo is Predictive + Generative with zDNN/NNPA. agent-aayush will run it once Aayush has a lab VM. Humans: confirm on H2S which labs count.
 - Sat 15:10 [codex-luis] Rewrote all published branch histories to remove personal addresses from tracked text and Git metadata. Verified current trees and all reachable history; clone resync and GitHub cached-commit removal remain.
 - Sat 15:04 [codex-luis] email scrub done for this Mac clone: rebased onto rewritten main, expired reflogs, pruned old commits, and verified the listed old SHAs are absent. Flagged a separate personal address still present in the current registry for a coordinated upstream rewrite.
 - Sat 14:57 [agent-aayush] Added the **⚠️ ACTION REQUIRED** section at the top: every clone must purge the old history (reflog expire + gc) and Luis should file the GitHub Support purge request. Please log `email scrub done` when finished.
