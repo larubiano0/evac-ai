@@ -16,7 +16,7 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 |---|---|---|---|---|---|
 | `claude-luis` | Luis Rubiano (GitHub `larubiano0`) | Mac `luissmacbookpro` → drives the L1CC VM over SSH; pushes to `main` | `pipeline/`, `engine/terrain.py` `flood.py` `safety.py` `scenario.py` `alerts.py`, `api/`, `web/`, `replay/oct11.json`, VM `~/evac-ai` | Working: E (offline plan). B fallback at 15:30 | Sat 14:22 |
 | `agent-lcpizani` | `[redacted]` | Mac (lucas) → pushes to `main`; VM `~/work-agent-lcpizani` | `data/processed/`, `data/docs/`, `scripts/{common,extract_osm,extract_landslides,fetch_dem,fetch_worldpop,record_dhm}.py`, `engine/damage_model.py`, `engine/route_reliability.py` (B2), `models/damage/`, `scripts/damage/` | Working: **B** — features DONE (23.6k rows), training v1 next. Then B2 (approved) | Sat 14:37 |
-| `agent-aayush` | Aayush Poudel (GitHub `apoudel20`) | cloud session; push to `main` | `replay/aug26.json`, `README.md`, `docs/` (video script) | C ✅ DONE. Working: **F** (README), then G | Sat 14:35 |
+| `agent-aayush` | Aayush Poudel (GitHub `apoudel20`) | cloud session; push to `main` | `replay/aug26.json`, `README.md`, `docs/` (video script) | C ✅, F ✅ DONE. Working: **G** (video script, `docs/`) | Sat 14:38 |
 | _(teammate 4)_ | | | | add yourself, then take packet C, E or F | |
 
 ### ⚠️ For `agent-lcpizani`: your branch vs. `main`
@@ -58,7 +58,7 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 |---|---|---|---|
 | `claude-luis` | E: offline plan | **B: ML model if agent-lcpizani hasn't checked in by 15:30** | D |
 | `agent-lcpizani` | **B: ML damage model** (your labels + `data/proc_trishuli`) | B2: route reliability (approved, ≤1 h) | D: validation numbers |
-| `agent-aayush` | ~~C~~ ✅ → **F: README** | G: video script | help D |
+| `agent-aayush` | ~~C~~ ✅ ~~F~~ ✅ → **G: video script** | help D | — |
 | (any further agent) | X: stretch calibration | help D | — |
 | humans | **L: mandatory labs** (everyone, now) | H: Nepali review | G: record video (Sun 06:00–08:30) |
 
@@ -99,6 +99,7 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 - BIPAD API `bipadportal.gov.np/api/v1/{river,rain,incident,alert}` is public. Its query filters seem to be ignored.
 
 ## Log (newest first; one line per entry)
+- Sat 14:38 [agent-aayush] Packet F DONE: README.md (what exists per file, API table, mermaid flowchart, container + bare-metal run steps, Oct 11 results as logged here, limitations, Libraries & Resources with links + licenses). Says only what the code does: damage model/B2/E/D marked in progress, Aug 26 not yet wired to proc_trishuli, DHM/BIPAD not live triggers. **claude-luis: the Dockerfile isn't in the repo** (README says so); please commit it. Whoever finishes B/D: update README 'Results so far'. Starting G.
 - Sat 14:37 [agent-lcpizani] B features built on L1CC (6.3 s, s390x): engine/damage_model.py (shared feature code for train + inference) + scripts/damage/build_table.py. Aug 26 table within 500 m of the Trishuli path: 3,093 affected / 20,358 unaffected buildings (99.6% of all Aug positives kept), 63 / 72 bridges; report in models/damage/build_report.json. NOTE for aug26 users: its height calibration knots (Kali Khola 84.546, Devghat 84.43) lie WEST of the proc_trishuli grid (edge 84.735), VERIFIED on the VM: Terrain.rc gives col -660 for Kali Khola and numpy wraps silently, so km_of returns 66.06 km (wrong; Devghat gives NaN). calibrate_from_replay(aug26) on proc_trishuli would put the 12.3 m knot at km 66. Suggest an inside-grid check in km_of (claude-luis owns scenario.py/flood.py). For B v2 I reconstruct the Aug flood line from damage marks instead. Next: train v1 + spatial holdout.
 - Sat 14:35 [agent-aayush] Packet C DONE: replay/aug26.json (same top-level keys as oct11, 9 observations). 5 calibration points: Syabrubesi 08:50, Betrawati 09:20, Malekhu 11:26, Kali Khola peak 14:14 12.3 m, Devghat 15:20/peak 16:00 6.57 m. Excluded: Trishuli school time, Mugling, Galchhi, Timure. Loads via api/app.py's replay/*.json glob; engine.flood.calibrate_from_replay parses it (tested with a dummy km_of). **For claude-luis (your files, not edited):** (1) api/app.py valley() is hardcoded to data/proc (Budhi Gandaki), so /api/scenario?replay=aug26 needs a per-replay Valley(data/proc_trishuli). (2) Devghat (27.71) is south of the 3-district DEM bbox (south 27.73), and Kali Khola may be past the 121 km path end; Terrain.rc has no bounds check, so km_of may IndexError or wrap. Suggest a bounds check or set Devghat to excluded for the Trishuli build. Starting F.
 - Sat 14:33 [claude-luis] Coordination: approved agent-lcpizani's B2 (route reliability) with conditions: after B, <=1 h, <=2 s per scenario, new keys only. Packet C goes to agent-aayush (removed from lcpizani's queue to avoid duplication). Packet L (labs): a human posts the lab links, an agent runs them on a SEPARATE L1CC VM, a human submits the proof. Now starting E (offline plan).
