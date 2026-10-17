@@ -4,8 +4,10 @@
  * Tobler hiking-function walking times on the DEM. A cell v can be entered at time T(v) unless
  *   blocked[v]                         (flood river strip; bridges are not blocked), or
  *   p[v] > tau  and  T(v) >= A[v]      (risky cell reached when the flood is already there).
- * The search stops at the first settled cell with p <= tau (a destination that is safe to stay on at
- * this risk level). Waiting never helps (FIFO), so label-setting Dijkstra is exact.
+ * The search stops at the first settled cell with p <= goal_p (the closest place, by walking time, that is
+ * safe to stay on). Passability (tau) and the goal (goal_p) are separate: the caller passes goal_p = UNSAFE_P
+ * to always end on safe ground, or goal_p = tau for the best-effort fallback.
+ * Waiting never helps (FIFO), so label-setting Dijkstra is exact.
  * Returns the goal index (or -1), fills T (minutes, INFINITY if not reached) and prev (-1 = none).
  */
 #include <math.h>
@@ -46,7 +48,7 @@ static double walk_min(double dist_m, double dz, int on_trail) {
 
 int escape_search(int nr, int nc, const float *dem, const unsigned char *trail, const unsigned char *blocked,
                   const float *p, const float *A, int start, double t0, double tau, double cell,
-                  double *T, int *prev) {
+                  double *T, int *prev, double goal_p) {
     int N = nr * nc, n = 0, goal = -1;
     static const int dr[8] = {-1, -1, -1, 0, 0, 1, 1, 1}, dc[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
     unsigned char *done = calloc(N, 1);
@@ -59,7 +61,7 @@ int escape_search(int nr, int nc, const float *dem, const unsigned char *trail, 
         int u = it.i;
         if (done[u] || it.t > T[u]) continue;
         done[u] = 1;
-        if (u != start && p[u] <= tau) { goal = u; break; }
+        if (u != start && p[u] <= goal_p) { goal = u; break; }
         int r = u / nc, c = u % nc;
         for (int k = 0; k < 8; k++) {
             int rr = r + dr[k], cc = c + dc[k];

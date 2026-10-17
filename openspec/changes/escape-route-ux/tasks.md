@@ -1,27 +1,27 @@
 ## 0. Coordination
 
-- [ ] 0.1 `git pull --rebase`; update my row in AGENTS.md to "NOW: escape-route-ux (engine/escape.py, escape_search.c, web/predict.html)"; push the claim before coding
+- [x] 0.1 `git pull --rebase`; update my row in AGENTS.md to "NOW: escape-route-ux (engine/escape.py, escape_search.c, web/predict.html)"; push the claim before coding
 
 ## 1. Engine: destination choice
 
-- [ ] 1.1 `escape_search.c`: add a trailing `double goal_p` parameter; the goal test becomes `p[u] <= goal_p` (passability still uses `tau`)
-- [ ] 1.2 `escape.py`: update the ctypes `argtypes`
-- [ ] 1.3 `_best`: first pass over the ladder with `goal_p = UNSAFE_P` (closest safe place through the least risky passage); if no τ finds one, second pass with `goal_p = tau` (today's behaviour) and mark `destination_safe = false`
-- [ ] 1.4 The backup search uses the same rule (closest safe place outside the 300 m exclusion)
-- [ ] 1.5 Add `HURRY_MIN = 10`, `RUN_MIN = 3` next to the other policy numbers; compute `urgency` (walk/hurry/run) from `min_margin_before_flood_min` and your own spot's time to flood
+- [x] 1.1 `escape_search.c`: add a trailing `double goal_p` parameter; the goal test becomes `p[u] <= goal_p` (passability still uses `tau`)
+- [x] 1.2 `escape.py`: update the ctypes `argtypes`
+- [x] 1.3 `_best`: first pass over the ladder with `goal_p = UNSAFE_P` (closest safe place through the least risky passage); if no τ finds one, second pass with `goal_p = tau` (today's behaviour) and mark `destination_safe = false`
+- [x] 1.4 The backup search uses the same rule (closest safe place outside the 300 m exclusion)
+- [x] 1.5 Add `HURRY_MIN = 10`, `RUN_MIN = 3` next to the other policy numbers; compute `urgency` (walk/hurry/run) from `min_margin_before_flood_min` and your own spot's time to flood
 
 ## 2. Engine: response fields
 
-- [ ] 2.1 Add `destination_safe` (destination p ≤ UNSAFE_P) to route results
-- [ ] 2.2 `escape()`: zone threshold = UNSAFE_P if `destination_safe`, else p_dest + 0.01
-- [ ] 2.3 `_route`: compute `hazard` (`flooded` riskiest after-flood point, else `race` smallest-margin point; never the destination); `pass_before_min` relative to t0
-- [ ] 2.4 `_advice`: the headline starts with RUN / Hurry / Leave now from `urgency`; wording for a best-effort destination ("best ground you can reach, N% risk") and the hazard ("pass the point marked ⚠ before N min")
+- [x] 2.1 Add `destination_safe` (destination p ≤ UNSAFE_P) to route results
+- [x] 2.2 `escape()`: zone threshold = UNSAFE_P if `destination_safe`, else p_dest + 0.01
+- [x] 2.3 `_route`: compute `hazard` (`flooded` riskiest after-flood point, else `race` smallest-margin point; never the destination); `pass_before_min` relative to t0
+- [x] 2.4 `_advice`: the headline starts with RUN / Hurry / Leave now from `urgency`; wording for a best-effort destination ("best ground you can reach, N% risk") and the hazard ("pass the point marked ⚠ before N min")
 
 ## 3. Engine: checks
 
-- [ ] 3.1 Extend `scripts/damage/test_escape.py`: determinism (same query twice gives identical output), the destination is ≤ UNSAFE_P whenever any safe cell is reachable, `destination_safe` ⇒ `safe_zone.max_risk ≤ UNSAFE_P`, `hazard` is never the destination, urgency thresholds
-- [ ] 3.2 Re-run the screenshot case (Budhi, oct11, the click near the 2160 m contour) and confirm the destination is the closest safe ground
-- [ ] 3.3 Time escape queries on the VM (s390x): p50/p95 stay < 50 ms
+- [x] 3.1 Extend `scripts/damage/test_escape.py`: determinism (same query twice gives identical output), the destination is ≤ UNSAFE_P whenever any safe cell is reachable, `destination_safe` ⇒ `safe_zone.max_risk ≤ UNSAFE_P`, `hazard` is never the destination, urgency thresholds
+- [x] 3.2 Re-run the screenshot case (Budhi, oct11, the click near the 2160 m contour) and confirm the destination is the closest safe ground
+- [x] 3.3 Time escape queries on the VM (s390x): p50/p95 stay < 50 ms
 
 ## 4. Page: route drawing
 
