@@ -233,3 +233,8 @@ data/raw/
 
 # Data: raw downloads stay local, re-fetch with scripts/ (see data/README.md)
 *.part
+
+# local agent tooling caches / nested worktrees
+.claude/worktrees/
+.impeccable/
+**/.impeccable/
