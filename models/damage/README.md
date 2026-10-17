@@ -44,6 +44,40 @@ How to read this:
   - **Soti:** OSM has **no motorable bridge** mapped near Soti, so the "Soti iron bridge" can't be scored.
 - Disclosure: scoring bridges at their **crossing point** (below) was prompted by inspecting the Arughat bridge. It's a geometric correction applied identically in training, and it did not change the October outcome.
 
+## Retrained on three real floods (v3): does it transfer? (`scripts/damage/train_events.py`)
+
+Two more real events were added (tables built by `scripts/damage/events/`, sources in `SOURCES_ahr.md` / `SOURCES_derna.md`):
+**Ahr, Germany, Jul 2021** (4TU damage grades, 7,014 affected / 4,521 unaffected buildings within 500 m) and
+**Derna, Libya, Sep 2023** (UNOSAT damaged buildings + OSM, 567 / 637; wadi corridor only). Buildings only, no bridges.
+Rules fixed before looking: v3 replaces v2 in the app only if it is at least as good on the Nepal holdout and on Oct 11.
+
+**A. Leave one flood out** (train on two floods, test on the third; ROC AUC):
+
+| Test flood | Model (2 floods) | HAND alone | Distance alone |
+|---|---|---|---|
+| Nepal Aug 26 | 0.889 | 0.882 | 0.886 |
+| Ahr | **0.650** | 0.826 | 0.783 |
+| Derna | 0.835 | 0.842 | 0.792 |
+
+**B. Nepal spatial holdout** (mean of both directions): v2 **0.881**, v3 (Nepal + Ahr + Derna) 0.872. Bridges, downstream test: v2 0.854, v3 0.605.
+
+**Verdict: v3 failed B, so the app keeps v2** (C was not needed). v3 is saved outside the repo (`~/work-agent-lcpizani/out/v3.joblib`).
+
+**A2 (post-hoc, decided after seeing A):** forcing risk to only fall with HAND and distance, buildings only:
+
+| Test flood | All features | All features, monotone | HAND + distance only, monotone | HAND alone |
+|---|---|---|---|---|
+| Nepal Aug 26 | 0.890 | 0.877 | **0.900** | 0.882 |
+| Ahr | 0.669 | 0.751 | 0.815 | 0.826 |
+| Derna | 0.831 | 0.846 | 0.846 | 0.842 |
+
+**What this means:**
+- On a flood it has never seen, the model is no better than ranking by HAND (height above the river).
+- The extra terrain features (slope, valley width, bends) learned in one valley do not carry over to another.
+- Inside Nepal they do help: v2 0.881 vs HAND 0.844.
+- For a new valley or flood type, the simplest physics-shaped model (HAND + distance, monotone) is the honest choice.
+- Label definitions differ between floods: Ahr counts any damage grade D1+; Nepal counts OSM damage tags. Some of the Ahr gap may come from this.
+
 ## How it works
 
 1. **Rows:** OSM buildings and bridges that drain into the flood path and lie ≤ 500 m from it.
@@ -83,12 +117,14 @@ python3 scripts/damage/ablation.py         # -> ablation.json
 python3 scripts/damage/train_eval.py       # -> v1/v2.joblib, metrics.json, aug26_damage_envelope.json
 python3 scripts/damage/check_reproduce.py  # load + predict == training predictions (max err 5e-7)
 python3 scripts/damage/oct11_check.py      # -> oct11_check.json (no GRASS writes)
+python3 scripts/damage/train_events.py     # -> events_metrics.json (needs ~/work-agent-lcpizani/events/{ahr,derna}/table.npz)
 ```
 These need the engine's `data/proc_trishuli` and `data/proc` + `data/raw` (Budhi) builds on the VM.
 
 ## Limits (say these in the video)
 
-- **One training event**, with labels traced by volunteers from satellite imagery. Damage under trees or in narrow gorges may be missed, so some "unaffected" rows are really affected. That's why results are reported as rankings and recall.
+- **Transfer to other floods is weak** (section above): outside Nepal the model is no better than HAND.
+- **One training event** for v2, with labels traced by volunteers from satellite imagery. Damage under trees or in narrow gorges may be missed, so some "unaffected" rows are really affected. That's why results are reported as rankings and recall.
 - **Tributary damage** is only included where it drains into the main path within 500 m.
 - **Freeboard is only as good as the flood line.** In August the line comes from damage marks; in October from the engine's envelope. The two are related but not the same quantity.
 - **30 m DEM:** the D8 channel can drift from the real river (Arughat ≥ 175 m), which corrupts every height measured there.
@@ -104,6 +140,9 @@ These need the engine's `data/proc_trishuli` and `data/proc` + `data/raw` (Budhi
 | `oct11_check.json` | October application: lost-bridge candidates with p/rank, expected affected counts |
 | `build_report.json` | Training-table counts, dropped rows and reasons |
 | `aug26_damage_envelope.json` | Reconstructed Aug flood line (knots, method) |
+| `events_metrics.json` | Three-flood retrain: leave-one-flood-out, post-hoc monotone test, Nepal holdout v2 vs v3 |
 | `train_pred_sample.json` | 300-row prediction sample used by `check_reproduce.py` |
 
-Data: © OpenStreetMap contributors (ODbL); Copernicus DEM GLO-30; Roback et al. 2017 landslide inventory (USGS, public domain).
+Data: © OpenStreetMap contributors (ODbL); Copernicus DEM GLO-30; Roback et al. 2017 landslide inventory (USGS, public domain);
+Ahr labels: Samprogna Mohor et al. 2025, 4TU.ResearchData, doi:10.4121/8f7a21d3-9bb9-4808-ae51-761eb3fba986 (ODbL 1.0);
+Derna labels: UNITAR-UNOSAT FL20230912LBY via HDX (CC BY-SA).
