@@ -88,7 +88,9 @@ EVENTS = {
         river=None,
         primary=dict(name="unosat_FL20261011NPL", extent=[("unosat_dl/FL20261011NPL_SHP.zip.x/**/S2_20261011_MudslideExtent.shp", None)],
                      aoi=[("unosat_dl/FL20261011NPL_SHP.zip.x/**/S2_20261011_AnalysisExtent.shp", None)], masks=[]),
-        secondary={}, positive_only={}),
+        secondary={},
+        positive_only={"in_mbrsc_s2_extent": ("sentinelasia_dl/20261010-Nepal-Flood-Landslide-Other-00664.zip.x/*.shp",
+                                              "gridcode", 1)}),
     "derna": dict(
         name="Derna dam-burst flash flood, Libya, 10-11 Sep 2023", epsg=32634,
         proc=os.path.join(EV, "proc"), source=(22.57708, 32.65937), snap_radius=15,
@@ -226,7 +228,12 @@ def main():
     sec = {k: label_set(cems_parts(v), T) for k, v in cfg["secondary"].items()}
     pos_only = {}
     for k, f in cfg["positive_only"].items():
-        g, n, files = read_union([(f, None)])
+        f, col, val = (f, None, None) if isinstance(f, str) else f      # optional attribute filter
+        if col is None:
+            g, n, files = read_union([(f, None)])
+        else:
+            src = one(f); gg = gpd.read_file(src); gg = gg[gg[col] == val].to_crs(EPSG)
+            g, n, files = unary_union([make_valid(x) for x in gg.geometry]), len(gg), [os.path.relpath(src, EV) + f" [{col}=={val}]"]
         pos_only[k] = (burn(g, T), {"file": files[0], "features": n, "km2": round(g.area / 1e6, 3)})
 
     drain = ctx.drain.ravel()

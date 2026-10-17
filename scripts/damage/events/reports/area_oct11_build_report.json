@@ -45,7 +45,13 @@
     }
   ],
   "secondary_label_parts": {},
-  "positive_only_layers": {},
+  "positive_only_layers": {
+    "in_mbrsc_s2_extent": {
+      "file": "sentinelasia_dl/20261010-Nepal-Flood-Landslide-Other-00664.zip.x/20261010-Nepal-Flood-Landslide-Other-00664.shp [gridcode==1]",
+      "features": 851,
+      "km2": 4.24
+    }
+  },
   "rows_le_500m": {
     "y1": 12258,
     "y0": 75396
@@ -186,7 +192,13 @@
     "y1": 5.647735595703125,
     "y0": 132.5030059814453
   },
-  "secondary_vs_primary_le_500m": {},
+  "secondary_vs_primary_le_500m": {
+    "in_mbrsc_s2_extent": {
+      "positive_cells_le_500m": 4271,
+      "share_of_primary_y1_inside": 0.235,
+      "share_of_primary_y0_inside": 0.018
+    }
+  },
   "kind_feature": "2 = cell (0 building, 1 bridge)",
   "features": [
     "hand",
@@ -204,7 +216,7 @@
   "ls_500m_note": "Nepal-only feature; 0 outside Nepal",
   "timing_s": {
     "path_context": 0.93,
-    "features": 0.85,
-    "total": 3.08
+    "features": 0.87,
+    "total": 3.38
   }
 }
