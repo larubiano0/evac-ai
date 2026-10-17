@@ -224,3 +224,9 @@ __marimo__/
 
 # Planning notes
 plans/
+*.pem
+*.cer
+*.key
+id_rsa*
+.env
+data/raw/
