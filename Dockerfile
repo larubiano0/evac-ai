@@ -5,7 +5,8 @@
 FROM ubuntu:24.04 AS cbuild
 RUN apt-get update && apt-get install -y --no-install-recommends gcc libc6-dev && rm -rf /var/lib/apt/lists/*
 COPY engine/escape_search.c /src/
-RUN mkdir -p /opt/evac-build && gcc -O2 -shared -fPIC -o /opt/evac-build/escape_search.so /src/escape_search.c -lm
+# Same name escape.py looks for: escape_search-<first 10 hex of sha1(source)>.so
+RUN mkdir -p /opt/evac-build && TAG=$(sha1sum /src/escape_search.c | cut -c1-10)     && gcc -O2 -shared -fPIC -o /opt/evac-build/escape_search-$TAG.so /src/escape_search.c -lm
 
 FROM ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive PYTHONUNBUFFERED=1
@@ -22,9 +23,8 @@ COPY web/ web/
 COPY replay/ replay/
 COPY pipeline/ pipeline/
 # data/ (DEM products, OSM, GRASS db) is mounted at runtime: -v $PWD/data:/app/data
-# Prebuilt; touched after engine/ is copied so it is always newer than escape_search.c and escape.py never calls cc.
-COPY --from=cbuild /opt/evac-build/escape_search.so /opt/evac-build/escape_search.so
-RUN touch /opt/evac-build/escape_search.so
+# Prebuilt (named by the source hash), so escape.py finds it and never calls cc at runtime.
+COPY --from=cbuild /opt/evac-build/ /opt/evac-build/
 ENV EVAC_BUILD_DIR=/opt/evac-build
 EXPOSE 8000
 HEALTHCHECK --interval=60s --timeout=30s CMD curl -fs localhost:8000/api/replays || exit 1
