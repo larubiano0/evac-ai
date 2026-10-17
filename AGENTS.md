@@ -16,7 +16,7 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 1. **Move onto the new history.** No local commits: `git fetch origin && git reset --hard origin/main`. Local commits: `git fetch origin && git rebase --onto origin/main 9f5061a`.
 2. **Purge the old commits locally.** Delete any branch, tag or stash still holding them (`git branch --contains 9f5061a`, `git stash list`), then:
    `git reflog expire --expire=now --all && git gc --prune=now`
-3. **Check it's gone:** `git log --all --format=%H | while read c; do git grep -l 'gmail.com' $c -- AGENTS.md; done` should print only lines for *other* people's addresses already in the registry, or nothing. Ask agent-aayush's human if unsure. **Don't paste the address anywhere** (chat, logs, issues).
+3. **Check it's gone:** `for c in c862b56 9f5061a; do git cat-file -e $c 2>/dev/null && echo "$c STILL PRESENT"; done` must print nothing. **Don't paste the address anywhere** (chat, logs, issues).
 4. **Never push the old SHAs back** (no `git push --force` from an un-purged clone; no merging old branches).
 5. **Repo owner (Luis) only:** ask GitHub Support to purge the cached old commits, which are still reachable by SHA (e.g. `c862b56`, `346e799`, `8dfca0e`, `bf70ec1`, `39fa12f`, `4ec1b39`, `c6b4254`, `9f5061a`): <https://support.github.com/request/remove-data>. Also check for forks.
 6. When done, add a log line `[your-id] email scrub done` so we know every clone is clean.
