@@ -70,6 +70,8 @@
     <div>
       <label for="t">Time now: <b id="tlabel">0</b> min after the flood starts</label>
       <input id="t" type="range" min="0" max="240" step="1" value="0">
+      <label style="margin-top:8px; display:flex; gap:6px; align-items:center; font-size:13px; color:var(--text)">
+        <input id="cantrun" type="checkbox"> I can't run (plan at walking pace only)</label>
     </div>
 
     <div class="card legend">
@@ -109,6 +111,9 @@ L.control.layers({ "Terrain": topo, "Streets": osm }, {}, { position: "topright"
 const els = id => document.getElementById(id);
 let opts = null, sid = null, mode = "you", you = null, scen = null, pending = null, seq = 0;
 let showBackup = false, last = null;   // backup route is opt-in; last = the answer on screen
+let raw = null;                        // the full server answer (may carry walk_only)
+// "I can't run": show the walking-pace answer the server sent along (walk_only) when the main one relies on running
+const view = r => (els("cantrun").checked && r && r.walk_only) ? r.walk_only : r;
 const OVERLAY_OPACITY = 0.85, OVERLAY_DIM = 0.45;
 function overlayOpacity(dim) { if (layers.overlay) layers.overlay.setOpacity(dim ? OVERLAY_DIM : OVERLAY_OPACITY) }
 const layers = { overlay: null, path: null, bridges: L.layerGroup().addTo(map), route: L.layerGroup().addTo(map), marks: L.layerGroup().addTo(map) };
@@ -132,6 +137,7 @@ async function init() {
   els("mode-you").onclick = () => setMode("you"); els("mode-trig").onclick = () => setMode("trig");
   els("t").oninput = () => { els("tlabel").textContent = els("t").value; };
   els("t").onchange = () => { if (you) escape(you, false, true); };
+  els("cantrun").onchange = () => { if (raw && you) draw(view(raw), true); };
   await loadScenario();
 }
 function setMode(m) { mode = m; els("mode-you").classList.toggle("on", m === "you"); els("mode-trig").classList.toggle("on", m === "trig"); }
@@ -178,8 +184,9 @@ async function escape(ll, retried, fromSlider) {
     say(`<div class="note">Finding where to go from here…</div>`);
   }
   try {
-    const r = await post("/api/predict/escape", { sid, lon: ll.lng, lat: ll.lat, minutes_after_start: +els("t").value });
-    if (my === seq) draw(r, fromSlider);
+    const r = await post("/api/predict/escape", { sid, lon: ll.lng, lat: ll.lat, minutes_after_start: +els("t").value,
+                                                  can_run: !els("cantrun").checked });
+    if (my === seq) { raw = r; draw(view(r), fromSlider); }
   } catch (e) {
     if (my !== seq) return;
     busy(false);
@@ -254,6 +261,7 @@ function draw(r, fromSlider) {
       <div><b>${r.walk_min != null ? walkMin(r.walk_min) : "–"}</b><span>walk ${safeDest || r.walk_min == null ? "to safety" : "to best ground"}</span></div>
       <div><b>${r.status === "route" ? (spare == null ? "✓" : (spare >= 1 ? Math.round(spare) + " min" : "none")) : "–"}</b><span>time to spare</span></div></div>`;
   }
+  if (r.pace === "run") h += `<div class="note" style="margin-bottom:8px">Assumes you can run for about 5 min. Tick “I can't run” below the time slider if you can't.</div>`;
   h += `<div class="msg">${r.message}</div>`;
   if (r.walk_min != null) h += `<div class="kv"><span>Route</span><span>${r.distance_m} m · ${r.climb_m >= 0 ? "+" : ""}${r.climb_m} m climb</span>
       <span>Path confidence</span><span>${pct(r.confidence)} ${r.safe ? "(safe all the way)" : "(some points risky)"}</span></div>`;

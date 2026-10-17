@@ -12,14 +12,18 @@ Rules (agreed with the team):
     there carries its P(destroyed). Where you end up carries its P(destroyed) (you stay there).
   * A path is only as safe as its riskiest point: confidence = 1 - max(risk along the path, risk at the end).
     It is "safe" only if no point on it is unsafe (risk > UNSAFE_P); otherwise the unsafe points are listed.
-  * The destination is always the CLOSEST SAFE place (P(destroyed) <= UNSAFE_P) by walking time. The risk ladder
-    TAUS only decides which risky points the path may cross after the flood: the lowest tau at which safe ground
-    is reachable wins. Only if no tau reaches safe ground is the answer the least risky reachable ground
-    (destination_safe = False).
-  * Urgency: WALK / HURRY / RUN from the tightest margin before the flood (HURRY_MIN, RUN_MIN).
+  * Time-aware destination (escape-route-ux addendum): a risky point (P > UNSAFE_P) on the way can only be
+    passed if you get there BEFORE the flood does (arrival grid A along the whole route). Then:
+      a. safe ground (P <= UNSAFE_P) reachable WALKING -> the closest such ground (urgency walk/hurry/run by margin);
+      b. else reachable at the RUNNING pace (RUN_SPEEDUP x walking for the first RUN_LIMIT_MIN minutes, then
+         walking) -> the closest such ground, urgency run;
+      c. else the SAFEST (lowest P) ground reachable before the flood at the running pace, ties -> sooner;
+         urgency run, destination_safe False.
+    can_run=False uses the walking pace only. A route arriving after the flood is never chosen over one in time.
   * Points outside the modelled impact zone (not draining to the flood river, or > 500 m from it: 99.6% of
     the Aug 26 destruction was inside) are reported as outside the impact zone.
-Policy numbers (not data): UNSAFE_P, the risk ladder TAUS, HURRY_MIN / RUN_MIN and the search radius are explicit below.
+Policy numbers (not data): UNSAFE_P, HURRY_MIN / RUN_MIN, RUN_SPEEDUP / RUN_LIMIT_MIN and the search radius are
+explicit below.
 """
 import ctypes, hashlib, json, os, subprocess, time
 import numpy as np
@@ -34,7 +38,8 @@ REPO = dm.REPO
 DATA = os.path.join(REPO, "data") if os.path.isdir(os.path.join(REPO, "data", "proc")) else "/home/linux1/evac-ai/data"
 UNSAFE_P = 0.10                     # a point whose risk exceeds this is marked unsafe (route shown as NOT safe)
 WILL_HIT_P = 0.50                   # at or above this at your spot: "the flood WILL hit here" (team-agreed tier)
-TAUS = [0.01, 0.02, 0.03, 0.05, 0.07, 0.10, 0.15, 0.20, 0.30, 0.40, 0.50, 0.70, 0.90]
+RUN_SPEEDUP = 2.0                   # running = 2 x Tobler walking speed ...
+RUN_LIMIT_MIN = 5.0                 # ... for the first 5 min of the trip only, then walking again
 HURRY_MIN = 10.0                    # tightest margin before the flood below this: "Hurry"
 RUN_MIN = 3.0                       # below this (or the flood gets there first / is already here): "RUN"
 SEARCH_RADIUS_M = 4000.0
@@ -69,7 +74,8 @@ def _search_lib():
         f, d, u8, i32 = ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_double), \
             ctypes.POINTER(ctypes.c_ubyte), ctypes.POINTER(ctypes.c_int)
         lib.escape_search.argtypes = [ctypes.c_int, ctypes.c_int, f, u8, u8, f, f, ctypes.c_int, ctypes.c_double,
-                                      ctypes.c_double, ctypes.c_double, d, i32, ctypes.c_double]
+                                      ctypes.c_double, ctypes.c_double, d, i32, ctypes.c_double,
+                                      ctypes.c_double, ctypes.c_double]
         lib.escape_search.restype = ctypes.c_int
         _lib = lib
     return _lib
@@ -271,7 +277,7 @@ class FloodScenario:
         self.runtime_s = time.time() - t0
 
     # ---- one query: where am I, what time is it ----
-    def escape(self, lon, lat, minutes_after_start):
+    def escape(self, lon, lat, minutes_after_start, can_run=True):
         """Always answers: how bad is it here (tier), when does the flood reach you, and where to go.
 
         Tiers from P(destroyed) at your spot: will_hit (>= WILL_HIT_P), likely (> UNSAFE_P), low, outside.
@@ -279,7 +285,8 @@ class FloodScenario:
         CLOSEST SAFE place (destination_safe), or, when none can be reached, to the least risky reachable ground
         (destination_safe False), plus that ground as a zone polygon, one hazard on the way and an urgency
         (walk / hurry / run). If no route beats the flood: the least risky ground you can still walk to
-        (status no_route, urgency run)."""
+        (status no_route, urgency run). can_run=False: walking pace only. When the answer relies on running,
+        `walk_only` holds the same answer for someone who cannot run (so the page can switch without a request)."""
         t_start = time.time()
         V, T = self.V, self.V.T
         x, y = V.tf.transform(lon, lat)
@@ -308,7 +315,7 @@ class FloodScenario:
             d, (ri, ci) = ndimage.distance_transform_edt(sub, return_indices=True)
             r, c = r0 + int(ri[r - r0, c - c0]), c0 + int(ci[r - r0, c - c0])
         # you are already on safe ground (p <= UNSAFE_P): the closest safe place is where you stand
-        main = None if tier == "low" else self._best(r, c, t0, exclude=None)
+        main = None if tier == "low" else self._best(r, c, t0, exclude=None, can_run=can_run)
         if tier == "low":
             out = {**base, "status": "safe_here", "safe": True, "confidence": round(1 - p_here, 3)}
         elif main:
@@ -321,13 +328,16 @@ class FloodScenario:
             thr = UNSAFE_P if main["destination_safe"] else round(main["destination"]["p_destroyed"] + 0.01, 3)
             out["safe_zone"] = self._zone(gr, gc, thr)
             if out["status"] == "route":
-                backup = self._best(r, c, t0, exclude=(gr, gc, 300.0))
+                backup = self._best(r, c, t0, exclude=(gr, gc, 300.0), can_run=can_run)
                 out["backup"] = {k: v for k, v in backup.items() if not k.startswith("_")} if backup else None
             out.pop("_goal_rc", None)
         if out["status"] in ("route", "no_route"):
             out.setdefault("hazard", None)
+        out["can_run"] = bool(can_run)
         out["urgency"] = self._urgency(out)
         out["headline"], out["message"] = self._advice(out)
+        if can_run and out.get("pace") == "run":
+            out["walk_only"] = self.escape(lon, lat, minutes_after_start, can_run=False)
         out["runtime_s"] = round(time.time() - t_start, 2)
         return out
 
@@ -340,7 +350,7 @@ class FloodScenario:
             return "run"
         if st != "route":
             return None
-        if o["you"]["flood_already_here"]:
+        if o["you"]["flood_already_here"] or o.get("pace") == "run" or not o["destination_safe"]:
             return "run"
         if any(pt["unsafe"] for pt in o["path"][:-1]):          # the flood reaches a risky point before you do
             return "run"
@@ -389,12 +399,15 @@ class FloodScenario:
         else:
             head = f"Leave now. Walk to {dest} ({mins(walk)})."
         route = f"{mins(walk)} ({o['distance_m']} m, {'+' if dz >= 0 else ''}{dz} m)"
+        verb = "Run" if o.get("pace") == "run" else "Walk"
         if ok:
-            go = (f" Walk {route} to safe ground (green zone), "
+            go = (f" {verb} {route} to safe ground (green zone), "
                   f"{100 * o['destination']['p_destroyed']:.0f}% risk there.")
         else:
-            go = (f" No safe ground (risk at or below {100 * UNSAFE_P:.0f}%) can be reached in time. Walk {route} to "
+            go = (f" No safe ground (risk at or below {100 * UNSAFE_P:.0f}%) can be reached in time. {verb} {route} to "
                   f"the best ground you can reach, {100 * o['destination']['p_destroyed']:.0f}% risk (amber zone).")
+        if o.get("pace") == "run":
+            go += f" This assumes you can run for about {RUN_LIMIT_MIN:.0f} min."
         hz, extra = o.get("hazard"), ""
         if hz and hz["kind"] == "race":
             extra = f" Pass the point marked \u26a0 before {max(0, hz['pass_before_min']):.0f} min from now."
@@ -454,7 +467,10 @@ class FloodScenario:
                                                   self.p_search[sl], self.A[sl])]
         return (r0, c0, r1 - r0, c1 - c0), arrs
 
-    def _best(self, r, c, t0, exclude, ignore_flood=False):
+    def _best(self, r, c, t0, exclude, ignore_flood=False, can_run=True):
+        """Time-aware destination: (a) closest safe ground walking, (b) closest safe ground running (first
+        RUN_LIMIT_MIN min at RUN_SPEEDUP x), (c) the safest ground reachable before the flood (ties: sooner).
+        Risky cells (P > UNSAFE_P) are passable only before the flood reaches them (tau = UNSAFE_P)."""
         (r0, c0, nr, nc), (dem, trail, blocked, p, A) = self._window(r, c, exclude)
         if ignore_flood:                                          # fallback: walkable at all, flood or not
             A = np.full_like(A, np.inf)
@@ -462,25 +478,34 @@ class FloodScenario:
         Tm = np.empty(nr * nc, np.float64); prev = np.empty(nr * nc, np.int32)
         start = (r - r0) * nc + (c - c0)
         blocked.flat[start] = 0
-        # pass 1: goal = safe ground (p <= UNSAFE_P); the lowest tau that reaches it gives the least risky
-        # passage to the closest safe place. Pass 2 (only if no tau reaches safe ground): goal p <= tau, the
-        # least risky ground you can reach. Taus <= UNSAFE_P can't succeed in pass 2 (smaller goal set).
-        for safe_goal in (True, False):
-            for tau in TAUS:
-                if not safe_goal and tau <= UNSAFE_P:
-                    continue
-                goal_p = UNSAFE_P if safe_goal else tau
-                g = lib.escape_search(nr, nc, _ptr(dem, ctypes.c_float), _ptr(trail, ctypes.c_ubyte),
-                                      _ptr(blocked, ctypes.c_ubyte), _ptr(p, ctypes.c_float), _ptr(A, ctypes.c_float),
-                                      start, t0, tau, CELL, _ptr(Tm, ctypes.c_double), _ptr(prev, ctypes.c_int),
-                                      goal_p)
-                if g == -2:
-                    raise MemoryError("escape_search allocation failed")
-                if g >= 0:
-                    return self._route(g, start, Tm, prev, (r0, c0, nr, nc), t0, tau)
-        return None
+        win = (r0, c0, nr, nc)
 
-    def _route(self, g, start, Tm, prev, win, t0, tau):
+        def search(run, goal_p):
+            g = lib.escape_search(nr, nc, _ptr(dem, ctypes.c_float), _ptr(trail, ctypes.c_ubyte),
+                                  _ptr(blocked, ctypes.c_ubyte), _ptr(p, ctypes.c_float), _ptr(A, ctypes.c_float),
+                                  start, t0, UNSAFE_P, CELL, _ptr(Tm, ctypes.c_double), _ptr(prev, ctypes.c_int),
+                                  goal_p, RUN_SPEEDUP if run else 1.0, RUN_LIMIT_MIN)
+            if g == -2:
+                raise MemoryError("escape_search allocation failed")
+            return g
+
+        for run in ((False, True) if can_run else (False,)):     # (a) walking, then (b) running
+            g = search(run, UNSAFE_P)
+            if g >= 0:
+                return self._route(g, start, Tm, prev, win, t0, run, "closest_safe")
+        search(can_run, -1.0)                                     # (c) every cell reachable before the flood
+        reach = np.isfinite(Tm)
+        reach[start] = False
+        idx = np.flatnonzero(reach)
+        if not len(idx):
+            return None
+        pr = np.round(p.ravel()[idx].astype(np.float64), 3)
+        g = int(idx[np.lexsort((Tm[idx], pr))[0]])
+        if pr.min() >= round(float(p.flat[start]), 3):            # nothing reachable is safer than staying
+            return None
+        return self._route(g, start, Tm, prev, win, t0, can_run, "safest_reachable")
+
+    def _route(self, g, start, Tm, prev, win, t0, run, choice):
         r0, c0, nr, nc = win
         seq = [g]
         while seq[-1] != start:
@@ -518,7 +543,8 @@ class FloodScenario:
                f"{'+' if climb >= 0 else ''}{climb:.0f} m to ground with {100 * (1 - pts[-1]['risk']):.0f}% confidence; "
                f"path confidence {100 * conf:.0f}%"
                + ("" if safe else f"; {len(unsafe)} point(s) on the path are unsafe"))
-        return {"safe": safe, "confidence": round(conf, 3), "risk_ladder_tau": tau, "walk_min": round(walk, 1),
+        return {"safe": safe, "confidence": round(conf, 3), "risk_ladder_tau": UNSAFE_P, "walk_min": round(walk, 1),
+                "pace": "run" if run else "walk", "choice": choice,
                 "distance_m": round(dist), "climb_m": round(climb), "destination": pts[-1],
                 "destination_safe": bool(dest_p <= UNSAFE_P), "hazard": hazard,
                 "min_margin_before_flood_min": None if not margins else round(min(margins), 1),

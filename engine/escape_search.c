@@ -7,7 +7,10 @@
  * The search stops at the first settled cell with p <= goal_p (the closest place, by walking time, that is
  * safe to stay on). Passability (tau) and the goal (goal_p) are separate: the caller passes goal_p = UNSAFE_P
  * to always end on safe ground, or goal_p = tau for the best-effort fallback.
- * Waiting never helps (FIFO), so label-setting Dijkstra is exact.
+ * goal_p < 0: never stop (fills T for every reachable cell; the caller picks the destination).
+ * Pace: Tobler walking, or "running" = run_factor x walking speed for the first run_min minutes of the trip
+ * (elapsed = T(u) - t0), then walking again; an edge that straddles run_min is split exactly.
+ * Arrival stays monotone in departure time (FIFO), so label-setting Dijkstra is exact.
  * Returns the goal index (or -1), fills T (minutes, INFINITY if not reached) and prev (-1 = none).
  */
 #include <math.h>
@@ -46,9 +49,18 @@ static double walk_min(double dist_m, double dz, int on_trail) {
     return dist_m / (v_kmh * 1000.0 / 60.0);
 }
 
+/* minutes to cross an edge of walking time c, leaving after e minutes of travel */
+static double edge_min(double c, double e, double run_factor, double run_min) {
+    if (run_factor <= 1.0 || e >= run_min) return c;
+    double cr = c / run_factor;
+    if (e + cr <= run_min) return cr;
+    double f = (run_min - e) / cr;                 /* fraction of the edge covered running */
+    return (run_min - e) + (1.0 - f) * c;
+}
+
 int escape_search(int nr, int nc, const float *dem, const unsigned char *trail, const unsigned char *blocked,
                   const float *p, const float *A, int start, double t0, double tau, double cell,
-                  double *T, int *prev, double goal_p) {
+                  double *T, int *prev, double goal_p, double run_factor, double run_min) {
     int N = nr * nc, n = 0, goal = -1;
     static const int dr[8] = {-1, -1, -1, 0, 0, 1, 1, 1}, dc[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
     unsigned char *done = calloc(N, 1);
@@ -69,7 +81,8 @@ int escape_search(int nr, int nc, const float *dem, const unsigned char *trail, 
             int v = rr * nc + cc;
             if (done[v] || blocked[v] || !isfinite(dem[v])) continue;
             double d = (dr[k] && dc[k]) ? cell * 1.41421356237 : cell;
-            double tv = T[u] + walk_min(d, (double)dem[v] - (double)dem[u], trail[u] && trail[v]);
+            double c = walk_min(d, (double)dem[v] - (double)dem[u], trail[u] && trail[v]);
+            double tv = T[u] + edge_min(c, T[u] - t0, run_factor, run_min);
             if (p[v] > tau && tv >= A[v]) continue;          /* flood is already there */
             if (tv < T[v]) { T[v] = tv; prev[v] = u; push(h, &n, tv, v); }
         }

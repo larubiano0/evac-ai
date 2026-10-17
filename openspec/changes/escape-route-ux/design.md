@@ -112,3 +112,33 @@ Additive API keys and a C function with a new trailing parameter (the `.so` is r
 
 - Are `HURRY_MIN = 10` / `RUN_MIN = 3` the right cut-offs? (They are policy, so we can tune them in the demo.)
 - Should `safe_here` answers also show nearby safer ground ("you can stay; safer ground 3 min uphill")?
+
+## Addendum: time-aware destination choice (approved by Lucas)
+
+Replaces the "least risky crossing first, however long" rule of D1. With the ladder, a click at 84.93884, 28.46081 (oct11, t=0, flood 2 min away) was sent on a 128 min, +407 m climb, while a 32 min way existed.
+
+### D9. Feasibility along the whole route
+A risky cell (P > `UNSAFE_P`) can only be passed if you reach it before the flood does (arrival grid `A`), anywhere on the route, not only at your own spot. Safe cells can be passed at any time. The τ ladder is no longer used: the search always runs with τ = `UNSAFE_P`. `risk_ladder_tau` stays in the response (always `UNSAFE_P`) for compatibility.
+
+### D10. Pace
+- Walking: Tobler, as before.
+- Running: `RUN_SPEEDUP` = 2 × walking speed for the first `RUN_LIMIT_MIN` = 5 minutes of the trip, then walking. An edge that straddles the 5-minute mark is split exactly. Arrival stays monotone in departure time, so Dijkstra stays exact.
+- `escape_search.c` takes two more trailing parameters: `run_factor`, `run_min`. `goal_p < 0` means "never stop" (exhaustive), used for (c).
+
+### D11. Choice
+| | Condition | Destination | Urgency |
+|---|---|---|---|
+| a | safe ground reachable walking | closest safe ground (walking time) | walk / hurry / run from the margin, as before |
+| b | else reachable at the running pace | closest safe ground (running time) | run |
+| c | else | the lowest-P cell reachable before the flood at the running pace; ties (P to 3 decimals) → sooner | run, `destination_safe = false` |
+
+If nothing reachable is safer than your own spot, the answer is `no_route` (unchanged fallback: least risky ground ignoring the flood). A route that arrives after the flood is never chosen over one in time.
+
+New response keys (additive): `pace` (`walk`/`run`), `choice` (`closest_safe`/`safest_reachable`), `can_run`, and `walk_only`: when the answer relies on running, the same answer computed for someone who cannot run.
+
+### D12. "I can't run"
+`escape(..., can_run=False)` uses the walking pace only. Because `api/app.py` is not changed in this change, the page does not need a new request field: it shows `walk_only` when the toggle is on. (The page also sends `can_run`; today's API ignores the extra field. Passing it through is a one-line change in `api/app.py` for its owner, if wanted.) The card says "assumes you can run for about 5 min" whenever the running pace was used.
+
+### Trade-offs
+- Once the flood has passed your spot and every neighbouring cell is risky, nothing is reachable "before the flood" and the answer becomes `no_route` ("RUN uphill / climb now"). In the oct11 test points this happens for Jagat at t ≥ 30 and Soti at t ≥ 120.
+- (c) can pick a cell only 30 m away when the flood is 1-2 minutes out: that is the honest answer ("the safest ground you can still reach").

@@ -42,3 +42,11 @@
 - [x] 6.1 Manual pass on the VM (port 8001): click the same spot twice (same route, map still); a risky route shows one line, one ⚠, a matching pin and zone; the backup toggle works (done on a separate test server, 127.0.0.1:8004 from ~/work-agent-lcpizani-escape, with a headless-Chrome script; 8001 untouched)
 - [x] 6.2 Screenshot before/after for the demo (kept outside the repo: before = live 8001, after = 8004)
 - [x] 6.3 Commit, push, and log in AGENTS.md
+
+## 7. Addendum: time-aware destination (approved by Lucas)
+
+- [x] 7.1 `escape_search.c`: `run_factor`, `run_min` (2x for the first 5 min, exact edge split); `goal_p < 0` = exhaustive
+- [x] 7.2 `escape.py`: drop the τ ladder (τ = UNSAFE_P); choice a/b/c; `pace`, `choice`, `can_run`, `walk_only`; urgency run for b/c; "assumes you can run" wording
+- [x] 7.3 Page: "I can't run" toggle (shows `walk_only`, sends `can_run`); card note when running pace was used
+- [x] 7.4 Tests: a/b/c against exhaustive searches, 5-min cap on a synthetic grid, can_run=False; re-run the screenshot and 128-min cases and p50/p95 on s390x
+- [x] 7.5 Commit, push the branch, log in AGENTS.md

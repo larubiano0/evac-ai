@@ -75,3 +75,31 @@ Every route response SHALL include `hazard`, which is either null or one path po
 #### Scenario: Clear path
 - **WHEN** no point before the destination has P(destroyed) > `UNSAFE_P`
 - **THEN** `hazard` is null
+
+### Requirement: Time-aware destination choice (addendum)
+The search SHALL only pass a cell with P(destroyed) > `UNSAFE_P` if you reach it before the flood (arrival grid), anywhere on the route. Running pace SHALL be 2 × walking speed for the first 5 minutes of the trip, then walking. The destination SHALL be:
+- (a) the closest safe ground reachable walking, if any;
+- (b) otherwise the closest safe ground reachable at the running pace, with `urgency` `"run"`;
+- (c) otherwise the lowest-P cell reachable before the flood at the running pace (ties: sooner arrival), with `urgency` `"run"` and `destination_safe` false.
+
+With `can_run` false, only the walking pace SHALL be used. When the running pace was used, the response SHALL include `walk_only` and the card SHALL say it assumes you can run for about 5 minutes. This requirement supersedes the risk-ladder wording in "Destination is the closest safe place".
+
+#### Scenario: Walking is enough
+- **WHEN** safe ground is reachable walking before the flood along the route
+- **THEN** the destination is the closest such ground, `pace` is `"walk"`, and urgency follows the margin
+
+#### Scenario: Only running gets there in time
+- **WHEN** no safe ground is reachable walking before the flood, but some is at the running pace
+- **THEN** the destination is the closest safe ground at the running pace, `pace` is `"run"`, `urgency` is `"run"`, and `walk_only` holds the walking answer
+
+#### Scenario: No safe ground in time
+- **WHEN** no safe ground is reachable before the flood even running
+- **THEN** the destination is the lowest-P cell reachable before the flood, `destination_safe` is false and `urgency` is `"run"`
+
+#### Scenario: Running is capped at 5 minutes
+- **WHEN** a trip takes 142.6 min walking on flat trail
+- **THEN** at the running pace it takes 5 + (142.6 − 10) = 137.6 min
+
+#### Scenario: The 128-minute climb is gone
+- **WHEN** the user clicks 84.93884, 28.46081 (Budhi, oct11, t = 0, flood 2 min away)
+- **THEN** the answer is never a route that reaches risky cells after the flood; it is the safest ground reachable in time
