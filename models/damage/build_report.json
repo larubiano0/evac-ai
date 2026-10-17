@@ -1,0 +1,88 @@
+{
+  "event": "Aug 26 2026 Bhotekoshi-Trishuli",
+  "proc": "/home/linux1/evac-ai/data/proc_trishuli",
+  "path_km": 121.18137654188048,
+  "path_cells": 3429,
+  "grid_bbox_lonlat": [
+    84.73470277587134,
+    27.700250895974396,
+    85.5597557942757,
+    28.44986316476045
+  ],
+  "max_dist_m": 2000.0,
+  "candidates": {
+    "building_0": 387441,
+    "building_1": 3105,
+    "bridge_0": 745,
+    "bridge_1": 63
+  },
+  "kept_le_max_dist": {
+    "building_0": 55441,
+    "building_1": 3096,
+    "bridge_0": 108,
+    "bridge_1": 63
+  },
+  "kept_le_500m": {
+    "building_0": 20358,
+    "building_1": 3093,
+    "bridge_0": 72,
+    "bridge_1": 63
+  },
+  "dropped": {
+    "buildings_other_damage_event": 120,
+    "bridges_duplicate_within_20m": {
+      "positive": 4,
+      "negative": 6
+    },
+    "bridge_negatives_within_50m_of_positive": 0,
+    "outside_grid": {
+      "building_0": 4040,
+      "building_1": 0,
+      "bridge_0": 12,
+      "bridge_1": 0
+    },
+    "inside_grid_not_draining_to_path": {
+      "building_0": 156070,
+      "building_1": 0,
+      "bridge_0": 330,
+      "bridge_1": 0
+    },
+    "beyond_max_dist": {
+      "building_0": 171890,
+      "building_1": 9,
+      "bridge_0": 295,
+      "bridge_1": 0
+    },
+    "nonfinite_features": {
+      "building_0": 0,
+      "building_1": 0,
+      "bridge_0": 0,
+      "bridge_1": 0
+    }
+  },
+  "positives_river_km": {
+    "min": 0.0,
+    "median": 51.789296500631245,
+    "max": 99.46021638285514
+  },
+  "positives_destroyed_only_le_500m": 2810,
+  "features": [
+    "hand",
+    "river_km",
+    "dist_channel_m",
+    "slope_deg",
+    "valley_width_m",
+    "channel_slope",
+    "bend_curv",
+    "outside_bend",
+    "log_acc",
+    "ls_500m",
+    "kind"
+  ],
+  "arch": "s390x",
+  "timing_s": {
+    "path_context": 2.71,
+    "features": 0.83,
+    "total": 6.34
+  }
+}
