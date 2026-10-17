@@ -14,7 +14,7 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 ## Agent registry
 | Agent ID | Human / git author | Host / branch | Owns (don't edit without asking) | Status | Updated (ET) |
 |---|---|---|---|---|---|
-| `claude-luis` | Luis Rubiano (GitHub `larubiano0`) | Mac `luissmacbookpro` → drives the L1CC VM over SSH; pushes to `main` | `pipeline/`, `engine/terrain.py` `flood.py` `safety.py` `scenario.py` `alerts.py`, `api/`, `web/`, `replay/oct11.json`, VM `~/evac-ai` | Working: UI polish → Docker → Trishuli terrain build (for packet B) | Sat 14:20 |
+| `claude-luis` | Luis Rubiano (GitHub `larubiano0`) | Mac `luissmacbookpro` → drives the L1CC VM over SSH; pushes to `main` | `pipeline/`, `engine/terrain.py` `flood.py` `safety.py` `scenario.py` `alerts.py`, `api/`, `web/`, `replay/oct11.json`, VM `~/evac-ai` | Working: A (Docker) → R (route lines) | Sat 14:40 |
 | `agent-lcpizani` | `[redacted]` | branch `data/initial-datasets` (last push 11:44) | `data/processed/`, `data/docs/`, `scripts/{common,extract_osm,extract_landslides,fetch_dem,fetch_worldpop,record_dhm}.py` | **Please read this file, then take packet B** | — |
 | _(teammate 3)_ | | | | add yourself, then take packet C, E or F | |
 | _(teammate 4)_ | | | | add yourself, then take packet C, E or F | |
@@ -39,16 +39,30 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 | ID | Packet | Owner | Est. | Depends on | Done when |
 |---|---|---|---|---|---|
 | A | UI polish, Docker image, bounded test serving on L1CC | claude-luis | 1–1.5 h | — | `docker run` on L1CC serves the UI. Screenshot of the container |
-| T | **Trishuli terrain build** on VM (same pipeline as Budhi Gandaki) | claude-luis | 30 min | — | `Terrain('data/proc_trishuli')` loads, with HAND relative to the Bhotekoshi–Trishuli path |
+| T | **Trishuli terrain build** on VM (same pipeline as Budhi Gandaki) | claude-luis | ✅ DONE 14:35 | — | `Terrain('data/proc_trishuli')` works: 121 km path from Rasuwagadhi, D8 99.7%. Example: `engine/debug_trishuli.py`. **Use OSM building coords, not hand-typed ones** (a 400 m error = 200 m of HAND on these slopes) |
 | B | **ML damage model** (the judged "AI/ML on LinuxONE" piece) | **agent-lcpizani (proposed)** | 1.5–2 h | T (for HAND features), your damage labels | See spec below. Spatial-holdout AUC + "flagged X of Y destroyed" reported. Model file + `engine/damage_model.py` |
 | C | `replay/aug26.json` (Aug 26 timeline as a replay) | free | 45 min | — | Same schema as `replay/oct11.json`. Times and gauge readings from `nepal-disaster-research.md` §1.3 and the Wikipedia timeline. Every number has a source URL |
 | D | Validation numbers for the video | free (after B, C) | 45 min | B, C | Table: Oct 11 settlements predicted vs. reported; bridges predicted vs. lost (known miss: Soti, Arughat); Aug 26 footprint vs. destroyed buildings; arrival errors |
+| R | **Route lines**: walking route from each at-risk settlement to its safe ground (r.walk `outdir` + `r.path`), shown on the map and in packet E | claude-luis | 45 min | — | Route polyline per settlement in `/api/scenario` (`route` field). Drawn in the UI |
 | E | **Printable offline plan per settlement** (`web/plan.html?name=...`) | free | 45 min | API schema below | One A4 page per settlement: EN + NE full alert, arrival time, walk time, bridges to avoid, small map. Works offline once saved |
 | F | README (architecture, run steps, **Libraries & Resources with links**, licenses), mermaid flowchart | free | 45 min | — | README meets plan §2. Attribution: Copernicus DEM, © OSM (ODbL), WorldPop CC BY 4.0, GRASS/SAGA/GDAL, FastAPI, Leaflet |
 | G | Video script (≤3:00) + screenshot list | free (human + agent) | 1 h + recording | A, D | Script follows plan §9. Shows the L1CC instance and the model |
 | H | **Nepali review** of `engine/alerts.py` templates | **human (Nepali reader)** | 15 min | — | Fix wording, set `NE_REVIEWED = True` |
 | L | **Mandatory IBM labs** (both): Predictive Hybrid multi-model + Predictive + Generative | **humans, ASAP** | ? | — | Completed on the Hack2Skill dashboard (scoring prerequisite) |
 | X | Stretch: Chamoli 2021 / Sikkim 2023 calibration points | free | 1.5 h | — | Rows of (event, km, minutes, height, source). Research §8 |
+
+## Work queues (keep everyone busy: when you finish, take the next item in YOUR queue, then any `free` packet)
+| Agent | Now | Next | Then |
+|---|---|---|---|
+| `claude-luis` | A: Docker on L1CC | R: route lines | E: offline plan (if no one has taken it), then F, then D |
+| `agent-lcpizani` | **B: ML damage model** (your labels + `data/proc_trishuli`) | C: `replay/aug26.json` | D: validation numbers |
+| teammate 3 agent | C or F | E | G: video script |
+| teammate 4 agent | F or E | G | X: stretch calibration |
+| humans | **L: mandatory labs** (everyone, now) | H: Nepali review | G: record video (Sun 06:00–08:30) |
+
+**Routing ownership:** routing (walking time to safety, route lines, bridge "don't cross") belongs to `claude-luis` in `engine/safety.py` / `engine/scenario.py`. `agent-lcpizani` should **not** build a separate router. The old-plan "capacity-aware router" is dropped, since there's no documented congestion (research §7.5).
+
+**Running packet B on the VM:** `cd ~/work-agent-lcpizani` (your own dir). Import the engine from `~/evac-ai` with `sys.path.insert(0, '/home/linux1/evac-ai')`. Load `Terrain('/home/linux1/evac-ai/data/proc_trishuli')`. Snap the source at the Rasuwagadhi border (lon 85.383, lat 28.276, `radius=15`), then `downstream_path` and `hand_to(path)`. Read-only use of `~/evac-ai/data` is fine.
 
 ### Packet B spec: building damage model
 - **Labels:** Aug 26 OSM buildings. Positive = `destroyed:building` (+ optionally `damaged:building`). Negative = other buildings in the same corridor, within ~2 km of the river.
@@ -76,6 +90,7 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 - BIPAD API `bipadportal.gov.np/api/v1/{river,rain,incident,alert}` is public. Its query filters seem to be ignored.
 
 ## Log (newest first; one line per entry)
+- Sat 14:16 [claude-luis] Packet T DONE: data/proc_trishuli built (2663x2730, 10 s), 121 km Bhotekoshi-Trishuli path, D8 99.7%. Added per-agent WORK QUEUES to AGENTS.md. Routing stays with claude-luis (added packet R: route lines). agent-lcpizani -> B (ML), then C, then D. pipeline/build_valley.sh works for any valley.
 - Sat 14:13 [claude-luis] COORDINATION: found agent-lcpizani's branch data/initial-datasets (Aug 26 damage labels, WorldPop, 3-district DEM). Rewrote AGENTS.md: registry, timeline, work packets A-X with estimates, Packet B (ML damage model) proposed for agent-lcpizani, API interfaces, VM etiquette. UI fixes (fit to valley, visible footprint, legend).
 - Sat 14:03 [claude-luis] web/index.html written (Leaflet: trigger comparison, ranked alert list with EN/NE alerts, footprint, bridges at risk, wave-clock slider, click-to-place new trigger). NOT yet tested in a browser. scripts/api_smoke.sh added.
 - Sat 14:02 [claude-luis] API works ON L1CC (s390x, big-endian): api/app.py with /api/scenario, /compare, /footprint, POST /trigger; 4.5 s per new scenario, 0.05 s cached. engine/alerts.py: EN short ~100 chars, NE short 62-69 chars (1 UCS-2 SMS, <=161 B, Meshtastic OK); Nepali is a DRAFT, needs review. Bridges at risk match the reported lost Dobhan/Machhakhola/Sirdibas bridges but MISS Soti + Arughat (lower-valley height too low; known gap). Port 8000 is blocked externally, so we use an SSH tunnel. Next: web/index.html (Leaflet).
