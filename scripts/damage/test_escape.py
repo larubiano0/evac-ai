@@ -37,9 +37,14 @@ def check_route(S, res, label):
 def show(S, name, lon, lat, t):
     t0 = time.time(); res = S.escape(lon, lat, t); dt = time.time() - t0
     check_route(S, res, name)
-    y = res.get("you", {})
+    y, g = res.get("you", {}), res.get("guidance", {})
     print(f"  {name:28s} t={t:5.0f} -> {res['status']:20s} p_here={y.get('p_destroyed')} "
-          f"flood_here_at={y.get('flood_arrival_min')} | {res.get('message', '')[:140]}  ({dt:.2f} s)")
+          f"flood_here_at={y.get('flood_arrival_min')} ({dt:.2f} s)\n      {g.get('headline')} | {g.get('flood_time')} "
+          f"| leave_by={g.get('leave_by_min')} in_time={res.get('in_time')}\n      {res.get('message', '')}")
+    if res["status"] not in ("outside_terrain",) and not g.get("action"):
+        fails.append(f"{name}: no guidance action")
+    if res["status"] in ("route",) and not res.get("path"):
+        fails.append(f"{name}: route without path")
     if res.get("backup"):
         print(f"  {'':28s}            backup: {res['backup']['message'][:120]}")
     return res
@@ -54,7 +59,7 @@ def main():
     pts = {"Jagat/Salleri (replay obs)": (84.8959, 28.3514), "Soti (replay obs)": (84.8547, 28.1353),
            "Arughat (replay obs)": (84.8089, 28.0416)}
     for name, (lo, la) in pts.items():
-        for t in (0, 30, 120):
+        for t in (0, 30, 120, 200):
             show(S, name, lo, la, t)
     # a hillside point ~1.5 km from the river above Arughat (outside the zone)
     show(S, "hillside E of Arughat", 84.83, 28.045, 0)

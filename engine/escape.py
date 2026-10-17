@@ -29,6 +29,9 @@ DATA = os.path.join(REPO, "data") if os.path.isdir(os.path.join(REPO, "data", "p
 UNSAFE_P = 0.10                     # a point whose risk exceeds this is marked unsafe (route shown as NOT safe)
 TAUS = [0.01, 0.02, 0.03, 0.05, 0.07, 0.10, 0.15, 0.20, 0.30, 0.40, 0.50, 0.70, 0.90]
 SEARCH_RADIUS_M = 4000.0
+# plain-words hit likelihood from the calibrated P(destroyed) at a spot (policy wording, not data)
+TIERS = [(0.70, "very_likely", "Very likely to be hit"), (0.30, "likely", "Likely to be hit"),
+         (UNSAFE_P, "possible", "Could be hit"), (-1.0, "unlikely", "Unlikely to be hit: safe zone")]
 CELL = 30.0
 VALLEYS = {
     "budhi": {"proc": f"{DATA}/proc", "name": "Budhi Gandaki (Gorkha)", "default_preset": "oct11",
@@ -149,6 +152,23 @@ def envelope(preset_key):
                          decay_km=1e12, floor_m=0.0)
 
 
+def tier(p):
+    if p is None:
+        return "outside", "Outside the flood zone"
+    for lo, key, label in TIERS:
+        if p > lo:
+            return key, label
+    return TIERS[-1][1:]
+
+
+def flood_time_text(a, t):
+    if a is None:
+        return "The flood does not reach this spot."
+    if t < a:
+        return f"The flood reaches this spot in {a - t:.0f} min (minute {a:.0f} after it starts)."
+    return f"The flood reached this spot {t - a:.0f} min ago (minute {a:.0f})."
+
+
 def model():
     global _bundle
     if _bundle is None:
@@ -242,28 +262,54 @@ class FloodScenario:
             return {"status": "outside_terrain", "message": "This point is outside the terrain of this valley."}
         t0 = float(minutes_after_start)
         here = self._point(r, c, t0)
-        base = {"you": here, "minutes_after_start": t0, "flood": self.describe(short=True)}
+        tk, tl = tier(here["p_destroyed"])
+        a = here["flood_arrival_min"] if here["p_destroyed"] is not None else None
+        g = {"tier": tk, "headline": tl, "p_hit": here["p_destroyed"], "flood_time": flood_time_text(a, t0),
+             "minutes_until_flood": None if a is None else round(a - t0, 1), "leave_by_min": None}
+        base = {"you": here, "minutes_after_start": t0, "flood": self.describe(short=True), "guidance": g}
         if here["p_destroyed"] is None:
-            return {**base, "status": "outside_impact_zone", "safe": True, "confidence": None,
-                    "message": "You are outside the predicted impact zone of this flood: no need to move."}
+            g["action"] = "Stay here. This spot is outside the area this flood can reach."
+            return {**base, "status": "outside_impact_zone", "safe": True, "confidence": None, "message": g["action"]}
         if here["p_destroyed"] <= UNSAFE_P:
+            g["action"] = (f"Stay here: you are in the green safe zone ({100 * (1 - here['p_destroyed']):.0f}% confidence "
+                           f"this spot is not hit). Do not go down towards the river.")
             return {**base, "status": "safe_here", "safe": True, "confidence": round(1 - here["p_destroyed"], 3),
-                    "message": f"Safe here: {100 * (1 - here['p_destroyed']):.0f}% confidence this spot is not hit."}
+                    "message": g["action"]}
         if self.blocked[r, c]:                                    # standing in the river strip: step out first
             d, (ri, ci) = ndimage.distance_transform_edt(self.blocked.astype(bool), return_indices=True)
             r, c = int(ri[r, c]), int(ci[r, c])
         main = self._best(r, c, t0, exclude=None)
-        out = {**base, "status": "route" if main else "no_route", "runtime_s": None}
+        in_time = main is not None
+        if main is None:                                          # nothing reachable in time: nearest safe zone anyway
+            main = self._best(r, c, t0, exclude=None, ignore_timing=True)
+        out = {**base, "status": "route" if main else "no_route", "in_time": in_time, "runtime_s": None}
         if main:
             out.update(main)
             gr, gc = main["_goal_rc"]
-            backup = self._best(r, c, t0, exclude=(gr, gc, 300.0))
+            backup = self._best(r, c, t0, exclude=(gr, gc, 300.0)) if in_time else None
             out["backup"] = {k: v for k, v in backup.items() if not k.startswith("_")} if backup else None
             out.pop("_goal_rc", None)
+            m = main["min_margin_before_flood_min"]
+            g["leave_by_min"] = None if m is None else round(t0 + m, 1)
+            walk = f"walk {main['walk_min']:.0f} min ({main['distance_m']} m, {main['climb_m']:+d} m height)"
+            if main["safe"]:
+                g["action"] = (f"Go now to the green safe zone: {walk}. " +
+                               ("Nothing on the way is at risk." if m is None else
+                                f"You must leave within {m:.0f} min (by minute {t0 + m:.0f}) or the flood gets there first."))
+            elif here["flood_already_here"]:
+                g["headline"] = "The flood is at this spot now"
+                g["action"] = (f"Get out of the water's way now, uphill: {walk} to the green safe zone. "
+                               f"{len(main['unsafe_points'])} point(s) on the way (red) are in the flood.")
+            elif in_time:
+                g["action"] = (f"Go now, as fast as you can: {walk}. No path is safe everywhere; "
+                               f"{len(main['unsafe_points'])} point(s) on it (red) may already be flooded when you pass.")
+            else:
+                g["action"] = (f"You cannot reach a safe zone before the flood. Nearest safe zone: {walk}; the red part "
+                               f"is likely flooded before you pass. If you cannot get through, climb as high as you can now.")
         else:
             out["safe"] = False
-            out["message"] = (f"No escape found within {SEARCH_RADIUS_M / 1000:.0f} km that reaches ground with at least "
-                              f"{100 * (1 - TAUS[-1]):.0f}% confidence before the flood. Go as high as you can, now.")
+            g["action"] = (f"No safe zone within {SEARCH_RADIUS_M / 1000:.0f} km on foot. Climb as high as you can, now.")
+        out["message"] = g["action"]
         out["runtime_s"] = round(time.time() - t_start, 2)
         return out
 
@@ -289,8 +335,10 @@ class FloodScenario:
                                                   self.p_search[sl], self.A[sl])]
         return (r0, c0, r1 - r0, c1 - c0), arrs
 
-    def _best(self, r, c, t0, exclude):
+    def _best(self, r, c, t0, exclude, ignore_timing=False):
         (r0, c0, nr, nc), (dem, trail, blocked, p, A) = self._window(r, c, exclude)
+        if ignore_timing:                         # route as if the flood never came; risk is still scored with real A
+            A = np.full_like(A, np.inf)
         lib = _search_lib()
         Tm = np.empty(nr * nc, np.float64); prev = np.empty(nr * nc, np.int32)
         start = (r - r0) * nc + (c - c0)
@@ -386,11 +434,13 @@ class FloodScenario:
         rgba = np.zeros((dh, dw, 4), np.uint8)
         ok = np.isfinite(dst)
         v = np.clip(np.nan_to_num(dst), 0, 1)
-        # yellow (low) -> red (high); transparent below 2%
-        rgba[..., 0] = 255
-        rgba[..., 1] = (220 * (1 - v)).astype(np.uint8)
-        rgba[..., 2] = 40
-        rgba[..., 3] = np.where(ok & (v >= 0.02), (60 + 170 * v).astype(np.uint8), 0)
+        # green = safe zone (p <= UNSAFE_P); above it orange (could be hit) -> red (very likely hit)
+        safe = ok & (v <= UNSAFE_P)
+        w = np.clip((v - UNSAFE_P) / (0.70 - UNSAFE_P), 0, 1)
+        rgba[..., 0] = np.where(safe, 43, 255).astype(np.uint8)
+        rgba[..., 1] = np.where(safe, 182, 170 * (1 - w)).astype(np.uint8)
+        rgba[..., 2] = np.where(safe, 115, 30).astype(np.uint8)
+        rgba[..., 3] = np.where(safe, 110, np.where(ok, 140 + 90 * w, 0)).astype(np.uint8)
         buf = io.BytesIO(); Image.fromarray(rgba, "RGBA").save(buf, "PNG")
         x0, y1 = dst_tf * (0, 0); x1, y0 = dst_tf * (dw, dh)
         w_, s_, e_, n_ = transform_bounds("EPSG:3857", "EPSG:4326", x0, y0, x1, y1)
