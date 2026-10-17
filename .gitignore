@@ -230,3 +230,6 @@ plans/
 id_rsa*
 .env
 data/raw/
+
+# Data: raw downloads stay local, re-fetch with scripts/ (see data/README.md)
+*.part

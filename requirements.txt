@@ -1,0 +1,6 @@
+# Runtime + fetch scripts. All pure Python or with s390x wheels, so they install on L1CC.
+requests
+numpy
+tifffile
+python-socketio[client]<5   # DHM feed is Socket.IO v2 / Engine.IO v3
+python-engineio<4
