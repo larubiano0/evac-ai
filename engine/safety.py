@@ -56,8 +56,10 @@ def time_to_safety(T, safe, channel_idx, bridges_idx, work="data/proc/work", max
     _g("r.in.gdal", "-o", f"input={work}/safe.tif", "output=safe", "--overwrite", "--quiet")
     _g("g.region", "raster=dem", "--quiet")
     _g("r.mapcalc", "expression=negdem = -dem", "--overwrite", "--quiet")
-    _g("r.walk", "elevation=negdem", "friction=fric", "start_raster=safe", "output=tts",
+    _g("r.walk", "elevation=negdem", "friction=fric", "start_raster=safe", "output=tts", "outdir=tdir",
        f"max_cost={max_cost_s}", "memory=2500", "--overwrite", "--quiet")
+    _g("r.out.gdal", "-cf", "input=tdir", f"output={work}/tdir.tif", "format=GTiff", "type=Float32",
+       "createopt=COMPRESS=DEFLATE", "--overwrite", "--quiet")
     _g("r.out.gdal", "-cf", "input=tts", f"output={work}/tts.tif", "format=GTiff", "type=Float32",
        "createopt=COMPRESS=DEFLATE", "--overwrite", "--quiet")
     with rasterio.open(f"{work}/tts.tif") as r:
@@ -72,5 +74,29 @@ def time_to_safety(T, safe, channel_idx, bridges_idx, work="data/proc/work", max
         dist, (ri, ci) = ndimage.distance_transform_edt(miss, return_indices=True)
         filled = tts[ri, ci] + dist * 30.0 / 1.0
         tts = np.where(miss, filled, tts)
+        time_to_safety.nearest = (ri, ci)          # for filled cells: nearest cell r.walk reached
     time_to_safety.filled_cells = int(miss.sum())
+    with rasterio.open(f"{work}/tdir.tif") as r:
+        time_to_safety.tdir = r.read(1).astype(np.float32)     # degrees CCW from East, toward the next cell
     return tts, time.time() - t0
+
+
+def trace_route(tdir, tts, r, c, near=None, max_steps=2000):
+    """Follow r.walk movement directions from (r,c) to safe ground (tts==0). Returns list of (r,c)."""
+    out = [(r, c)]
+    if near is not None and not np.isfinite(tdir[r, c]) and tts[r, c] > 0:
+        r, c = int(near[0][r, c]), int(near[1][r, c]); out.append((r, c))   # step out of the barrier strip
+    for _ in range(max_steps):
+        if not np.isfinite(tts[r, c]) or tts[r, c] <= 0:
+            break
+        a = tdir[r, c]
+        if not np.isfinite(a):
+            break
+        dr, dc = -int(round(np.sin(np.radians(a)))), int(round(np.cos(np.radians(a))))
+        if dr == 0 and dc == 0:
+            break
+        r, c = r + dr, c + dc
+        if not (0 <= r < tts.shape[0] and 0 <= c < tts.shape[1]):
+            break
+        out.append((r, c))
+    return out

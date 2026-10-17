@@ -14,9 +14,9 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 ## Agent registry
 | Agent ID | Human / git author | Host / branch | Owns (don't edit without asking) | Status | Updated (ET) |
 |---|---|---|---|---|---|
-| `claude-luis` | Luis Rubiano (GitHub `larubiano0`) | Mac `luissmacbookpro` → drives the L1CC VM over SSH; pushes to `main` | `pipeline/`, `engine/terrain.py` `flood.py` `safety.py` `scenario.py` `alerts.py`, `api/`, `web/`, `replay/oct11.json`, VM `~/evac-ai` | Working: R (route lines) | Sat 14:55 |
+| `claude-luis` | Luis Rubiano (GitHub `larubiano0`) | Mac `luissmacbookpro` → drives the L1CC VM over SSH; pushes to `main` | `pipeline/`, `engine/terrain.py` `flood.py` `safety.py` `scenario.py` `alerts.py`, `api/`, `web/`, `replay/oct11.json`, VM `~/evac-ai` | Working: E (offline plan). B fallback at 15:30 | Sat 14:22 |
 | `agent-lcpizani` | `[redacted]` | branch `data/initial-datasets` (last push 11:44) | `data/processed/`, `data/docs/`, `scripts/{common,extract_osm,extract_landslides,fetch_dem,fetch_worldpop,record_dhm}.py` | **Please read this file, then take packet B** | — |
-| _(teammate 3)_ | | | | add yourself, then take packet C, E or F | |
+| `agent-new` (rename to your own ID) | the human who started you | your machine; push to `main` | `replay/aug26.json`, `README.md`, `docs/` (video script) | **Start with packet C**, then F, then G | — |
 | _(teammate 4)_ | | | | add yourself, then take packet C, E or F | |
 
 ### ⚠️ For `agent-lcpizani`: your branch vs. `main`
@@ -38,12 +38,12 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 ## Work packets (claim by putting your agent ID in Owner, then commit and push before starting)
 | ID | Packet | Owner | Est. | Depends on | Done when |
 |---|---|---|---|---|---|
-| A | UI polish, Docker image, serving on L1CC | claude-luis | ✅ DONE 14:55 | — | `Dockerfile` (ubuntu:24.04 s390x + apt sci stack + GRASS), built in 91 s, 1.15 GB. Run: `bash scripts/docker_run.sh` (runs as uid of `data/` owner, port 127.0.0.1:8000). Container `evac-ai` is running |
-| T | **Trishuli terrain build** on VM (same pipeline as Budhi Gandaki) | claude-luis | ✅ DONE 14:35 | — | `Terrain('data/proc_trishuli')` works: 121 km path from Rasuwagadhi, D8 99.7%. Example: `engine/debug_trishuli.py`. **Use OSM building coords, not hand-typed ones** (a 400 m error = 200 m of HAND on these slopes) |
+| A | UI polish, Docker image, serving on L1CC | claude-luis | ✅ DONE 14:20 | — | `Dockerfile` (ubuntu:24.04 s390x + apt sci stack + GRASS), built in 91 s, 1.15 GB. Run: `bash scripts/docker_run.sh` (runs as uid of `data/` owner, port 127.0.0.1:8000). Container `evac-ai` is running |
+| T | **Trishuli terrain build** on VM (same pipeline as Budhi Gandaki) | claude-luis | ✅ DONE 14:15 | — | `Terrain('data/proc_trishuli')` works: 121 km path from Rasuwagadhi, D8 99.7%. Example: `engine/debug_trishuli.py`. **Use OSM building coords, not hand-typed ones** (a 400 m error = 200 m of HAND on these slopes) |
 | B | **ML damage model** (the judged "AI/ML on LinuxONE" piece) | **agent-lcpizani (proposed)** | 1.5–2 h | T (for HAND features), your damage labels | See spec below. Spatial-holdout AUC + "flagged X of Y destroyed" reported. Model file + `engine/damage_model.py` |
 | C | `replay/aug26.json` (Aug 26 timeline as a replay) | free | 45 min | — | Same schema as `replay/oct11.json`. Times and gauge readings from `nepal-disaster-research.md` §1.3 and the Wikipedia timeline. Every number has a source URL |
 | D | Validation numbers for the video | free (after B, C) | 45 min | B, C | Table: Oct 11 settlements predicted vs. reported; bridges predicted vs. lost (known miss: Soti, Arughat); Aug 26 footprint vs. destroyed buildings; arrival errors |
-| R | **Route lines**: walking route from each at-risk settlement to its safe ground (r.walk `outdir` + `r.path`), shown on the map and in packet E | claude-luis | 45 min | — | Route polyline per settlement in `/api/scenario` (`route` field). Drawn in the UI |
+| R | **Route lines**: walking route from each at-risk settlement to its safe ground | claude-luis | ✅ DONE 14:20 | — | `route`, `route_len_m`, `route_climb_m` per settlement in `/api/scenario` (from r.walk `outdir`; verified that walking time falls at every step and reaches 0). Green dashed lines in the UI |
 | E | **Printable offline plan per settlement** (`web/plan.html?name=...`) | free | 45 min | API schema below | One A4 page per settlement: EN + NE full alert, arrival time, walk time, bridges to avoid, small map. Works offline once saved |
 | F | README (architecture, run steps, **Libraries & Resources with links**, licenses), mermaid flowchart | free | 45 min | — | README meets plan §2. Attribution: Copernicus DEM, © OSM (ODbL), WorldPop CC BY 4.0, GRASS/SAGA/GDAL, FastAPI, Leaflet |
 | G | Video script (≤3:00) + screenshot list | free (human + agent) | 1 h + recording | A, D | Script follows plan §9. Shows the L1CC instance and the model |
@@ -54,10 +54,10 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 ## Work queues (keep everyone busy: when you finish, take the next item in YOUR queue, then any `free` packet)
 | Agent | Now | Next | Then |
 |---|---|---|---|
-| `claude-luis` | R: route lines | E: offline plan (if no one has taken it) | F, then D |
+| `claude-luis` | E: offline plan | **B: ML model if agent-lcpizani hasn't checked in by 15:30** | D |
 | `agent-lcpizani` | **B: ML damage model** (your labels + `data/proc_trishuli`) | C: `replay/aug26.json` | D: validation numbers |
-| teammate 3 agent | C or F | E | G: video script |
-| teammate 4 agent | F or E | G | X: stretch calibration |
+| `agent-new` | **C: `replay/aug26.json`** | F: README | G: video script |
+| (any further agent) | X: stretch calibration | help D | — |
 | humans | **L: mandatory labs** (everyone, now) | H: Nepali review | G: record video (Sun 06:00–08:30) |
 
 **Routing ownership:** routing (walking time to safety, route lines, bridge "don't cross") belongs to `claude-luis` in `engine/safety.py` / `engine/scenario.py`. `agent-lcpizani` should **not** build a separate router. The old-plan "capacity-aware router" is dropped, since there's no documented congestion (research §7.5).
@@ -82,6 +82,13 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 - Ports: `8000` = claude-luis. Others use 8001–8003. Port 8000 is **blocked externally**, so all access goes through an SSH tunnel (`ssh -L 8001:localhost:8001 ...`).
 - Jobs must be short and bounded (`timeout`), with no unattended long runs. Tell your human before anything over ~5 min.
 
+## New agent quickstart (read in this order, about 5 min)
+1. `git pull --rebase` on `main`. Read this file, then `latinos-ibmz-datathon-plan.md` §3–4, then `nepal-disaster-research.md` §1.1 and §1.3 (the two events).
+2. Add your row to the registry with a unique agent ID, claim **your first queued packet**, commit `[your-id] claim X`, and push **before** working.
+3. **No VM is needed for C, F or G.** They're repo-only. If you need the VM, follow "VM etiquette" (your own `~/work-<id>` dir, port 8001+, bounded jobs, tell your human first).
+4. Every 30–45 min: pull, update your row + add a log line, push. Don't edit files owned by another agent (registry "Owns" column).
+5. Data contract for **C (`replay/aug26.json`)**: copy the structure of `replay/oct11.json` exactly (keys: `event, timezone, source{name,lon,lat,note}, burst_time, burst_time_band, triggers{...{time,desc}}, observations[{place,lon,lat,first_arrival?,peak_height_m?|gauge_peak_m?,src,use}], damage_reported, sources`). Source = the Rasuwagadhi border (lon 85.383, lat 28.276). Burst 08:37 NPT. Gauge timeline: Wikipedia "Timeline of the 2026 Nepal–Tibet floods". Triggers: seismic signal 08:37, DHM informed 09:00, SMS 09:15 (PM says 09:35), Trishuli school phone calls 09:10. **Use real OSM coordinates** (`origin/data/initial-datasets:data/processed/osm/places.geojson`): Timure 28.2528/85.3667, Betrawati 27.9731/85.1860, Trishuli 27.9232/85.1480, Bidur 27.8953/85.1464, Galchhi 27.7974/85.0005, Devighat 27.8600/85.1101. Set `use: "calibration"` only for points with a reliable time **and** location. Mark others `"excluded"` with a note.
+
 ## Key findings other agents must know (don't rediscover these)
 - **`r.walk` cost runs FROM start TO cell** (uphill costs more). For time *to* safety, run it on a **negated DEM** with safe cells as the start. Verified with `pipeline/test_rwalk_direction.sh` (1841 s both ways).
 - Overpass needs a **User-Agent header** or `overpass-api.de` returns 406 (see `pipeline/overpass.py`).
@@ -90,6 +97,7 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 - BIPAD API `bipadportal.gov.np/api/v1/{river,rain,incident,alert}` is public. Its query filters seem to be ignored.
 
 ## Log (newest first; one line per entry)
+- Sat 14:21 [claude-luis] Packet R DONE: escape route per settlement (r.walk outdir tracing, verified monotone to safe ground; e.g. Salleri 192 m/+26 m). Drawn in the UI; container rebuilt. Registered slot agent-new (queue C -> F -> G) + 'New agent quickstart' with the aug26 data contract. Fixed hand-typed times in the board. B fallback: claude-luis takes B if lcpizani hasn't checked in by 15:30.
 - Sat 14:19 [claude-luis] Packet A DONE: Docker on L1CC. Dockerfile + scripts/docker_run.sh; image builds in 91 s (1.15 GB, s390x). Container evac-ai serves the UI on 127.0.0.1:8000 (SSH tunnel), results identical to bare metal. Gotcha: run the container with --user <uid of data/> -e HOME=/tmp, or GRASS says 'MAPSET permission denied'. g.sh now finds grassdb relative to the repo. Starting R (route lines).
 - Sat 14:16 [claude-luis] Packet T DONE: data/proc_trishuli built (2663x2730, 10 s), 121 km Bhotekoshi-Trishuli path, D8 99.7%. Added per-agent WORK QUEUES to AGENTS.md. Routing stays with claude-luis (added packet R: route lines). agent-lcpizani -> B (ML), then C, then D. pipeline/build_valley.sh works for any valley.
 - Sat 14:13 [claude-luis] COORDINATION: found agent-lcpizani's branch data/initial-datasets (Aug 26 damage labels, WorldPop, 3-district DEM). Rewrote AGENTS.md: registry, timeline, work packets A-X with estimates, Packet B (ML damage model) proposed for agent-lcpizani, API interfaces, VM etiquette. UI fixes (fit to valley, visible footprint, legend).

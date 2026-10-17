@@ -77,14 +77,14 @@ const map = L.map('map', { preferCanvas: true }).setView([28.25, 84.88], 10);
 const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap contributors' }).addTo(map);
 const sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, attribution: 'Esri World Imagery' });
 const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17, attribution: '© OpenTopoMap (CC-BY-SA)' });
-const layers = { foot: L.layerGroup().addTo(map), path: L.layerGroup().addTo(map), sett: L.layerGroup().addTo(map),
+const layers = { route: L.layerGroup().addTo(map), foot: L.layerGroup().addTo(map), path: L.layerGroup().addTo(map), sett: L.layerGroup().addTo(map),
                  bridge: L.layerGroup().addTo(map), front: L.layerGroup().addTo(map) };
 const legend = L.control({ position: 'bottomleft' });
 legend.onAdd = () => { const d = L.DomUtil.create('div'); d.style.cssText = 'background:#fff;padding:6px 9px;border-radius:6px;font:12px system-ui;box-shadow:0 1px 4px #0003';
-  d.innerHTML = '<b>Slack</b> (min to spare)<br><span style="color:#d7263d">●</span> red: no time &nbsp;<span style="color:#f4a259">●</span> amber: &lt;15 &nbsp;<span style="color:#2a9d8f">●</span> green<br><span style="color:#2563eb">■</span> flood footprint (conservative) &nbsp;<span style="color:#d7263d">━</span> bridge: do not cross'; return d; };
+  d.innerHTML = '<b>Slack</b> (min to spare)<br><span style="color:#d7263d">●</span> red: no time &nbsp;<span style="color:#f4a259">●</span> amber: &lt;15 &nbsp;<span style="color:#2a9d8f">●</span> green<br><span style="color:#2563eb">■</span> flood footprint (conservative) &nbsp;<span style="color:#d7263d">━</span> bridge: do not cross &nbsp;<span style="color:#16a34a">┅</span> escape route'; return d; };
 legend.addTo(map);
 L.control.layers({ 'OpenStreetMap': osm, 'Topo': topo, 'Satellite': sat },
-  { 'Flood footprint': layers.foot, 'River path': layers.path, 'Settlements': layers.sett, 'Bridges at risk': layers.bridge }).addTo(map);
+  { 'Flood footprint': layers.foot, 'River path': layers.path, 'Settlements': layers.sett, 'Bridges at risk': layers.bridge, 'Escape routes': layers.route }).addTo(map);
 
 let REPLAY = 'oct11', DATA = null, TRIGGERS = {}, PICKING = false, CUSTOM = null;
 const $ = id => document.getElementById(id);
@@ -108,7 +108,7 @@ function alertHtml(s) {
   const a = s.alerts;
   return `<b>${esc(s.name)}</b> · river km ${s.river_km.toFixed(1)} · <span class="${s.status}" style="color:#fff;padding:0 6px;border-radius:8px">${s.status}</span><br>
    first wave ~<b>${s.arrival_early}</b> · ${Math.round(s.people_at_risk)} people (${s.buildings_at_risk} buildings) ·
-   walk ${s.walk_min_median.toFixed(1)}–${s.walk_min_max.toFixed(1)} min · slack <b>${s.slack_min.toFixed(0)} min</b>
+   walk ${s.walk_min_median.toFixed(1)}–${s.walk_min_max.toFixed(1)} min (route ${Math.round(s.route_len_m)} m, +${Math.round(s.route_climb_m)} m) · slack <b>${s.slack_min.toFixed(0)} min</b>
    <div class="alert">${esc(a.short_en)} <small>(${a.short_en_chars} ch)</small></div>
    <div class="alert ne">${esc(a.short_ne)} <small>(${a.short_ne_chars} ch)</small></div>
    <details><summary>Full plan (EN / NE)</summary><div class="alert">${esc(a.full_en)}</div><div class="alert ne">${esc(a.full_ne)}</div></details>
@@ -126,6 +126,8 @@ function draw(d, foot) {
       .bindPopup(`<b>Do not cross</b><br>${esc(b.label)} · km ${b.river_km.toFixed(1)}<br>wave ~${b.arrival_early}`).addTo(layers.bridge));
   d.settlements.forEach(s => {
     const col = { red: '#d7263d', amber: '#f4a259', green: '#2a9d8f' }[s.status];
+    if (s.route && s.route.length > 1) L.polyline(s.route.map(p => [p[1], p[0]]), { color: '#16a34a', weight: 4, dashArray: '6 5' })
+      .bindTooltip(`escape route · ${Math.round(s.route_len_m)} m, climb ${Math.round(s.route_climb_m)} m`).addTo(layers.route);
     s._m = L.circleMarker([s.lat, s.lon], { radius: 4 + Math.sqrt(s.people_at_risk) / 3, color: '#111', weight: 1, fillColor: col, fillOpacity: .9 })
       .bindPopup(alertHtml(s)).addTo(layers.sett);
   });

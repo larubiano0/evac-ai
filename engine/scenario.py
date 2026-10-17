@@ -10,7 +10,7 @@ from scipy.spatial import cKDTree
 from pyproj import Transformer
 from engine.terrain import Terrain
 from engine.flood import calibrate_from_replay, hhmm_to_min
-from engine.safety import time_to_safety, bridge_cells
+from engine.safety import time_to_safety, bridge_cells, trace_route
 
 PERSONS_PER_BUILDING = 4.0      # assumption: Nepal census 2021 avg household 4.37; some OSM buildings are sheds
 DISSEMINATION_MIN = 5.0         # assumption: minutes from warning issued to people starting to move
@@ -79,6 +79,8 @@ class Scenario:
         self.flood = (drain >= 0) & (self.hand <= self.h_hi)
         safe = ~self.flood & ((drain < 0) | (self.hand > self.h_hi + SAFE_MARGIN_M))
         self.tts, self.walk_s = time_to_safety(T, safe, self.path, V.bridges)
+        self.tdir = time_to_safety.tdir                       # keep per scenario (several are cached)
+        self.near = getattr(time_to_safety, "nearest", None)
         self.a_lo, self.a_mid, self.a_hi = self.F.arrival_band(kmz)
         self.runtime_s = time.time() - t_start
         self.extra_people = extra_people or {}
@@ -158,11 +160,24 @@ class Scenario:
                         "arrival_minutes_after_burst": float(np.min(arr_lo[m])),
                         "walk_min_median": float(np.median(walk[m])), "walk_min_max": float(np.max(walk[m])),
                         "slack_min": s_min,
-                        "status": "red" if s_min < 0 else ("amber" if s_min < AMBER_MIN else "green")})
+                        "status": "red" if s_min < 0 else ("amber" if s_min < AMBER_MIN else "green"),
+                        **self._route(np.flatnonzero(m)[np.argmax(walk[m])])})
         out.sort(key=lambda s: (s["arrival_minutes_after_burst"], -s["people_at_risk"]))
         for i, s in enumerate(out):
             s["alert_rank"] = i + 1
         return out
+
+    def _route(self, b):
+        """Escape route from building b (the settlement's longest walk) to safe ground."""
+        r, c = self.V.b_rc[b]
+        rt = trace_route(self.tdir, self.tts, int(r), int(c), self.near)
+        coords = []
+        for rr, cc in rt:
+            lo, la = INV.transform(*self.V.T.xy(rr, cc)); coords.append([round(lo, 5), round(la, 5)])
+        seg = np.hypot(*np.diff(np.array(rt).T, axis=1)) * 30.0 if len(rt) > 1 else np.array([0.0])
+        return {"route": coords, "route_len_m": float(seg.sum()),
+                "route_climb_m": float(self.V.T.dem[rt[-1]] - self.V.T.dem[rt[0]]),
+                "route_from": [float(self.V.b_ll[b, 0]), float(self.V.b_ll[b, 1])]}
 
     def summary(self, warn_hhmm):
         S = self.settlements(warn_hhmm)
