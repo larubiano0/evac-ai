@@ -1,0 +1,441 @@
+{
+  "event": "Bhotekoshi-Trishuli glacier/ice-rock avalanche debris flood, Nepal, 26 Aug 2026",
+  "label_source": "unosat_FL20260826NPL",
+  "proc": "/home/linux1/evac-ai/data/proc_trishuli",
+  "arch": "s390x",
+  "label_rule": "y=1 cell centre in extent (inside AOI); y=0 centre in AOI, outside extent, not masked; else no row",
+  "terrain": {
+    "grid_shape": [
+      2730,
+      2663
+    ],
+    "crs": "EPSG:32645",
+    "d8_downhill_fraction": 0.9968,
+    "source_lonlat": [
+      85.383,
+      28.276
+    ],
+    "source_ref": "Rasuwagadhi border (AGENTS.md; same as scripts/damage/build_table.py)",
+    "snap_offset_m": 573.2,
+    "path_cells": 3429,
+    "path_km": 121.18
+  },
+  "primary_label_parts": [
+    {
+      "files": {
+        "extent": [
+          "unosat_dl/FL20260826NPL_4259.gdb.zip.x/FL20260826NPL.gdb:UNOSAT_Multisensor_20260826_20260828_FloodExtent"
+        ],
+        "aoi": [
+          "unosat_dl/FL20260826NPL_4259.gdb.zip.x/FL20260826NPL.gdb:UNOSAT_Multisensors_20260826_20260828_AnalysisExtent"
+        ],
+        "masks": []
+      },
+      "extent_features": 1,
+      "extent_km2": 64.907,
+      "aoi_km2": 1245.991,
+      "mask_km2": 0.0,
+      "extent_outside_aoi_km2": 0.0,
+      "grid_cells": {
+        "extent": 51287,
+        "aoi": 770340,
+        "masked_in_aoi": 0,
+        "extent_outside_aoi_or_masked": 0
+      }
+    }
+  ],
+  "secondary_label_parts": {
+    "y_cems_first": [
+      {
+        "files": {
+          "extent": [
+            "cems_dl/x/EMSR927_AOI01_GRA_PRODUCT_v1/EMSR927_AOI01_GRA_PRODUCT_observedEventA_v1.shp"
+          ],
+          "aoi": [
+            "cems_dl/x/EMSR927_AOI01_GRA_PRODUCT_v1/EMSR927_AOI01_GRA_PRODUCT_areaOfInterestA_v1.shp"
+          ],
+          "masks": []
+        },
+        "extent_features": 1,
+        "extent_km2": 1.111,
+        "aoi_km2": 3.458,
+        "mask_km2": 0.0,
+        "extent_outside_aoi_km2": 0.0,
+        "grid_cells": {
+          "extent": 1233,
+          "aoi": 3844,
+          "masked_in_aoi": 0,
+          "extent_outside_aoi_or_masked": 0
+        }
+      },
+      {
+        "files": {
+          "extent": [
+            "cems_dl/x/EMSR927_AOI02_GRA_PRODUCT_v2/EMSR927_AOI02_GRA_PRODUCT_observedEventA_v2.shp"
+          ],
+          "aoi": [
+            "cems_dl/x/EMSR927_AOI02_GRA_PRODUCT_v2/EMSR927_AOI02_GRA_PRODUCT_areaOfInterestA_v2.shp"
+          ],
+          "masks": []
+        },
+        "extent_features": 1,
+        "extent_km2": 1.294,
+        "aoi_km2": 2.97,
+        "mask_km2": 0.0,
+        "extent_outside_aoi_km2": 0.0,
+        "grid_cells": {
+          "extent": 1431,
+          "aoi": 3297,
+          "masked_in_aoi": 0,
+          "extent_outside_aoi_or_masked": 0
+        }
+      },
+      {
+        "files": {
+          "extent": [
+            "cems_dl/x/EMSR927_AOI03_GRA_PRODUCT_v1/EMSR927_AOI03_GRA_PRODUCT_observedEventA_v1.shp"
+          ],
+          "aoi": [
+            "cems_dl/x/EMSR927_AOI03_GRA_PRODUCT_v1/EMSR927_AOI03_GRA_PRODUCT_areaOfInterestA_v1.shp"
+          ],
+          "masks": [
+            "cems_dl/x/EMSR927_AOI03_GRA_PRODUCT_v1/EMSR927_AOI03_GRA_PRODUCT_notAnalysedA_v1.shp"
+          ]
+        },
+        "extent_features": 2,
+        "extent_km2": 5.891,
+        "aoi_km2": 20.96,
+        "mask_km2": 2.477,
+        "extent_outside_aoi_km2": 0.0,
+        "grid_cells": {
+          "extent": 6545,
+          "aoi": 23283,
+          "masked_in_aoi": 2743,
+          "extent_outside_aoi_or_masked": 0
+        }
+      },
+      {
+        "files": {
+          "extent": [
+            "cems_dl/x/EMSR927_AOI05_GRA_PRODUCT_v3/EMSR927_AOI05_GRA_PRODUCT_observedEventA_v2.shp"
+          ],
+          "aoi": [
+            "cems_dl/x/EMSR927_AOI05_GRA_PRODUCT_v3/EMSR927_AOI05_GRA_PRODUCT_areaOfInterestA_v2.shp"
+          ],
+          "masks": [
+            "cems_dl/x/EMSR927_AOI05_GRA_PRODUCT_v3/EMSR927_AOI05_GRA_PRODUCT_notAnalysedA_v2.shp"
+          ]
+        },
+        "extent_features": 20,
+        "extent_km2": 4.793,
+        "aoi_km2": 23.93,
+        "mask_km2": 5.222,
+        "extent_outside_aoi_km2": 0.0,
+        "grid_cells": {
+          "extent": 5342,
+          "aoi": 26594,
+          "masked_in_aoi": 5807,
+          "extent_outside_aoi_or_masked": 0
+        }
+      }
+    ],
+    "y_cems_latest": [
+      {
+        "files": {
+          "extent": [
+            "cems_dl/x/EMSR927_AOI01_GRA_PRODUCT_v1/EMSR927_AOI01_GRA_PRODUCT_observedEventA_v1.shp"
+          ],
+          "aoi": [
+            "cems_dl/x/EMSR927_AOI01_GRA_PRODUCT_v1/EMSR927_AOI01_GRA_PRODUCT_areaOfInterestA_v1.shp"
+          ],
+          "masks": []
+        },
+        "extent_features": 1,
+        "extent_km2": 1.111,
+        "aoi_km2": 3.458,
+        "mask_km2": 0.0,
+        "extent_outside_aoi_km2": 0.0,
+        "grid_cells": {
+          "extent": 1233,
+          "aoi": 3844,
+          "masked_in_aoi": 0,
+          "extent_outside_aoi_or_masked": 0
+        }
+      },
+      {
+        "files": {
+          "extent": [
+            "cems_dl/x/EMSR927_AOI02_GRA_PRODUCT_v2/EMSR927_AOI02_GRA_PRODUCT_observedEventA_v2.shp"
+          ],
+          "aoi": [
+            "cems_dl/x/EMSR927_AOI02_GRA_PRODUCT_v2/EMSR927_AOI02_GRA_PRODUCT_areaOfInterestA_v2.shp"
+          ],
+          "masks": []
+        },
+        "extent_features": 1,
+        "extent_km2": 1.294,
+        "aoi_km2": 2.97,
+        "mask_km2": 0.0,
+        "extent_outside_aoi_km2": 0.0,
+        "grid_cells": {
+          "extent": 1431,
+          "aoi": 3297,
+          "masked_in_aoi": 0,
+          "extent_outside_aoi_or_masked": 0
+        }
+      },
+      {
+        "files": {
+          "extent": [
+            "cems_dl/x/EMSR927_AOI03_GRA_MONIT01_v1/EMSR927_AOI03_GRA_MONIT01_observedEventA_v1.shp"
+          ],
+          "aoi": [
+            "cems_dl/x/EMSR927_AOI03_GRA_MONIT01_v1/EMSR927_AOI03_GRA_MONIT01_areaOfInterestA_v1.shp"
+          ],
+          "masks": [
+            "cems_dl/x/EMSR927_AOI03_GRA_MONIT01_v1/EMSR927_AOI03_GRA_MONIT01_notAnalysedA_v1.shp"
+          ]
+        },
+        "extent_features": 5,
+        "extent_km2": 7.016,
+        "aoi_km2": 21.122,
+        "mask_km2": 0.133,
+        "extent_outside_aoi_km2": 0.0,
+        "grid_cells": {
+          "extent": 7796,
+          "aoi": 23464,
+          "masked_in_aoi": 147,
+          "extent_outside_aoi_or_masked": 0
+        }
+      },
+      {
+        "files": {
+          "extent": [
+            "cems_dl/x/EMSR927_AOI05_GRA_MONIT01_v2/EMSR927_AOI05_GRA_MONIT01_observedEventA_v2.shp"
+          ],
+          "aoi": [
+            "cems_dl/x/EMSR927_AOI05_GRA_MONIT01_v2/EMSR927_AOI05_GRA_MONIT01_areaOfInterestA_v2.shp"
+          ],
+          "masks": [
+            "cems_dl/x/EMSR927_AOI05_GRA_MONIT01_v2/EMSR927_AOI05_GRA_MONIT01_notAnalysedA_v2.shp"
+          ]
+        },
+        "extent_features": 30,
+        "extent_km2": 6.392,
+        "aoi_km2": 23.93,
+        "mask_km2": 1.867,
+        "extent_outside_aoi_km2": 0.0,
+        "grid_cells": {
+          "extent": 7115,
+          "aoi": 26594,
+          "masked_in_aoi": 2081,
+          "extent_outside_aoi_or_masked": 0
+        }
+      }
+    ]
+  },
+  "positive_only_layers": {
+    "in_hot_extent": {
+      "file": "hot_dl/hot_flood_npl_flood_extent.geojson",
+      "features": 1,
+      "km2": 31.708
+    },
+    "in_jaxa_alos2_fpm": {
+      "file": "sentinelasia_dl/jaxa/JAXA_20250828_FPM_ALOS2_Nepal_FLDEXT/2026-00033-WLD_202608280620_FLDEXT.geojson",
+      "features": 1,
+      "km2": 65.548
+    }
+  },
+  "rows_le_500m": {
+    "y1": 28458,
+    "y0": 98070
+  },
+  "rows_le_2km": {
+    "y1": 30226,
+    "y0": 412947
+  },
+  "rows_by_dist_km": {
+    "<= 250 m": {
+      "y1": 27314,
+      "y0": 37499
+    },
+    "<= 500 m": {
+      "y1": 28458,
+      "y0": 98070
+    },
+    "<= 1000 m": {
+      "y1": 29070,
+      "y0": 215346
+    },
+    "<= 2000 m": {
+      "y1": 30226,
+      "y0": 412947
+    }
+  },
+  "corridor_cells_le_max_dist": 474618,
+  "dropped_corridor_cells": {
+    "outside_aoi_or_masked": 31445,
+    "nonfinite_features": 0
+  },
+  "extent_cells_accounting": {
+    "labelled_y1_cells_on_grid": 51287,
+    "kept_le_500m": 28458,
+    "kept_le_max_dist": 30226,
+    "not_draining_to_path": 0,
+    "draining_but_beyond_max_dist": 21061,
+    "positives_dist_to_path_m": {
+      "p50": 174.9,
+      "p90": 12547.0,
+      "p99": 14499.1,
+      "max": 16357.2
+    }
+  },
+  "path_cells_labelled": {
+    "y1": 3420,
+    "y0": 9,
+    "unlabelled": 0,
+    "note": "share of the D8 flood path itself inside the mapped extent (channel mapped or not)"
+  },
+  "labelled_river_km_le_500m": {
+    "min": 0.0,
+    "max": 121.18
+  },
+  "sanity_hand_bands_le_500m": [
+    {
+      "hand_m": "[-inf,2)",
+      "n": 7471,
+      "affected": 7429,
+      "share_affected": 0.994
+    },
+    {
+      "hand_m": "[2,5)",
+      "n": 3938,
+      "affected": 3801,
+      "share_affected": 0.965
+    },
+    {
+      "hand_m": "[5,10)",
+      "n": 5023,
+      "affected": 4517,
+      "share_affected": 0.899
+    },
+    {
+      "hand_m": "[10,20)",
+      "n": 8697,
+      "affected": 5944,
+      "share_affected": 0.683
+    },
+    {
+      "hand_m": "[20,50)",
+      "n": 21976,
+      "affected": 5228,
+      "share_affected": 0.238
+    },
+    {
+      "hand_m": "[50,inf)",
+      "n": 79423,
+      "affected": 1539,
+      "share_affected": 0.019
+    }
+  ],
+  "sanity_dist_bands": [
+    {
+      "dist_m": "[0,30)",
+      "n": 3429,
+      "affected": 3420,
+      "share_affected": 0.997
+    },
+    {
+      "dist_m": "[30,60)",
+      "n": 9798,
+      "affected": 9345,
+      "share_affected": 0.954
+    },
+    {
+      "dist_m": "[60,100)",
+      "n": 13592,
+      "affected": 8510,
+      "share_affected": 0.626
+    },
+    {
+      "dist_m": "[100,200)",
+      "n": 24604,
+      "affected": 5165,
+      "share_affected": 0.21
+    },
+    {
+      "dist_m": "[200,500)",
+      "n": 75105,
+      "affected": 2018,
+      "share_affected": 0.027
+    },
+    {
+      "dist_m": "[500,1000)",
+      "n": 117888,
+      "affected": 612,
+      "share_affected": 0.005
+    },
+    {
+      "dist_m": "[1000,2000.01)",
+      "n": 198757,
+      "affected": 1156,
+      "share_affected": 0.006
+    }
+  ],
+  "hand_median_le_500m": {
+    "y1": 8.10101318359375,
+    "y0": 101.679443359375
+  },
+  "secondary_vs_primary_le_500m": {
+    "y_cems_first": {
+      "cells_le_500m_covered": 41298,
+      "confusion_primary_vs_this": {
+        "primary0_this0": 26015,
+        "primary0_this1": 951,
+        "primary1_this0": 850,
+        "primary1_this1": 13482
+      },
+      "agreement": 0.956
+    },
+    "y_cems_latest": {
+      "cells_le_500m_covered": 47497,
+      "confusion_primary_vs_this": {
+        "primary0_this0": 29060,
+        "primary0_this1": 1117,
+        "primary1_this0": 1012,
+        "primary1_this1": 16308
+      },
+      "agreement": 0.955
+    },
+    "in_hot_extent": {
+      "positive_cells_le_500m": 29323,
+      "share_of_primary_y1_inside": 0.91,
+      "share_of_primary_y0_inside": 0.035
+    },
+    "in_jaxa_alos2_fpm": {
+      "positive_cells_le_500m": 4529,
+      "share_of_primary_y1_inside": 0.131,
+      "share_of_primary_y0_inside": 0.008
+    }
+  },
+  "kind_feature": "2 = cell (0 building, 1 bridge)",
+  "features": [
+    "hand",
+    "river_km",
+    "dist_channel_m",
+    "slope_deg",
+    "valley_width_m",
+    "channel_slope",
+    "bend_curv",
+    "outside_bend",
+    "log_acc",
+    "ls_500m",
+    "kind"
+  ],
+  "ls_500m_note": "Nepal-only feature; 0 outside Nepal",
+  "timing_s": {
+    "path_context": 2.17,
+    "features": 1.0,
+    "total": 8.8
+  }
+}

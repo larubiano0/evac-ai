@@ -1,0 +1,488 @@
+{
+  "created_utc": "2026-10-17T21:24:21+00:00",
+  "arch": "s390x",
+  "rows_le_500m": {
+    "aug26": {
+      "n": 126528,
+      "y1": 28458,
+      "label_source": "unosat_FL20260826NPL"
+    },
+    "oct11": {
+      "n": 87654,
+      "y1": 12258,
+      "label_source": "unosat_FL20261011NPL"
+    },
+    "ahr": {
+      "n": 46811,
+      "y1": 10680,
+      "label_source": "cems_EMSR517_AOI15_GRA_MONIT01_v3"
+    },
+    "derna": {
+      "n": 1469,
+      "y1": 669,
+      "label_source": "unosat_FL20230912LBY_S2"
+    }
+  },
+  "features_terrain": [
+    "hand",
+    "dist_channel_m",
+    "slope_deg",
+    "valley_width_m",
+    "channel_slope",
+    "bend_curv",
+    "outside_bend"
+  ],
+  "features_fb": [
+    "hand",
+    "dist_channel_m",
+    "slope_deg",
+    "valley_width_m",
+    "channel_slope",
+    "bend_curv",
+    "outside_bend",
+    "freeboard"
+  ],
+  "monotone": {
+    "hand": -1,
+    "dist_channel_m": -1
+  },
+  "hgb": {
+    "max_depth": 4,
+    "learning_rate": 0.05,
+    "max_iter": 300,
+    "l2_regularization": 1.0,
+    "random_state": 0
+  },
+  "rule": "replace v2 only if on Oct 11 (unseen): AUC >= v2 AND Brier <= v2; both pass -> higher AUC",
+  "A_leave_one_flood_out": {
+    "aug26": {
+      "terrain": {
+        "n": 126528,
+        "positives": 28458,
+        "base_rate": 0.2249,
+        "roc_auc": 0.9657,
+        "pr_auc": 0.9114,
+        "brier": 0.0757
+      },
+      "hand_only_auc": 0.9608,
+      "dist_only_auc": 0.9353,
+      "hand_bands": [
+        {
+          "hand_m": "[-inf,2)",
+          "n": 7471,
+          "observed": 0.994,
+          "predicted_mean": 0.688
+        },
+        {
+          "hand_m": "[2,5)",
+          "n": 3938,
+          "observed": 0.965,
+          "predicted_mean": 0.634
+        },
+        {
+          "hand_m": "[5,10)",
+          "n": 5023,
+          "observed": 0.899,
+          "predicted_mean": 0.545
+        },
+        {
+          "hand_m": "[10,20)",
+          "n": 8697,
+          "observed": 0.683,
+          "predicted_mean": 0.404
+        },
+        {
+          "hand_m": "[20,50)",
+          "n": 21976,
+          "observed": 0.238,
+          "predicted_mean": 0.24
+        },
+        {
+          "hand_m": "[50,inf)",
+          "n": 79423,
+          "observed": 0.019,
+          "predicted_mean": 0.101
+        }
+      ]
+    },
+    "oct11": {
+      "terrain": {
+        "n": 87654,
+        "positives": 12258,
+        "base_rate": 0.1398,
+        "roc_auc": 0.9189,
+        "pr_auc": 0.6881,
+        "brier": 0.0771
+      },
+      "hand_only_auc": 0.9032,
+      "dist_only_auc": 0.9354,
+      "hand_bands": [
+        {
+          "hand_m": "[-inf,2)",
+          "n": 4560,
+          "observed": 0.921,
+          "predicted_mean": 0.773
+        },
+        {
+          "hand_m": "[2,5)",
+          "n": 1869,
+          "observed": 0.874,
+          "predicted_mean": 0.752
+        },
+        {
+          "hand_m": "[5,10)",
+          "n": 2549,
+          "observed": 0.676,
+          "predicted_mean": 0.728
+        },
+        {
+          "hand_m": "[10,20)",
+          "n": 4433,
+          "observed": 0.373,
+          "predicted_mean": 0.639
+        },
+        {
+          "hand_m": "[20,50)",
+          "n": 13078,
+          "observed": 0.112,
+          "predicted_mean": 0.38
+        },
+        {
+          "hand_m": "[50,inf)",
+          "n": 61165,
+          "observed": 0.026,
+          "predicted_mean": 0.084
+        }
+      ]
+    },
+    "ahr": {
+      "terrain": {
+        "n": 46811,
+        "positives": 10680,
+        "base_rate": 0.2282,
+        "roc_auc": 0.8857,
+        "pr_auc": 0.5759,
+        "brier": 0.2264
+      },
+      "hand_only_auc": 0.8956,
+      "dist_only_auc": 0.787,
+      "hand_bands": [
+        {
+          "hand_m": "[-inf,2)",
+          "n": 7355,
+          "observed": 0.637,
+          "predicted_mean": 0.959
+        },
+        {
+          "hand_m": "[2,5)",
+          "n": 7379,
+          "observed": 0.526,
+          "predicted_mean": 0.924
+        },
+        {
+          "hand_m": "[5,10)",
+          "n": 6139,
+          "observed": 0.287,
+          "predicted_mean": 0.86
+        },
+        {
+          "hand_m": "[10,20)",
+          "n": 4080,
+          "observed": 0.082,
+          "predicted_mean": 0.626
+        },
+        {
+          "hand_m": "[20,50)",
+          "n": 6773,
+          "observed": 0.003,
+          "predicted_mean": 0.174
+        },
+        {
+          "hand_m": "[50,inf)",
+          "n": 15085,
+          "observed": 0.0,
+          "predicted_mean": 0.022
+        }
+      ]
+    },
+    "derna": {
+      "terrain": {
+        "n": 1469,
+        "positives": 669,
+        "base_rate": 0.4554,
+        "roc_auc": 0.9894,
+        "pr_auc": 0.9869,
+        "brier": 0.2214
+      },
+      "hand_only_auc": 0.9894,
+      "dist_only_auc": 0.9847,
+      "hand_bands": [
+        {
+          "hand_m": "[-inf,2)",
+          "n": 99,
+          "observed": 1.0,
+          "predicted_mean": 0.507
+        },
+        {
+          "hand_m": "[2,5)",
+          "n": 69,
+          "observed": 1.0,
+          "predicted_mean": 0.459
+        },
+        {
+          "hand_m": "[5,10)",
+          "n": 149,
+          "observed": 1.0,
+          "predicted_mean": 0.363
+        },
+        {
+          "hand_m": "[10,20)",
+          "n": 143,
+          "observed": 0.958,
+          "predicted_mean": 0.309
+        },
+        {
+          "hand_m": "[20,50)",
+          "n": 220,
+          "observed": 0.841,
+          "predicted_mean": 0.167
+        },
+        {
+          "hand_m": "[50,inf)",
+          "n": 789,
+          "observed": 0.038,
+          "predicted_mean": 0.049
+        }
+      ]
+    }
+  },
+  "B_oct11_unseen_app_case": {
+    "rows_with_v2_score": 87654,
+    "rows": 87654,
+    "v2_app": {
+      "n": 87654,
+      "positives": 12258,
+      "base_rate": 0.1398,
+      "roc_auc": 0.9324,
+      "pr_auc": 0.6516,
+      "brier": 0.0895
+    },
+    "terrain": {
+      "n": 87654,
+      "positives": 12258,
+      "base_rate": 0.1398,
+      "roc_auc": 0.9189,
+      "pr_auc": 0.6881,
+      "brier": 0.0771
+    },
+    "fb": {
+      "n": 87654,
+      "positives": 12258,
+      "base_rate": 0.1398,
+      "roc_auc": 0.9371,
+      "pr_auc": 0.7807,
+      "brier": 0.0567
+    },
+    "hand_only": {
+      "n": 87654,
+      "positives": 12258,
+      "base_rate": 0.1398,
+      "roc_auc": 0.9032,
+      "pr_auc": 0.7515,
+      "brier": null
+    },
+    "dist_only": {
+      "n": 87654,
+      "positives": 12258,
+      "base_rate": 0.1398,
+      "roc_auc": 0.9354,
+      "pr_auc": 0.7763,
+      "brier": null
+    },
+    "footprint_rule_minus_freeboard": {
+      "n": 87654,
+      "positives": 12258,
+      "base_rate": 0.1398,
+      "roc_auc": 0.912,
+      "pr_auc": 0.7623,
+      "brier": null
+    },
+    "auc_diff_vs_v2_block_bootstrap": {
+      "terrain": {
+        "mean": -0.0139,
+        "ci95": [
+          -0.0666,
+          0.0251
+        ],
+        "n_blocks": 42,
+        "n_boot": 300
+      },
+      "fb": {
+        "mean": 0.004,
+        "ci95": [
+          -0.0471,
+          0.0415
+        ],
+        "n_blocks": 42,
+        "n_boot": 300
+      }
+    },
+    "hand_bands": {
+      "v2_app": [
+        {
+          "hand_m": "[-inf,2)",
+          "n": 4560,
+          "observed": 0.921,
+          "predicted_mean": 0.278
+        },
+        {
+          "hand_m": "[2,5)",
+          "n": 1869,
+          "observed": 0.874,
+          "predicted_mean": 0.288
+        },
+        {
+          "hand_m": "[5,10)",
+          "n": 2549,
+          "observed": 0.676,
+          "predicted_mean": 0.236
+        },
+        {
+          "hand_m": "[10,20)",
+          "n": 4433,
+          "observed": 0.373,
+          "predicted_mean": 0.164
+        },
+        {
+          "hand_m": "[20,50)",
+          "n": 13078,
+          "observed": 0.112,
+          "predicted_mean": 0.087
+        },
+        {
+          "hand_m": "[50,inf)",
+          "n": 61165,
+          "observed": 0.026,
+          "predicted_mean": 0.039
+        }
+      ],
+      "terrain": [
+        {
+          "hand_m": "[-inf,2)",
+          "n": 4560,
+          "observed": 0.921,
+          "predicted_mean": 0.773
+        },
+        {
+          "hand_m": "[2,5)",
+          "n": 1869,
+          "observed": 0.874,
+          "predicted_mean": 0.752
+        },
+        {
+          "hand_m": "[5,10)",
+          "n": 2549,
+          "observed": 0.676,
+          "predicted_mean": 0.728
+        },
+        {
+          "hand_m": "[10,20)",
+          "n": 4433,
+          "observed": 0.373,
+          "predicted_mean": 0.639
+        },
+        {
+          "hand_m": "[20,50)",
+          "n": 13078,
+          "observed": 0.112,
+          "predicted_mean": 0.38
+        },
+        {
+          "hand_m": "[50,inf)",
+          "n": 61165,
+          "observed": 0.026,
+          "predicted_mean": 0.084
+        }
+      ],
+      "fb": [
+        {
+          "hand_m": "[-inf,2)",
+          "n": 4560,
+          "observed": 0.921,
+          "predicted_mean": 0.956
+        },
+        {
+          "hand_m": "[2,5)",
+          "n": 1869,
+          "observed": 0.874,
+          "predicted_mean": 0.908
+        },
+        {
+          "hand_m": "[5,10)",
+          "n": 2549,
+          "observed": 0.676,
+          "predicted_mean": 0.833
+        },
+        {
+          "hand_m": "[10,20)",
+          "n": 4433,
+          "observed": 0.373,
+          "predicted_mean": 0.598
+        },
+        {
+          "hand_m": "[20,50)",
+          "n": 13078,
+          "observed": 0.112,
+          "predicted_mean": 0.213
+        },
+        {
+          "hand_m": "[50,inf)",
+          "n": 61165,
+          "observed": 0.026,
+          "predicted_mean": 0.014
+        }
+      ]
+    },
+    "expected_affected_km2": {
+      "observed": 11.03,
+      "v2_app": 6.0,
+      "terrain": 17.75,
+      "fb": 13.04
+    },
+    "aug26_reference_not_a_test": {
+      "v2_app": {
+        "n": 126528,
+        "positives": 28458,
+        "base_rate": 0.2249,
+        "roc_auc": 0.9704,
+        "pr_auc": 0.8931,
+        "brier": 0.1067
+      },
+      "terrain_lofo": {
+        "n": 126528,
+        "positives": 28458,
+        "base_rate": 0.2249,
+        "roc_auc": 0.9657,
+        "pr_auc": 0.9114,
+        "brier": 0.0757
+      }
+    },
+    "passes_rule": {
+      "terrain": false,
+      "fb": true
+    },
+    "decision": "fb"
+  },
+  "final_model": {
+    "file": "models/area/area_fb.joblib",
+    "trained_on": [
+      "unosat_FL20260826NPL",
+      "unosat_FL20261011NPL"
+    ],
+    "platt": [
+      0.6448712167483746,
+      0.10510034716825224
+    ]
+  },
+  "runtime_s": 90.0
+}

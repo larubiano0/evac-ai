@@ -1,0 +1,295 @@
+{
+  "event": "Ahr valley flash flood, Germany, 14-15 Jul 2021",
+  "label_source": "cems_EMSR517_AOI15_GRA_MONIT01_v3",
+  "proc": "/home/linux1/work-agent-lcpizani/events/ahr/proc",
+  "arch": "s390x",
+  "label_rule": "y=1 cell centre in extent (inside AOI); y=0 centre in AOI, outside extent, not masked; else no row",
+  "terrain": {
+    "grid_shape": [
+      1994,
+      2786
+    ],
+    "crs": "EPSG:32632",
+    "d8_downhill_fraction": 0.9817,
+    "source_lonlat": [
+      6.88686,
+      50.44608
+    ],
+    "source_ref": "OSM node 173885816 (place=village Schuld); same as build_event_table.py",
+    "snap_offset_m": 469.3,
+    "cut_at_osm_river_mouth": [
+      7.27928,
+      50.55992
+    ],
+    "path_cut_index": 1541,
+    "path_cells": 1542,
+    "path_km": 54.63
+  },
+  "primary_label_parts": [
+    {
+      "files": {
+        "extent": [
+          "cems_dl/EMSR517_AOI15_GRA_MONIT01_r1_RTP01_v3_vector/EMSR517_AOI15_GRA_MONIT01_observedEventA_r1_v3.shp"
+        ],
+        "aoi": [
+          "cems_dl/EMSR517_AOI15_GRA_MONIT01_r1_RTP01_v3_vector/EMSR517_AOI15_GRA_MONIT01_areaOfInterestA_r1_v3.shp"
+        ],
+        "masks": []
+      },
+      "extent_features": 173,
+      "extent_km2": 10.786,
+      "aoi_km2": 120.229,
+      "mask_km2": 0.0,
+      "extent_outside_aoi_km2": 0.0,
+      "grid_cells": {
+        "extent": 11947,
+        "aoi": 133595,
+        "masked_in_aoi": 0,
+        "extent_outside_aoi_or_masked": 0
+      }
+    }
+  ],
+  "secondary_label_parts": {
+    "y_cems_aoi15_first": [
+      {
+        "files": {
+          "extent": [
+            "cems_dl/EMSR517_AOI15_GRA_PRODUCT_r1_RTP01_v1_vector/EMSR517_AOI15_GRA_PRODUCT_observedEventA_r1_v1.shp"
+          ],
+          "aoi": [
+            "cems_dl/EMSR517_AOI15_GRA_PRODUCT_r1_RTP01_v1_vector/EMSR517_AOI15_GRA_PRODUCT_areaOfInterestA_r1_v1.shp"
+          ],
+          "masks": []
+        },
+        "extent_features": 77,
+        "extent_km2": 4.806,
+        "aoi_km2": 60.391,
+        "mask_km2": 0.0,
+        "extent_outside_aoi_km2": 0.0,
+        "grid_cells": {
+          "extent": 5324,
+          "aoi": 67113,
+          "masked_in_aoi": 0,
+          "extent_outside_aoi_or_masked": 0
+        }
+      }
+    ],
+    "y_cems_aoi03_s1": [
+      {
+        "files": {
+          "extent": [
+            "cems_dl/EMSR517_AOI03_DEL_PRODUCT_r1_RTP01_v1_vector/EMSR517_AOI03_DEL_PRODUCT_observedEventA_r1_v1.shp"
+          ],
+          "aoi": [
+            "cems_dl/EMSR517_AOI03_DEL_PRODUCT_r1_RTP01_v1_vector/EMSR517_AOI03_DEL_PRODUCT_areaOfInterestA_r1_v1.shp"
+          ],
+          "masks": []
+        },
+        "extent_features": 40,
+        "extent_km2": 1.688,
+        "aoi_km2": 209.148,
+        "mask_km2": 0.0,
+        "extent_outside_aoi_km2": 0.0,
+        "grid_cells": {
+          "extent": 1889,
+          "aoi": 232369,
+          "masked_in_aoi": 0,
+          "extent_outside_aoi_or_masked": 0
+        }
+      }
+    ]
+  },
+  "positive_only_layers": {},
+  "rows_le_500m": {
+    "y1": 10680,
+    "y0": 36131
+  },
+  "rows_le_2km": {
+    "y1": 11210,
+    "y0": 93399
+  },
+  "rows_by_dist_km": {
+    "<= 250 m": {
+      "y1": 9054,
+      "y0": 16795
+    },
+    "<= 500 m": {
+      "y1": 10680,
+      "y0": 36131
+    },
+    "<= 1000 m": {
+      "y1": 10997,
+      "y0": 64329
+    },
+    "<= 2000 m": {
+      "y1": 11210,
+      "y0": 93399
+    }
+  },
+  "corridor_cells_le_max_dist": 168921,
+  "dropped_corridor_cells": {
+    "outside_aoi_or_masked": 64312,
+    "nonfinite_features": 0
+  },
+  "extent_cells_accounting": {
+    "labelled_y1_cells_on_grid": 11947,
+    "kept_le_500m": 10680,
+    "kept_le_max_dist": 11210,
+    "not_draining_to_path": 0,
+    "draining_but_beyond_max_dist": 737,
+    "positives_dist_to_path_m": {
+      "p50": 94.9,
+      "p90": 530.8,
+      "p99": 7906.0,
+      "max": 11378.2
+    }
+  },
+  "path_cells_labelled": {
+    "y1": 1033,
+    "y0": 457,
+    "unlabelled": 52,
+    "note": "share of the D8 flood path itself inside the mapped extent (channel mapped or not)"
+  },
+  "labelled_river_km_le_500m": {
+    "min": 0.0,
+    "max": 54.48
+  },
+  "sanity_hand_bands_le_500m": [
+    {
+      "hand_m": "[-inf,2)",
+      "n": 7355,
+      "affected": 4684,
+      "share_affected": 0.637
+    },
+    {
+      "hand_m": "[2,5)",
+      "n": 7379,
+      "affected": 3881,
+      "share_affected": 0.526
+    },
+    {
+      "hand_m": "[5,10)",
+      "n": 6139,
+      "affected": 1764,
+      "share_affected": 0.287
+    },
+    {
+      "hand_m": "[10,20)",
+      "n": 4080,
+      "affected": 333,
+      "share_affected": 0.082
+    },
+    {
+      "hand_m": "[20,50)",
+      "n": 6773,
+      "affected": 18,
+      "share_affected": 0.003
+    },
+    {
+      "hand_m": "[50,inf)",
+      "n": 15085,
+      "affected": 0,
+      "share_affected": 0.0
+    }
+  ],
+  "sanity_dist_bands": [
+    {
+      "dist_m": "[0,30)",
+      "n": 1490,
+      "affected": 1033,
+      "share_affected": 0.693
+    },
+    {
+      "dist_m": "[30,60)",
+      "n": 4217,
+      "affected": 2693,
+      "share_affected": 0.639
+    },
+    {
+      "dist_m": "[60,100)",
+      "n": 5710,
+      "affected": 2311,
+      "share_affected": 0.405
+    },
+    {
+      "dist_m": "[100,200)",
+      "n": 9456,
+      "affected": 2228,
+      "share_affected": 0.236
+    },
+    {
+      "dist_m": "[200,500)",
+      "n": 25938,
+      "affected": 2415,
+      "share_affected": 0.093
+    },
+    {
+      "dist_m": "[500,1000)",
+      "n": 28515,
+      "affected": 317,
+      "share_affected": 0.011
+    },
+    {
+      "dist_m": "[1000,2000.01)",
+      "n": 29283,
+      "affected": 213,
+      "share_affected": 0.007
+    }
+  ],
+  "hand_median_le_500m": {
+    "y1": 2.4037551879882812,
+    "y0": 35.45391845703125
+  },
+  "secondary_vs_primary_le_500m": {
+    "y_cems_aoi15_first": {
+      "cells_le_500m_covered": 31314,
+      "confusion_primary_vs_this": {
+        "primary0_this0": 24041,
+        "primary0_this1": 210,
+        "primary1_this0": 1963,
+        "primary1_this1": 5100
+      },
+      "agreement": 0.931
+    },
+    "y_cems_aoi03_s1": {
+      "cells_le_500m_covered": 43750,
+      "confusion_primary_vs_this": {
+        "primary0_this0": 33459,
+        "primary0_this1": 590,
+        "primary1_this0": 8686,
+        "primary1_this1": 1015
+      },
+      "agreement": 0.788
+    },
+    "ahr_flood_trace": {
+      "positive_cells_le_500m": 8779,
+      "share_of_primary_y1_inside": 0.822,
+      "share_of_primary_y0_inside": 0.0
+    },
+    "ahr_flooded_area": {
+      "positive_cells_le_500m": 1901,
+      "share_of_primary_y1_inside": 0.178,
+      "share_of_primary_y0_inside": 0.0
+    }
+  },
+  "kind_feature": "2 = cell (0 building, 1 bridge)",
+  "features": [
+    "hand",
+    "river_km",
+    "dist_channel_m",
+    "slope_deg",
+    "valley_width_m",
+    "channel_slope",
+    "bend_curv",
+    "outside_bend",
+    "log_acc",
+    "ls_500m",
+    "kind"
+  ],
+  "ls_500m_note": "Nepal-only feature; 0 outside Nepal",
+  "timing_s": {
+    "path_context": 1.74,
+    "features": 0.21,
+    "total": 2.64
+  }
+}
