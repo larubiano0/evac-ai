@@ -434,6 +434,8 @@ function details(r) {
   const rows = [];
   const add = (k, v) => { if (v != null && v !== "") rows.push(`<dt>${k}</dt><dd>${v}</dd>`); };
   if (r.you && r.you.p_destroyed != null) add("Chance this spot floods", pct(r.you.p_destroyed));
+  // only when it explains a low model number next to a "may flood" answer
+  if (r.you && r.you.below_flood_line && !(r.you.p_destroyed > UNSAFE_P)) add("Flood line", "this spot is below the expected flood height");
   if (r.walk_min != null) {
     add("Route", `${r.distance_m} m, ${r.climb_m >= 0 ? "+" : ""}${r.climb_m} m climb, ${dur(r.walk_min)}`);
     if (r.path_into_zone && r.path_into_zone.length)

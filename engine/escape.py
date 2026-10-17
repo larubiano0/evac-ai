@@ -43,6 +43,8 @@ REPO = dm.REPO
 DATA = os.path.join(REPO, "data") if os.path.isdir(os.path.join(REPO, "data", "proc")) else "/home/linux1/evac-ai/data"
 UNSAFE_P = 0.10                     # a point whose risk exceeds this is marked unsafe (route shown as NOT safe)
 WILL_HIT_P = 0.50                   # at or above this at your spot: "the flood WILL hit here" (team-agreed tier)
+EARLY_ARRIVAL = 0.75                # plan on the early edge of the flood's arrival band (as engine/scenario.py)
+_EARLY_EDGE = True                  # read by docs/validation/audit_escape.py: A is already the early edge
 RUN_SPEEDUP = 2.0                   # running = 2 x Tobler walking speed ...
 RUN_LIMIT_MIN = 5.0                 # ... for the first 5 min of the trip only, then walking again
 HURRY_MIN = 10.0                    # tightest margin before the flood below this: "Hurry"
@@ -243,7 +245,11 @@ class FloodScenario:
         self.p.flat[idx] = p
         km = np.where(ctx.drain >= 0, ctx.km_path[ctx.pos[np.maximum(ctx.drain, 0)]], np.nan)
         self.km = km
-        self.A = np.where(ctx.drain >= 0, self.F.arrival(np.nan_to_num(km)), np.inf).astype(np.float32)
+        # early edge of the arrival band (x EARLY_ARRIVAL), as the planner's slack does: never promise time the flood
+        # may not give (docs/validation/escape_audit.md, bug 3). Bridges below read this same early time.
+        self.A = np.where(ctx.drain >= 0, EARLY_ARRIVAL * self.F.arrival(np.nan_to_num(km)), np.inf).astype(np.float32)
+        # the planner's conservative flood line (engine/scenario.py: safe only if HAND > 1.3 x height + 5 m)
+        self.below = (ctx.drain >= 0) & (ctx.hand <= self.F.height(np.nan_to_num(km)) * 1.3 + 5.0)
 
         # flood river strip is a barrier except where a bridge crosses (same rule as engine/safety.py)
         ch = np.zeros(T.shape, bool); ch.flat[self.path] = True
@@ -281,7 +287,11 @@ class FloodScenario:
                                          "flood_arrival_min": None if not np.isfinite(a_b) else round(a_b, 1)})
         self.blocked = (barrier & ~bcells).astype(np.uint8)
         self.blocked[~np.isfinite(V.dem32)] = 1
-        self.p_search = np.nan_to_num(self.p, nan=0.0).astype(np.float32)      # outside corridor: not at risk
+        self.p_search = np.nan_to_num(self.p, nan=0.0).astype(np.float32)      # outside corridor: not at risk ...
+        # ... unless below the flood line: the model has no data outside the 500 m corridor and October
+        # probabilities are low overall, so p <= UNSAFE_P alone sent people below the flood line (audit bugs 1-2).
+        # Such ground is never "safe": at least UNSAFE_P + 0.01, passable only before the flood.
+        self.p_search[self.below] = np.maximum(self.p_search[self.below], np.float32(UNSAFE_P + 0.01))
         self.runtime_s = time.time() - t0
 
     # ---- one query: where am I, what time is it ----
@@ -307,9 +317,12 @@ class FloodScenario:
         t0 = float(minutes_after_start)
         here = self._point(r, c, t0)
         p_here, a_here = here["p_destroyed"], here["flood_arrival_min"]
+        below = bool(self.below[r, c])
         tier = "outside" if p_here is None else ("will_hit" if p_here >= WILL_HIT_P else
                                                   ("likely" if p_here > UNSAFE_P else "low"))
-        to_flood = None if (p_here is None or a_here is None) else round(a_here - t0, 1)
+        if below and tier in ("outside", "low"):                  # below the flood line: never "safe here"
+            tier = "likely"
+        to_flood = None if (tier == "outside" or a_here is None) else round(a_here - t0, 1)
         base = {"you": here, "minutes_after_start": t0, "flood": self.describe(short=True), "tier": tier,
                 "minutes_until_flood_here": to_flood, "safe_zone": None, "backup": None}
         if tier == "outside":
@@ -467,7 +480,7 @@ class FloodScenario:
         out = []
         for i in reversed(seq[:-1]):
             rr, cc = r0 + i // nc, c0 + i % nc
-            p, a = self.p[rr, cc], self.A[rr, cc]
+            p, a = self.p_search[rr, cc], self.A[rr, cc]
             lo, la = V_inv(self, rr, cc)
             out.append({"lon": round(float(lo), 6), "lat": round(float(la), 6), "t_min": round(float(Tm[i]), 2),
                         "p_destroyed": round(float(p), 3) if np.isfinite(p) else 0.0,
@@ -507,7 +520,8 @@ class FloodScenario:
         return {"lon": round(float(V_inv(self, r, c)[0]), 6), "lat": round(float(V_inv(self, r, c)[1]), 6),
                 "p_destroyed": None if not np.isfinite(p) else round(float(p), 3),
                 "flood_arrival_min": None if not np.isfinite(a) else round(float(a), 1),
-                "flood_already_here": bool(np.isfinite(p) and np.isfinite(a) and t >= a)}
+                "below_flood_line": bool(self.below[r, c]),
+                "flood_already_here": bool((np.isfinite(p) or self.below[r, c]) and np.isfinite(a) and t >= a)}
 
     def _window(self, r, c, exclude):
         R = int(SEARCH_RADIUS_M / CELL)
@@ -572,7 +586,7 @@ class FloodScenario:
         pts, risks, margins, unsafe, afters = [], [], [], [], []
         for k, i in enumerate(seq):
             rr, cc = r0 + i // nc, c0 + i % nc
-            p, a, t = self.p[rr, cc], float(self.A[rr, cc]), float(Tm[i])
+            p, a, t = self.p_search[rr, cc], float(self.A[rr, cc]), float(Tm[i])   # same risk as the search
             pv = float(p) if np.isfinite(p) else 0.0
             last = k == len(seq) - 1
             after = np.isfinite(a) and t >= a
@@ -647,14 +661,16 @@ class FloodScenario:
                 "arrival_observations": self.preset.get("arrival_observations", [])}
 
     def p_png(self):
-        """P(destroyed) as an RGBA PNG warped to Web Mercator + its lon/lat bounds (Leaflet imageOverlay)."""
+        """Risk as the search sees it (p_search: model P, raised below the flood line) as an RGBA PNG warped to Web
+        Mercator + its lon/lat bounds (Leaflet imageOverlay), so the map is never green where routing says unsafe."""
         import io
         from PIL import Image
         from rasterio.warp import reproject, Resampling, calculate_default_transform, transform_bounds
         T = self.V.T
-        rows, cols = np.where(np.isfinite(self.p))
+        shown = np.isfinite(self.p) | self.below
+        rows, cols = np.where(shown)
         r0, r1, c0, c1 = rows.min(), rows.max() + 1, cols.min(), cols.max() + 1
-        src = self.p[r0:r1, c0:c1].astype(np.float32)
+        src = np.where(shown, self.p_search, np.nan)[r0:r1, c0:c1].astype(np.float32)
         src_tf = T.transform * T.transform.translation(c0, r0)
         crs = T.crs
         h, w = src.shape

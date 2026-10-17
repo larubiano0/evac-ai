@@ -54,6 +54,11 @@ def check_destination(S, res, label):
         a = pt["flood_arrival_min"]
         if pt["p_destroyed"] > esc.UNSAFE_P and a is not None and pt["t_min"] >= a:
             fails.append(f"{label}: risky point passed after the flood (t {pt['t_min']} >= {a})"); break
+    if ok:                                                    # audit bugs 1-2: safe ground clears the flood line
+        for nm, q in (("destination", d), ("go_here", res.get("go_here") or d)):
+            x, y = S.V.tf.transform(q["lon"], q["lat"]); r, c = S.V.T.rc(x, y)
+            if S.below[r, c]:
+                fails.append(f"{label}: SAFE {nm} below the planner's flood line")
     z = res.get("safe_zone") or {}
     if ok and z.get("max_risk", 0) > esc.UNSAFE_P + 1e-9:
         fails.append(f"{label}: safe destination but zone max_risk {z.get('max_risk')}")
@@ -108,6 +113,8 @@ def check_card(res, label):
         fails.append(f"{label}: card without title/line")
     if any("%" in (say.get(k) or "") for k in ("title", "line", "certainty")):
         fails.append(f"{label}: percentage in the card text: {say}")
+    if want == "stay" and (res.get("you") or {}).get("below_flood_line"):
+        fails.append(f"{label}: 'safe here' on ground below the flood line")
     if res.get("tier") == "low" and "already" in (say.get("certainty") or ""):
         fails.append(f"{label}: low-risk spot says the flood may already be here")
     if st != "outside_terrain" and res.get("runtime_ms") is None:
