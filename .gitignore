@@ -224,3 +224,7 @@ __marimo__/
 
 # Planning notes
 plans/
+
+# Data: raw downloads stay local, re-fetch with scripts/ (see data/README.md)
+data/raw/
+*.part

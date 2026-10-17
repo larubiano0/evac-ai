@@ -1,0 +1,15 @@
+{
+  "crs": "EPSG:4326",
+  "shape": [
+    3784,
+    5191
+  ],
+  "west": 84.38861111111112,
+  "north": 28.781666666666666,
+  "dx": 0.0002777777777777778,
+  "dy": 0.0002777777777777778,
+  "note": "pixel (r, c) covers lon west+c*dx..+dx, lat north-r*dy..-dy; metres above EGM2008",
+  "min_m": 181,
+  "max_m": 8044,
+  "source": "Copernicus DEM GLO-30, https://registry.opendata.aws/copernicus-dem/"
+}

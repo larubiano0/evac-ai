@@ -1,0 +1,6 @@
+# Laptop-only extraction (no s390x wheels). Outputs are committed in data/processed/.
+-r requirements.txt
+osmium      # extract_osm.py
+pyshp       # extract_landslides.py
+pyproj      # extract_landslides.py (UTM 45N -> WGS84)
+imagecodecs # fetch_worldpop.py (compressed source GeoTIFF)

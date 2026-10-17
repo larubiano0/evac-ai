@@ -1,0 +1,14 @@
+{
+  "crs": "EPSG:4326",
+  "shape": [
+    1262,
+    1731
+  ],
+  "west": 84.38833227577999,
+  "north": 28.781666887539988,
+  "dx": 0.00083333333,
+  "dy": 0.00083333333,
+  "year": 2026,
+  "total_people_in_bbox": 1964955,
+  "source": "https://data.worldpop.org/GIS/Population/Global_2015_2030/R2025A/2026/NPL/v1/100m/constrained/npl_pop_2026_CN_100m_R2025A_v1.tif"
+}

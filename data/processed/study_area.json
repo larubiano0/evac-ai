@@ -1,0 +1,14 @@
+{
+  "districts": [
+    "Gorkha",
+    "Nuwakot",
+    "Rasuwa"
+  ],
+  "pad_deg": 0.03,
+  "bbox": {
+    "south": 27.7306226,
+    "west": 84.3886891,
+    "north": 28.781570000000002,
+    "east": 85.8304509
+  }
+}
