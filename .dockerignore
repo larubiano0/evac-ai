@@ -1,0 +1,6 @@
+data/
+.git/
+*.pem
+*.cer
+__pycache__/
+*.md

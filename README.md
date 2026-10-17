@@ -126,7 +126,7 @@ ssh -L 8000:localhost:8000 linux1@<VM_IP>
 
 Then browse to <http://localhost:8000>. The VM IP and key are shared in the team chat, never in this repo.
 
-> The Dockerfile is on the VM and not yet committed. Until it is, use the bare-metal steps below.
+The image is built from [`Dockerfile`](Dockerfile) (`sudo docker build -t evac-ai:latest .` on the VM, ~91 s). Ubuntu 24.04 s390x, with the scientific stack and GRASS from apt. `data/` is mounted at runtime. `models/` is not in the image yet, so the damage model and prediction mode run bare-metal for now.
 
 ### Bare metal, on L1CC
 
