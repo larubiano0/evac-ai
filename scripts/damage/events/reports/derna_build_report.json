@@ -1,0 +1,363 @@
+{
+  "event": "Derna dam-burst flash flood, Libya, 10-11 Sep 2023",
+  "proc": "/home/linux1/work-agent-lcpizani/events/derna/proc",
+  "path_km": 15.446164491784236,
+  "path_cells": 438,
+  "max_dist_m": 2000.0,
+  "terrain": {
+    "grid_shape": [
+      1881,
+      2636
+    ],
+    "crs": "EPSG:32634",
+    "d8_downhill_fraction": 0.99,
+    "moved_fraction": 0.9996,
+    "source_lonlat": [
+      22.57708,
+      32.65937
+    ],
+    "source_ref": "OSM way 1207192349 (waterway=dam, name=Abou Mansour, start_date=1976), centre",
+    "snapped_source_lonlat": [
+      22.58052,
+      32.66326
+    ],
+    "snap_offset_m": 538.4,
+    "source_acc_cells": 518150.0,
+    "source_catchment_touches_grid_edge": false,
+    "full_d8_path_km": 28.33,
+    "mouth_lonlat": [
+      22.65082,
+      32.76723
+    ],
+    "mouth_ref": "OSM ways waterway=river/stream name=وادي درنة (Wadi Derna) (Overpass 2026-10-17): lowest downstream terminal vertex",
+    "path_cut_index": 437,
+    "path_end_to_mouth_m": 19.2,
+    "first_path_cell_dem_le_0_index": 440,
+    "path_km": 15.45,
+    "path_cells": 438,
+    "path_to_osm_river_m": {
+      "p50": 12.5,
+      "p90": 37.3,
+      "p95": 45.8,
+      "max": 224.3
+    },
+    "path_dem_start_end_m": [
+      179.5,
+      2.0
+    ],
+    "path_uphill_steps": {
+      "n_rise_gt_1m": 62,
+      "n_rise_gt_5m": 9,
+      "total_rise_m": 230.1,
+      "largest": [
+        {
+          "path_index": 277,
+          "km": 9.69,
+          "rise_m": 21.4,
+          "lonlat": [
+            22.61978,
+            32.72959
+          ]
+        },
+        {
+          "path_index": 276,
+          "km": 9.66,
+          "rise_m": 16.7,
+          "lonlat": [
+            22.61978,
+            32.72932
+          ]
+        },
+        {
+          "path_index": 194,
+          "km": 6.85,
+          "rise_m": 9.5,
+          "lonlat": [
+            22.61235,
+            32.70777
+          ]
+        },
+        {
+          "path_index": 209,
+          "km": 7.34,
+          "rise_m": 8.3,
+          "lonlat": [
+            22.61146,
+            32.71184
+          ]
+        },
+        {
+          "path_index": 193,
+          "km": 6.81,
+          "rise_m": 8.2,
+          "lonlat": [
+            22.61202,
+            32.7075
+          ]
+        },
+        {
+          "path_index": 363,
+          "km": 12.7,
+          "rise_m": 7.0,
+          "lonlat": [
+            22.63077,
+            32.75272
+          ]
+        },
+        {
+          "path_index": 208,
+          "km": 7.31,
+          "rise_m": 7.0,
+          "lonlat": [
+            22.61146,
+            32.71157
+          ]
+        },
+        {
+          "path_index": 364,
+          "km": 12.75,
+          "rise_m": 5.9,
+          "lonlat": [
+            22.63109,
+            32.75298
+          ]
+        }
+      ]
+    },
+    "path_lonlat_samples": [
+      [
+        22.58052,
+        32.66326
+      ],
+      [
+        22.58897,
+        32.67073
+      ],
+      [
+        22.59547,
+        32.67633
+      ],
+      [
+        22.60457,
+        32.6846
+      ],
+      [
+        22.60795,
+        32.6943
+      ],
+      [
+        22.61068,
+        32.704
+      ],
+      [
+        22.61182,
+        32.71373
+      ],
+      [
+        22.61902,
+        32.72283
+      ],
+      [
+        22.62112,
+        32.73255
+      ],
+      [
+        22.62642,
+        32.74222
+      ],
+      [
+        22.63011,
+        32.75191
+      ],
+      [
+        22.63955,
+        32.76018
+      ],
+      [
+        22.6496,
+        32.76654
+      ],
+      [
+        22.65089,
+        32.76706
+      ]
+    ]
+  },
+  "labels": {
+    "label_file": "PHR_20230913_AffectedStructure_Derna.shp",
+    "unosat_points": 2217,
+    "unosat_points_outside_extent_dropped": 10,
+    "analysis_extent": "S2_20230912_AnalysisExtent_Derna.shp",
+    "analysis_extent_km2": 11.906,
+    "s2_cloud_in_extent_km2": 2.79,
+    "osm_snapshot": "Overpass attic [date:\"2023-09-20T00:00:00Z\"], ways building=*",
+    "osm_relations_skipped": 11,
+    "osm_buildings_in_extent": 7638,
+    "unosat_points_inside_osm_polygon": 1680,
+    "match_tolerance_m_p95": 9.99,
+    "osm_polygons_containing_point": 1560,
+    "osm_dropped_ambiguous_within_tol": 1426,
+    "negatives": 4652,
+    "mapping": "y = 1 for each UNOSAT PHR affected point (row at the point); y = 0 for OSM buildings in the extent with no UNOSAT point inside and > tol from every point; destroyed_only undefined (single class) -> 0",
+    "destroyed_only_defined": false
+  },
+  "candidates": {
+    "building_0": 4652,
+    "building_1": 2207,
+    "bridge_0": 0,
+    "bridge_1": 0
+  },
+  "kept_le_max_dist": {
+    "building_0": 1194,
+    "building_1": 577,
+    "bridge_0": 0,
+    "bridge_1": 0
+  },
+  "kept_le_500m": {
+    "building_0": 637,
+    "building_1": 567,
+    "bridge_0": 0,
+    "bridge_1": 0
+  },
+  "positives_kept_fraction_le_500m": 0.2569,
+  "dropped": {
+    "outside_grid": {
+      "building_0": 0,
+      "building_1": 0,
+      "bridge_0": 0,
+      "bridge_1": 0
+    },
+    "inside_grid_not_draining_to_path": {
+      "building_0": 3458,
+      "building_1": 1630,
+      "bridge_0": 0,
+      "bridge_1": 0
+    },
+    "beyond_max_dist": {
+      "building_0": 0,
+      "building_1": 0,
+      "bridge_0": 0,
+      "bridge_1": 0
+    },
+    "nonfinite_features": {
+      "building_0": 0,
+      "building_1": 0,
+      "bridge_0": 0,
+      "bridge_1": 0
+    }
+  },
+  "positives_river_km": {
+    "min": 12.674255403194142,
+    "median": 14.397047609329924,
+    "max": 15.373738084913045
+  },
+  "positives_destroyed_only_le_500m": 0,
+  "sanity_hand_bands_le_500m": [
+    {
+      "hand_m": "[-inf,2)",
+      "n": 7,
+      "affected": 3,
+      "share_affected": 0.429
+    },
+    {
+      "hand_m": "[2,5)",
+      "n": 55,
+      "affected": 44,
+      "share_affected": 0.8
+    },
+    {
+      "hand_m": "[5,10)",
+      "n": 274,
+      "affected": 206,
+      "share_affected": 0.752
+    },
+    {
+      "hand_m": "[10,20)",
+      "n": 205,
+      "affected": 165,
+      "share_affected": 0.805
+    },
+    {
+      "hand_m": "[20,50)",
+      "n": 170,
+      "affected": 89,
+      "share_affected": 0.524
+    },
+    {
+      "hand_m": "[50,inf)",
+      "n": 493,
+      "affected": 60,
+      "share_affected": 0.122
+    }
+  ],
+  "sanity_dist_bands": [
+    {
+      "dist_m": "[0,50)",
+      "n": 124,
+      "affected": 98,
+      "share_affected": 0.79
+    },
+    {
+      "dist_m": "[50,100)",
+      "n": 209,
+      "affected": 167,
+      "share_affected": 0.799
+    },
+    {
+      "dist_m": "[100,200)",
+      "n": 342,
+      "affected": 203,
+      "share_affected": 0.594
+    },
+    {
+      "dist_m": "[200,500)",
+      "n": 529,
+      "affected": 99,
+      "share_affected": 0.187
+    },
+    {
+      "dist_m": "[500,1000)",
+      "n": 516,
+      "affected": 10,
+      "share_affected": 0.019
+    },
+    {
+      "dist_m": "[1000,2000.01)",
+      "n": 51,
+      "affected": 0,
+      "share_affected": 0.0
+    }
+  ],
+  "hand_median_le_500m": {
+    "affected": 10.794090747833252,
+    "unaffected": 58.27604675292969
+  },
+  "extra_flags_kept_le_500m": {
+    "in_s2_cloud": {
+      "affected": 240,
+      "unaffected": 161
+    }
+  },
+  "bridges": "none: no bridge labels in this event's label set",
+  "ls_500m_note": "Nepal-only feature (2015 Gorkha landslides); 0 for this event",
+  "ls_500m_max": 0.0,
+  "features": [
+    "hand",
+    "river_km",
+    "dist_channel_m",
+    "slope_deg",
+    "valley_width_m",
+    "channel_slope",
+    "bend_curv",
+    "outside_bend",
+    "log_acc",
+    "ls_500m",
+    "kind"
+  ],
+  "arch": "s390x",
+  "timing_s": {
+    "path_context": 1.67,
+    "features": 0.04,
+    "total": 111.05
+  }
+}

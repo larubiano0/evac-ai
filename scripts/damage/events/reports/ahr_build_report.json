@@ -1,0 +1,315 @@
+{
+  "event": "Ahr valley flash flood, Germany, 14-15 Jul 2021",
+  "proc": "/home/linux1/work-agent-lcpizani/events/ahr/proc",
+  "path_km": 54.63025104492629,
+  "path_cells": 1542,
+  "max_dist_m": 2000.0,
+  "terrain": {
+    "grid_shape": [
+      1994,
+      2786
+    ],
+    "crs": "EPSG:32632",
+    "d8_downhill_fraction": 0.9817,
+    "moved_fraction": 0.9999,
+    "source_lonlat": [
+      6.88686,
+      50.44608
+    ],
+    "source_ref": "OSM node 173885816 (place=village, name=Schuld, wikidata Q818785)",
+    "snapped_source_lonlat": [
+      6.89314,
+      50.44476
+    ],
+    "snap_offset_m": 469.3,
+    "source_acc_cells": 515204.0,
+    "source_catchment_touches_grid_edge": false,
+    "full_d8_path_km": 71.84,
+    "mouth_lonlat": [
+      7.27928,
+      50.55992
+    ],
+    "mouth_ref": "OSM ways waterway=river name=Ahr (Overpass 2026-10-17): lowest downstream terminal vertex",
+    "path_cut_index": 1541,
+    "path_end_to_mouth_m": 111.8,
+    "first_path_cell_dem_le_0_index": null,
+    "path_km": 54.63,
+    "path_cells": 1542,
+    "path_to_osm_river_m": {
+      "p50": 55.5,
+      "p90": 216.6,
+      "p95": 261.2,
+      "max": 603.8
+    },
+    "path_dem_start_end_m": [
+      227.2,
+      48.5
+    ],
+    "path_uphill_steps": {
+      "n_rise_gt_1m": 108,
+      "n_rise_gt_5m": 3,
+      "total_rise_m": 376.6,
+      "largest": [
+        {
+          "path_index": 545,
+          "km": 19.42,
+          "rise_m": 8.0,
+          "lonlat": [
+            6.99615,
+            50.50703
+          ]
+        },
+        {
+          "path_index": 902,
+          "km": 32.04,
+          "rise_m": 6.7,
+          "lonlat": [
+            7.06837,
+            50.53091
+          ]
+        },
+        {
+          "path_index": 544,
+          "km": 19.38,
+          "rise_m": 5.1,
+          "lonlat": [
+            6.99574,
+            50.50675
+          ]
+        }
+      ]
+    },
+    "path_lonlat_samples": [
+      [
+        6.89314,
+        50.44476
+      ],
+      [
+        6.93608,
+        50.4485
+      ],
+      [
+        6.95983,
+        50.4759
+      ],
+      [
+        6.97999,
+        50.49892
+      ],
+      [
+        6.9916,
+        50.5145
+      ],
+      [
+        7.01021,
+        50.51482
+      ],
+      [
+        7.04021,
+        50.51587
+      ],
+      [
+        7.06581,
+        50.53141
+      ],
+      [
+        7.11111,
+        50.54187
+      ],
+      [
+        7.15125,
+        50.54413
+      ],
+      [
+        7.1904,
+        50.55014
+      ],
+      [
+        7.23906,
+        50.55116
+      ],
+      [
+        7.27776,
+        50.55848
+      ],
+      [
+        7.27771,
+        50.55983
+      ]
+    ]
+  },
+  "labels": {
+    "label_file": "SamprognaMohor_etal_Raters123.shp",
+    "polygons": 19507,
+    "dropped_r1_ungraded": 320,
+    "r1_grade_counts": {
+      "D0": 11990,
+      "D1": 2481,
+      "D2": 2666,
+      "D3": 1621,
+      "D4": 239,
+      "D5": 71,
+      "D6": 119
+    },
+    "r1_vs_r2_affected_agreement": {
+      "n_both_graded": 1734,
+      "agreement": 0.9584775086505191
+    },
+    "mapping": "y = DmgGrd_R1 >= D1; destroyed_only = DmgGrd_R1 in {D5, D6}; R1 empty -> dropped",
+    "osm_id_note": "dataset has no OSM ids; osm_id = '4tu/<feature index in the shapefile>'"
+  },
+  "candidates": {
+    "building_0": 11990,
+    "building_1": 7197,
+    "bridge_0": 0,
+    "bridge_1": 0
+  },
+  "kept_le_max_dist": {
+    "building_0": 10614,
+    "building_1": 7197,
+    "bridge_0": 0,
+    "bridge_1": 0
+  },
+  "kept_le_500m": {
+    "building_0": 4521,
+    "building_1": 7014,
+    "bridge_0": 0,
+    "bridge_1": 0
+  },
+  "positives_kept_fraction_le_500m": 0.9746,
+  "dropped": {
+    "outside_grid": {
+      "building_0": 0,
+      "building_1": 0,
+      "bridge_0": 0,
+      "bridge_1": 0
+    },
+    "inside_grid_not_draining_to_path": {
+      "building_0": 1149,
+      "building_1": 0,
+      "bridge_0": 0,
+      "bridge_1": 0
+    },
+    "beyond_max_dist": {
+      "building_0": 227,
+      "building_1": 0,
+      "bridge_0": 0,
+      "bridge_1": 0
+    },
+    "nonfinite_features": {
+      "building_0": 0,
+      "building_1": 0,
+      "bridge_0": 0,
+      "bridge_1": 0
+    }
+  },
+  "positives_river_km": {
+    "min": 16.019545442950477,
+    "median": 36.37916231265031,
+    "max": 54.118119010570325
+  },
+  "positives_destroyed_only_le_500m": 188,
+  "sanity_hand_bands_le_500m": [
+    {
+      "hand_m": "[-inf,2)",
+      "n": 1961,
+      "affected": 1752,
+      "share_affected": 0.893
+    },
+    {
+      "hand_m": "[2,5)",
+      "n": 4132,
+      "affected": 3359,
+      "share_affected": 0.813
+    },
+    {
+      "hand_m": "[5,10)",
+      "n": 3585,
+      "affected": 1745,
+      "share_affected": 0.487
+    },
+    {
+      "hand_m": "[10,20)",
+      "n": 1343,
+      "affected": 155,
+      "share_affected": 0.115
+    },
+    {
+      "hand_m": "[20,50)",
+      "n": 492,
+      "affected": 3,
+      "share_affected": 0.006
+    },
+    {
+      "hand_m": "[50,inf)",
+      "n": 22,
+      "affected": 0,
+      "share_affected": 0.0
+    }
+  ],
+  "sanity_dist_bands": [
+    {
+      "dist_m": "[0,50)",
+      "n": 1265,
+      "affected": 1150,
+      "share_affected": 0.909
+    },
+    {
+      "dist_m": "[50,100)",
+      "n": 1433,
+      "affected": 1266,
+      "share_affected": 0.883
+    },
+    {
+      "dist_m": "[100,200)",
+      "n": 2574,
+      "affected": 1980,
+      "share_affected": 0.769
+    },
+    {
+      "dist_m": "[200,500)",
+      "n": 6263,
+      "affected": 2618,
+      "share_affected": 0.418
+    },
+    {
+      "dist_m": "[500,1000)",
+      "n": 4168,
+      "affected": 183,
+      "share_affected": 0.044
+    },
+    {
+      "dist_m": "[1000,2000.01)",
+      "n": 2108,
+      "affected": 0,
+      "share_affected": 0.0
+    }
+  ],
+  "hand_median_le_500m": {
+    "affected": 3.5649147033691406,
+    "unaffected": 7.774467468261719
+  },
+  "extra_flags_kept_le_500m": {},
+  "bridges": "none: no bridge labels in this event's label set",
+  "ls_500m_note": "Nepal-only feature (2015 Gorkha landslides); 0 for this event",
+  "ls_500m_max": 0.0,
+  "features": [
+    "hand",
+    "river_km",
+    "dist_channel_m",
+    "slope_deg",
+    "valley_width_m",
+    "channel_slope",
+    "bend_curv",
+    "outside_bend",
+    "log_acc",
+    "ls_500m",
+    "kind"
+  ],
+  "arch": "s390x",
+  "timing_s": {
+    "path_context": 2.01,
+    "features": 0.05,
+    "total": 3.88
+  }
+}
