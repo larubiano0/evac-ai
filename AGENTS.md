@@ -22,9 +22,9 @@ All published branches were rewritten to remove personal email addresses from tr
 ## Agent registry
 | Agent ID | Human / git author | Host / branch | Owns (don't edit without asking) | Status | Updated (ET) |
 |---|---|---|---|---|---|
-| `claude-luis` | Luis Rubiano (GitHub `larubiano0`) | Mac `luissmacbookpro` → drives the L1CC VM over SSH; pushes to `main` | `pipeline/`, `engine/terrain.py` `flood.py` `safety.py` `scenario.py` `alerts.py`, `api/`, `web/`, `replay/oct11.json`, VM `~/evac-ai` | Working: E (offline plan). B fallback at 15:30 | Sat 14:22 |
+| `claude-luis` | Luis Rubiano (GitHub `larubiano0`) | Mac `luissmacbookpro` → drives the L1CC VM over SSH; pushes to `main` | `pipeline/`, `engine/terrain.py` `flood.py` `safety.py` `scenario.py` `alerts.py`, `api/`, `web/`, `replay/oct11.json`, VM `~/evac-ai` | **Out of tokens (per Aayush, Sat 15:52).** `api/`, `web/`, `engine/scenario.py` `flood.py` handed to agent-aayush; `pipeline/` and VM `~/evac-ai` unchanged until Luis is back | Sat 15:52 |
 | `agent-lcpizani` | `lcpizani` | Mac (lucas) → pushes to `main`; VM `~/work-agent-lcpizani` | `data/processed/`, `data/docs/`, `scripts/{common,extract_osm,extract_landslides,fetch_dem,fetch_worldpop,record_dhm}.py`, `engine/damage_model.py`, `engine/route_reliability.py` (B2), `models/damage/`, `scripts/damage/` | **B model DONE** (models/damage/README.md); waiting on claude-luis to wire `predict_scenario` into /api/scenario. Then B2 (approved) | Sat 14:52 |
-| `agent-aayush` | Aayush Poudel (GitHub `apoudel20`) | Windows desktop (local); push to `main` | `replay/aug26.json`, `README.md`, `docs/` (video script) | C ✅ F ✅ G draft ✅. Next: fill G numbers when D lands; help D | Sat 14:42 |
+| `agent-aayush` | **D: validation numbers** + C fix | B wiring in API/UI, resident 'my route' view | Aug 26 in API; NNPA (Snap ML) inference; README/G numbers |
 | `codex-luis` | Luis (GitHub `larubiano0`; GitHub no-reply author) | Mac `luissmacbookpro` → `main` | Repository history and private-address scrub across Git refs; `AGENTS.md` coordination notice | Rewrite prepared and validated; all agents must resync before pushing | Sat 15:10 |
 | _(teammate 4)_ | | | | add yourself, then take packet C, E or F | |
 
@@ -65,9 +65,9 @@ All published branches were rewritten to remove personal email addresses from tr
 ## Work queues (keep everyone busy: when you finish, take the next item in YOUR queue, then any `free` packet)
 | Agent | Now | Next | Then |
 |---|---|---|---|
-| `claude-luis` | E: offline plan | **B: ML model if agent-lcpizani hasn't checked in by 15:30** | D |
+| `claude-luis` | out of tokens: queue moved to agent-aayush | — | — |
 | `agent-lcpizani` | **B: ML damage model** (your labels + `data/proc_trishuli`) | B2: route reliability (approved, ≤1 h) | D: validation numbers |
-| `agent-aayush` | ~~C F~~ ✅, G draft ✅ (numbers pending D) | help D | update README results + G after D/B |
+| `agent-aayush` | **D: validation numbers** + C fix | B wiring in API/UI, resident 'my route' view | Aug 26 in API; NNPA (Snap ML) inference; README/G numbers |
 | (any further agent) | X: stretch calibration | help D | — |
 | humans | **L: mandatory labs** (everyone, now) | H: Nepali review | G: record video (Sun 06:00–08:30) |
 
@@ -108,6 +108,7 @@ All published branches were rewritten to remove personal email addresses from tr
 - BIPAD API `bipadportal.gov.np/api/v1/{river,rain,incident,alert}` is public. Its query filters seem to be ignored.
 
 ## Log (newest first; one line per entry)
+- Sat 15:52 [agent-aayush] **Took over claude-luis's open work** (out of tokens, per Aayush): now own `api/`, `web/`, `engine/scenario.py` `flood.py`; claimed D, B wiring into /api/scenario + map, a resident 'I am here → my route' view, Aug 26 in the API, NNPA inference. **agent-lcpizani:** I'll add `p_destroyed` using your proposed keys; B2 stays yours, and tell me before touching `api/`. **E (offline plan)** is folded into the resident view. Not touching `pipeline/` or VM `~/evac-ai` until I have demo-VM access.
 - Sat 15:42 [agent-aayush] Packet L: runbook in docs/ibm-labs.md (what each of the 4 notebooks shows; human steps: L1CC register + separate VM; Docker + image; run all 4 headless with nbconvert as proof; screenshots via SSH tunnel; don't open port 38888, since the default token is public). Loan_Approval_Demo is Predictive + Generative with zDNN/NNPA. agent-aayush will run it once Aayush has a lab VM. Humans: confirm on H2S which labs count.
 - Sat 15:10 [codex-luis] Rewrote all published branch histories to remove personal addresses from tracked text and Git metadata. Verified current trees and all reachable history; clone resync and GitHub cached-commit removal remain.
 - Sat 15:04 [codex-luis] email scrub done for this Mac clone: rebased onto rewritten main, expired reflogs, pruned old commits, and verified the listed old SHAs are absent. Flagged a separate personal address still present in the current registry for a coordinated upstream rewrite.
