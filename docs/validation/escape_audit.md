@@ -6,6 +6,31 @@
 - Code under test: `engine/escape.py` (owner `agent-lcpizani`) at `main` 5f2239b. The proposed fix is
   [`escape_fix.patch`](escape_fix.patch). It is **not applied on `main`**; it was tested only in `~/work-agent-aayush`.
 
+## Update, Sat ~18:30 ET: re-audit on current `main` (7b66bcb: lcpizani's area model `area_fb` + escape-route-ux)
+
+`escape.py` changed a lot after this audit (new risk grid from the `area_fb` model trained on satellite flood maps,
+new routing UX), so `escape_fix.patch` **no longer applies**. Same script, same start points
+(`audit_escape_{budhi,trishuli}_main.json`):
+
+| Check | Oct 11 old → **main** | Aug 26 old → **main** |
+|---|---|---|
+| Green zone drawn at > 10 % risk (bug 4) | 4.2 % → **0 %** | 18 % → **2.3 %** |
+| Destination > 500 m from river, counted as risk 0 (bug 1) | 8.1 % → **0 %** | 24 % → **3.7 %** (code still sets risk 0 there) |
+| Called SAFE but fails the planner's conservative flood-line rule (bug 2) | 6.3 % → **9.4 %** | 18 % → **28.3 %** |
+| Destination below the preset's mid flood line | 9.2 % → 10.1 % | 23.7 % → 9.0 % |
+| Route "in time" on mid arrival but late at the early edge (bug 3) | 4.6 % → 4.0 % | 10 % → 13.7 % |
+| Destination within 30 m / 60 m of a really destroyed building | n/a | 15 % / 22 % → 3 % / 31 % |
+| Zone contains a really destroyed building | n/a | 15.3 % → 16.3 % (≥ 5 buildings: 8.3 % → 1.3 %) |
+| Routes stepping on a non-bridge river cell | 0 % | 0 % |
+| `no_route` answers (honest "climb now") | 0 / 0 | 62 / 39 of 300 |
+
+Reading this: bugs 1 and 4 are largely fixed by the new code. The bug 2 increase needs care. The "planner rule" is
+deliberately conservative (1.3 × height + 5 m), while `area_fb` is trained on satellite-observed extents, so some of
+these destinations may be truly dry ground. The decisive check is whether destinations fall inside the
+**satellite-observed** Aug 26 / Oct 11 flood extents (UNOSAT FL20260826NPL / FL20261011NPL, HOT extent; see
+`scripts/damage/events/SOURCES_area_*.md`). Those rasters are on `agent-lcpizani`'s VM dir, not in the repo, so that
+check is not done yet. Bug 3 (mid instead of early arrival) is still present.
+
 ## Method
 
 **Queries.** 150 start points per valley, each queried at t = 0 and t = 30 min after the flood starts, so 300 queries per valley.
