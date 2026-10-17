@@ -27,11 +27,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = dm.REPO
 DATA = os.path.join(REPO, "data") if os.path.isdir(os.path.join(REPO, "data", "proc")) else "/home/linux1/evac-ai/data"
 UNSAFE_P = 0.10                     # a point whose risk exceeds this is marked unsafe (route shown as NOT safe)
+WILL_HIT_P = 0.50                   # at or above this at your spot: "the flood WILL hit here" (team-agreed tier)
 TAUS = [0.01, 0.02, 0.03, 0.05, 0.07, 0.10, 0.15, 0.20, 0.30, 0.40, 0.50, 0.70, 0.90]
 SEARCH_RADIUS_M = 4000.0
-# plain-words hit likelihood from the calibrated P(destroyed) at a spot (policy wording, not data)
-TIERS = [(0.70, "very_likely", "Very likely to be hit"), (0.30, "likely", "Likely to be hit"),
-         (UNSAFE_P, "possible", "Could be hit"), (-1.0, "unlikely", "Unlikely to be hit: safe zone")]
 CELL = 30.0
 VALLEYS = {
     "budhi": {"proc": f"{DATA}/proc", "name": "Budhi Gandaki (Gorkha)", "default_preset": "oct11",
@@ -152,23 +150,6 @@ def envelope(preset_key):
                          decay_km=1e12, floor_m=0.0)
 
 
-def tier(p):
-    if p is None:
-        return "outside", "Outside the flood zone"
-    for lo, key, label in TIERS:
-        if p > lo:
-            return key, label
-    return TIERS[-1][1:]
-
-
-def flood_time_text(a, t):
-    if a is None:
-        return "The flood does not reach this spot."
-    if t < a:
-        return f"The flood reaches this spot in {a - t:.0f} min (minute {a:.0f} after it starts)."
-    return f"The flood reached this spot {t - a:.0f} min ago (minute {a:.0f})."
-
-
 def model():
     global _bundle
     if _bundle is None:
@@ -254,64 +235,125 @@ class FloodScenario:
 
     # ---- one query: where am I, what time is it ----
     def escape(self, lon, lat, minutes_after_start):
+        """Always answers: how bad is it here (tier), when does the flood reach you, and where to go.
+
+        Tiers from P(destroyed) at your spot: will_hit (>= WILL_HIT_P), likely (> UNSAFE_P), low, outside.
+        Every in-zone answer carries a route to the nearest safest ground plus that ground as a safe-zone
+        polygon; if no route beats the flood, the least risky ground you can still walk to (status no_route)."""
         t_start = time.time()
         V, T = self.V, self.V.T
         x, y = V.tf.transform(lon, lat)
         r, c = T.rc(x, y)
         if not (0 <= r < T.shape[0] and 0 <= c < T.shape[1]):
-            return {"status": "outside_terrain", "message": "This point is outside the terrain of this valley."}
+            return {"status": "outside_terrain", "tier": "outside", "headline": "Outside the map",
+                    "message": "This point is outside the terrain of this valley. Click inside the coloured area."}
         t0 = float(minutes_after_start)
         here = self._point(r, c, t0)
-        tk, tl = tier(here["p_destroyed"])
-        a = here["flood_arrival_min"] if here["p_destroyed"] is not None else None
-        g = {"tier": tk, "headline": tl, "p_hit": here["p_destroyed"], "flood_time": flood_time_text(a, t0),
-             "minutes_until_flood": None if a is None else round(a - t0, 1), "leave_by_min": None}
-        base = {"you": here, "minutes_after_start": t0, "flood": self.describe(short=True), "guidance": g}
-        if here["p_destroyed"] is None:
-            g["action"] = "Stay here. This spot is outside the area this flood can reach."
-            return {**base, "status": "outside_impact_zone", "safe": True, "confidence": None, "message": g["action"]}
-        if here["p_destroyed"] <= UNSAFE_P:
-            g["action"] = (f"Stay here: you are in the green safe zone ({100 * (1 - here['p_destroyed']):.0f}% confidence "
-                           f"this spot is not hit). Do not go down towards the river.")
-            return {**base, "status": "safe_here", "safe": True, "confidence": round(1 - here["p_destroyed"], 3),
-                    "message": g["action"]}
+        p_here, a_here = here["p_destroyed"], here["flood_arrival_min"]
+        tier = "outside" if p_here is None else ("will_hit" if p_here >= WILL_HIT_P else
+                                                  ("likely" if p_here > UNSAFE_P else "low"))
+        to_flood = None if (p_here is None or a_here is None) else round(a_here - t0, 1)
+        base = {"you": here, "minutes_after_start": t0, "flood": self.describe(short=True), "tier": tier,
+                "minutes_until_flood_here": to_flood, "safe_zone": None, "backup": None}
+        if tier == "outside":
+            return {**base, "status": "outside_impact_zone", "safe": True, "confidence": None,
+                    "headline": "Outside the flood's reach",
+                    "message": "This spot does not drain to the flood river (or is more than 500 m from it). "
+                               "Stay here and keep away from the river.",
+                    "runtime_s": round(time.time() - t_start, 2)}
         if self.blocked[r, c]:                                    # standing in the river strip: step out first
             d, (ri, ci) = ndimage.distance_transform_edt(self.blocked.astype(bool), return_indices=True)
             r, c = int(ri[r, c]), int(ci[r, c])
         main = self._best(r, c, t0, exclude=None)
-        in_time = main is not None
-        if main is None:                                          # nothing reachable in time: nearest safe zone anyway
-            main = self._best(r, c, t0, exclude=None, ignore_timing=True)
-        out = {**base, "status": "route" if main else "no_route", "in_time": in_time, "runtime_s": None}
+        if main and tier == "low" and main["destination"]["p_destroyed"] >= p_here:
+            main = None                                           # nothing nearby is safer than where you stand
+        if main is None and tier == "low":
+            out = {**base, "status": "safe_here", "safe": True, "confidence": round(1 - p_here, 3)}
+        elif main:
+            out = {**base, "status": "route", **main}
+        else:                                                     # nothing beats the flood: least-bad ground
+            main = self._best(r, c, t0, exclude=None, ignore_flood=True)
+            out = {**base, "status": "no_route", "safe": False, **(main or {})}
         if main:
-            out.update(main)
             gr, gc = main["_goal_rc"]
-            backup = self._best(r, c, t0, exclude=(gr, gc, 300.0)) if in_time else None
-            out["backup"] = {k: v for k, v in backup.items() if not k.startswith("_")} if backup else None
+            out["safe_zone"] = self._zone(gr, gc, main["risk_ladder_tau"])
+            if out["status"] == "route":
+                backup = self._best(r, c, t0, exclude=(gr, gc, 300.0))
+                out["backup"] = {k: v for k, v in backup.items() if not k.startswith("_")} if backup else None
             out.pop("_goal_rc", None)
-            m = main["min_margin_before_flood_min"]
-            g["leave_by_min"] = None if m is None else round(t0 + m, 1)
-            walk = f"walk {main['walk_min']:.0f} min ({main['distance_m']} m, {main['climb_m']:+d} m height)"
-            if main["safe"]:
-                g["action"] = (f"Go now to the green safe zone: {walk}. " +
-                               ("Nothing on the way is at risk." if m is None else
-                                f"You must leave within {m:.0f} min (by minute {t0 + m:.0f}) or the flood gets there first."))
-            elif here["flood_already_here"]:
-                g["headline"] = "The flood is at this spot now"
-                g["action"] = (f"Get out of the water's way now, uphill: {walk} to the green safe zone. "
-                               f"{len(main['unsafe_points'])} point(s) on the way (red) are in the flood.")
-            elif in_time:
-                g["action"] = (f"Go now, as fast as you can: {walk}. No path is safe everywhere; "
-                               f"{len(main['unsafe_points'])} point(s) on it (red) may already be flooded when you pass.")
-            else:
-                g["action"] = (f"You cannot reach a safe zone before the flood. Nearest safe zone: {walk}; the red part "
-                               f"is likely flooded before you pass. If you cannot get through, climb as high as you can now.")
-        else:
-            out["safe"] = False
-            g["action"] = (f"No safe zone within {SEARCH_RADIUS_M / 1000:.0f} km on foot. Climb as high as you can, now.")
-        out["message"] = g["action"]
+        out["headline"], out["message"] = self._advice(out)
         out["runtime_s"] = round(time.time() - t_start, 2)
         return out
+
+    def _advice(self, o):
+        """Plain-language headline + message for the result card (numbers only from the result itself)."""
+        y, tier, st = o["you"], o["tier"], o["status"]
+        pc = f"{100 * y['p_destroyed']:.0f}%"
+        tf = o["minutes_until_flood_here"]
+        if tf is None:
+            when = ""
+        elif tf <= 0:
+            when = " The flood can already be here."
+        else:
+            when = f" The flood reaches your spot in about {tf:.0f} min."
+        if tier == "will_hit":
+            head = "The flood WILL hit here. Leave now." if (tf is None or tf > 0) else "The flood is here. Climb now."
+            lead = f"Very high chance ({pc}) this spot is hit.{when}"
+        elif tier == "likely":
+            head = "Likely to be hit. Move to the safe zone."
+            lead = f"There is a likely chance ({pc}) the flood hits you here.{when}"
+        else:
+            head = "Low risk here."
+            lead = f"Low chance ({pc}) the flood hits this spot.{when}"
+        if st == "safe_here":
+            return head, lead + " Nothing nearby is safer: you can stay, away from the river."
+        if st == "no_route":
+            if "walk_min" not in o:
+                return ("No way out found. Climb as high as you can, now.",
+                        lead + f" No walkable ground within {SEARCH_RADIUS_M / 1000:.0f} km is safer.")
+            dz = o["climb_m"]
+            return ("You cannot reach safe ground before the flood. Climb now.",
+                    lead + f" Every path is cut by the flood in time. Best option: the least risky ground you can "
+                           f"walk to, {o['walk_min']:.0f} min away ({'+' if dz >= 0 else ''}{dz} m), "
+                           f"{100 * (1 - o['destination']['p_destroyed']):.0f}% chance it stays safe.")
+        dz, walk = o["climb_m"], o["walk_min"]
+        go = (f" Walk {walk:.0f} min ({o['distance_m']} m, {'+' if dz >= 0 else ''}{dz} m) to the green safe zone, "
+              f"{100 * (1 - o['destination']['p_destroyed']):.0f}% chance it stays safe.")
+        if tier == "low":
+            head = "Low risk here. Safer ground is nearby."
+        if not o["safe"]:
+            return (head, lead + go + f" Hurry: {len(o['unsafe_points'])} point(s) on the way may already be "
+                                      f"flooded when you get there (red).")
+        m = o["min_margin_before_flood_min"]
+        spare = "" if m is None else (f" Leave now and you have about {m:.0f} min to spare." if m >= 1 else
+                                      " Leave now: you have almost no time to spare.")
+        return head, lead + go + spare
+
+    def _zone(self, gr, gc, tau, radius_m=600.0):
+        """The safe zone at the end of a route: ground connected to the destination with risk <= tau, within
+        radius_m of it, as GeoJSON (lon/lat) polygons."""
+        from rasterio import features
+        from affine import Affine
+        R = int(radius_m / CELL)
+        nr, nc = self.V.T.shape
+        r0, r1, c0, c1 = max(gr - R, 0), min(gr + R + 1, nr), max(gc - R, 0), min(gc + R + 1, nc)
+        ok = (self.p_search[r0:r1, c0:c1] <= tau + 1e-6) & (self.blocked[r0:r1, c0:c1] == 0)
+        yy, xx = np.ogrid[r0:r1, c0:c1]
+        ok &= (yy - gr) ** 2 + (xx - gc) ** 2 <= R * R
+        lab, _ = ndimage.label(ok, structure=np.ones((3, 3)))
+        keep = lab == lab[gr - r0, gc - c0]
+        if not keep.any():
+            return None
+        tf = self.V.T.transform * Affine.translation(c0, r0)
+        polys = []
+        for geom, v in features.shapes(keep.astype(np.uint8), mask=keep, transform=tf):
+            rings = []
+            for ring in geom["coordinates"]:
+                ring = np.asarray(ring)
+                lo, la = self.V.inv.transform(ring[:, 0], ring[:, 1])
+                rings.append([[round(float(a), 6), round(float(b), 6)] for a, b in zip(lo, la)])
+            polys.append(rings)
+        return {"type": "MultiPolygon", "coordinates": polys, "max_risk": round(float(tau), 3)}
 
     def _point(self, r, c, t):
         p = self.p[r, c]
@@ -335,9 +377,9 @@ class FloodScenario:
                                                   self.p_search[sl], self.A[sl])]
         return (r0, c0, r1 - r0, c1 - c0), arrs
 
-    def _best(self, r, c, t0, exclude, ignore_timing=False):
+    def _best(self, r, c, t0, exclude, ignore_flood=False):
         (r0, c0, nr, nc), (dem, trail, blocked, p, A) = self._window(r, c, exclude)
-        if ignore_timing:                         # route as if the flood never came; risk is still scored with real A
+        if ignore_flood:                                          # fallback: walkable at all, flood or not
             A = np.full_like(A, np.inf)
         lib = _search_lib()
         Tm = np.empty(nr * nc, np.float64); prev = np.empty(nr * nc, np.int32)
@@ -434,9 +476,9 @@ class FloodScenario:
         rgba = np.zeros((dh, dw, 4), np.uint8)
         ok = np.isfinite(dst)
         v = np.clip(np.nan_to_num(dst), 0, 1)
-        # green = safe zone (p <= UNSAFE_P); above it orange (could be hit) -> red (very likely hit)
+        # green = low risk (p <= UNSAFE_P, safe to be); above it orange (likely) -> red (will hit, >= WILL_HIT_P)
         safe = ok & (v <= UNSAFE_P)
-        w = np.clip((v - UNSAFE_P) / (0.70 - UNSAFE_P), 0, 1)
+        w = np.clip((v - UNSAFE_P) / (WILL_HIT_P - UNSAFE_P), 0, 1)
         rgba[..., 0] = np.where(safe, 43, 255).astype(np.uint8)
         rgba[..., 1] = np.where(safe, 182, 170 * (1 - w)).astype(np.uint8)
         rgba[..., 2] = np.where(safe, 115, 30).astype(np.uint8)

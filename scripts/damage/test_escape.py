@@ -37,14 +37,15 @@ def check_route(S, res, label):
 def show(S, name, lon, lat, t):
     t0 = time.time(); res = S.escape(lon, lat, t); dt = time.time() - t0
     check_route(S, res, name)
-    y, g = res.get("you", {}), res.get("guidance", {})
-    print(f"  {name:28s} t={t:5.0f} -> {res['status']:20s} p_here={y.get('p_destroyed')} "
-          f"flood_here_at={y.get('flood_arrival_min')} ({dt:.2f} s)\n      {g.get('headline')} | {g.get('flood_time')} "
-          f"| leave_by={g.get('leave_by_min')} in_time={res.get('in_time')}\n      {res.get('message', '')}")
-    if res["status"] not in ("outside_terrain",) and not g.get("action"):
-        fails.append(f"{name}: no guidance action")
-    if res["status"] in ("route",) and not res.get("path"):
-        fails.append(f"{name}: route without path")
+    y = res.get("you", {})
+    print(f"  {name:28s} t={t:5.0f} -> {res['status']:20s} tier={res.get('tier')} p_here={y.get('p_destroyed')} "
+          f"flood_in={res.get('minutes_until_flood_here')} ({dt:.2f} s)\n      {res.get('headline')} | {res.get('message', '')}")
+    if not res.get("headline") or not res.get("message"):
+        fails.append(f"{name} t={t}: no headline/message")
+    if res.get("tier") in ("will_hit", "likely") and res.get("walk_min") is None and "No way out" not in res.get("headline", ""):
+        fails.append(f"{name} t={t}: at risk but no route")
+    if res["status"] == "route" and not res.get("safe_zone"):
+        fails.append(f"{name} t={t}: route without safe zone")
     if res.get("backup"):
         print(f"  {'':28s}            backup: {res['backup']['message'][:120]}")
     return res
