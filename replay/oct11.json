@@ -1,0 +1,38 @@
+{
+  "event": "Budhi Gandaki flash flood, Gorkha, 2026-10-11",
+  "timezone": "Asia/Kathmandu (NPT, UTC+05:45)",
+  "source": {"name": "Syar Khola near Chumling (Ungilung Khola outlet, approx.)", "lon": 84.9627, "lat": 28.4740,
+             "note": "ICIMOD/NDRRMA (Oct 14): avalanche into Ungilung Khola headwaters between Chamar & Shringi Himal; blockage/burst near Chhekampar-Lokpa. Source point is approximate."},
+  "burst_time": "03:45",
+  "burst_time_band": ["03:30", "04:25"],
+  "triggers": {
+    "community_relay": {"time": "03:30", "desc": "Local relay reaches Dharche (BWSN SitRep 1)"},
+    "police_informed": {"time": "05:30", "desc": "Police told by hotel operators (BWSN SitRep 1)"},
+    "ndrrma_official": {"time": "06:20", "desc": "NDRRMA receives official information (Kathmandu Post interview)"},
+    "official_sms": {"time": "06:40", "desc": "NDRRMA SMS to downstream areas (Kathmandu Post interview)"}
+  },
+  "observations": [
+    {"place": "Paiyu/Bagar/Ghattekhola/Jagat/Salleri", "lon": 84.8959, "lat": 28.3514, "first_arrival": "04:00", "peak_height_m": [20, 25],
+     "src": "BWSN SitRep 1 (04:00 flood enters); Trekguard/ICIMOD (20-25 m at Salleri)", "use": "calibration"},
+    {"place": "Arughat", "lon": 84.8089, "lat": 28.0416, "first_arrival": "06:30", "second_wave": "07:50",
+     "gauge_peak_m": 8.43, "gauge_warning_m": 4.5, "gauge_danger_m": 5.0,
+     "src": "DHM hydrologist Binod Parajuli via Wikipedia; NDRRMA (8.43 m)", "use": "calibration",
+     "note": "gauge stage, not height above DEM channel; rise above normal stage assumed ~6 m (normal stage unknown)"},
+    {"place": "Soti", "lon": 84.8547, "lat": 28.1353, "arrival_reported": "07:30",
+     "src": "CDO Mishra via BWSN SitRep 1", "use": "excluded",
+     "note": "inconsistent with Arughat 06:30 first arrival downstream; probably the second wave"}
+  ],
+  "damage_reported": {
+    "destroyed_or_inundated": ["Paiyu", "Bagar", "Ghattekhola", "Jagat (riverbed settlement)", "Salleri", "Sirdibas (1 house)", "Nyakphedi hotels",
+                               "Machhakhola (lower)", "Dobhan bazaar", "Soti", "Arughat (some houses)", "Shanti Bazaar (40 of 42 houses)", "Syauli Bazaar"],
+    "safe": ["Philim"],
+    "bridges_lost": ["Nyakchet-Sirdibas suspension", "Machhakhola-Kerauja suspension", "Dobhan Bailey", "Soti iron motorable", "Arughat concrete (1 of 3 spans)", "Nyakchet-Philim Bazar"]
+  },
+  "sources": [
+    "https://www.adrrn.net/wp-content/uploads/2026/10/Budhi_Gandaki_Flood_SitRep_1.pdf",
+    "https://kathmandupost.com/interviews/2026/10/11/sms-alerts-helped-avert-loss-of-life-in-budhi-gandaki-floods-says-disaster-management-chief",
+    "https://english.onlinekhabar.com/warnings-saved-lives-budhi-gandaki.html",
+    "https://en.wikipedia.org/wiki/2026_Budhi_Gandaki_flood",
+    "https://trekguard.app/blog/budhi-gandaki-flash-flood-manaslu-circuit-safety-2026/"
+  ]
+}
