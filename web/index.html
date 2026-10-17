@@ -64,6 +64,12 @@
     </div>
 
     <div class="card">
+      <h2>Colour settlements by</h2>
+      <div class="row"><button id="m_slack" class="on">Slack (time to spare)</button><button id="m_dmg">Damage model</button></div>
+      <div class="sub" id="dmgnote">Damage model: P(destroyed) per building, trained on Aug 26 damage (AUC 0.97 on unseen river).</div>
+    </div>
+
+    <div class="card">
       <h2>Alert order</h2>
       <div id="list"></div>
     </div>
@@ -80,9 +86,20 @@ const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { m
 const layers = { route: L.layerGroup().addTo(map), foot: L.layerGroup().addTo(map), path: L.layerGroup().addTo(map), sett: L.layerGroup().addTo(map),
                  bridge: L.layerGroup().addTo(map), front: L.layerGroup().addTo(map) };
 const legend = L.control({ position: 'bottomleft' });
-legend.onAdd = () => { const d = L.DomUtil.create('div'); d.style.cssText = 'background:#fff;padding:6px 9px;border-radius:6px;font:12px system-ui;box-shadow:0 1px 4px #0003';
-  d.innerHTML = '<b>Slack</b> (min to spare)<br><span style="color:#d7263d">●</span> red: no time &nbsp;<span style="color:#f4a259">●</span> amber: &lt;15 &nbsp;<span style="color:#2a9d8f">●</span> green<br><span style="color:#2563eb">■</span> flood footprint (conservative) &nbsp;<span style="color:#d7263d">━</span> bridge: do not cross &nbsp;<span style="color:#16a34a">┅</span> escape route'; return d; };
+const LEG_TAIL = '<br><span style="color:#2563eb">■</span> flood footprint (conservative) &nbsp;<span style="color:#d7263d">━</span> bridge: do not cross &nbsp;<span style="color:#16a34a">┅</span> escape route';
+const LEG = { slack: '<b>Slack</b> (min to spare)<br><span style="color:#d7263d">●</span> red: no time &nbsp;<span style="color:#f4a259">●</span> amber: &lt;15 &nbsp;<span style="color:#2a9d8f">●</span> green',
+  dmg: '<b>Damage model</b>: expected destroyed buildings (relative)<br>' + ['#fde68a', '#fb923c', '#e11d48', '#7f1d1d'].map((c, i) => `<span style="color:${c}">●</span>`).join(' ') + ' low → high · bridge width = P(destroyed)' };
+legend.onAdd = () => { const d = L.DomUtil.create('div'); d.id = 'legend'; d.style.cssText = 'background:#fff;padding:6px 9px;border-radius:6px;font:12px system-ui;box-shadow:0 1px 4px #0003';
+  d.innerHTML = LEG.slack + LEG_TAIL; return d; };
 legend.addTo(map);
+let MODE = 'slack';
+// Damage colours rank within the scenario: October probabilities are low overall, so absolute 0.5 cut-offs would show nothing.
+const DMG = ['#fde68a', '#fb923c', '#e11d48', '#7f1d1d'];
+function colFor(s, d) {
+  if (MODE === 'slack' || s.expected_destroyed == null) return { red: '#d7263d', amber: '#f4a259', green: '#2a9d8f' }[s.status];
+  const mx = Math.max(...d.settlements.map(x => x.expected_destroyed || 0)) || 1;
+  return DMG[Math.min(3, Math.floor(4 * s.expected_destroyed / mx * 0.999))];
+}
 L.control.layers({ 'OpenStreetMap': osm, 'Topo': topo, 'Satellite': sat },
   { 'Flood footprint': layers.foot, 'River path': layers.path, 'Settlements': layers.sett, 'Bridges at risk': layers.bridge, 'Escape routes': layers.route }).addTo(map);
 
@@ -112,20 +129,23 @@ function alertHtml(s) {
    <div class="alert">${esc(a.short_en)} <small>(${a.short_en_chars} ch)</small></div>
    <div class="alert ne">${esc(a.short_ne)} <small>(${a.short_ne_chars} ch)</small></div>
    <details><summary>Full plan (EN / NE)</summary><div class="alert">${esc(a.full_en)}</div><div class="alert ne">${esc(a.full_ne)}</div></details>
+   ${s.expected_destroyed == null ? '' : `<div class="sub">Damage model: ~<b>${s.expected_destroyed}</b> of ${s.n_scored} buildings near the river expected destroyed (mean P ${(100 * s.p_destroyed_mean).toFixed(1)}%)</div>`}
    ${a.nepali_reviewed ? '' : '<div class="warn">Nepali draft, not yet reviewed</div>'}`;
 }
 
 function draw(d, foot) {
-  DATA = d; Object.values(layers).forEach(l => l.clearLayers());
+  DATA = d; draw.foot = foot; Object.values(layers).forEach(l => l.clearLayers());
   L.geoJSON(foot, { style: { color: '#1e3a8a', weight: 2, fillColor: '#2563eb', fillOpacity: 0.55 } }).addTo(layers.foot);
   const st = d.path.properties.stations, cs = d.path.geometry.coordinates;
   L.polyline(cs.map(c => [c[1], c[0]]), { color: '#0c4a6e', weight: 3 }).addTo(layers.path);
   cs.forEach((c, i) => { if (i % 25 === 0) L.circleMarker([c[1], c[0]], { radius: 3, color: '#0c4a6e' })
       .bindTooltip(`km ${st[i].km} · wave ~${st[i].arrival} · up to ${st[i].height_m} m`).addTo(layers.path); });
-  d.bridges_at_risk.forEach(b => L.polyline(b.geometry.map(p => [p[1], p[0]]), { color: '#d7263d', weight: 6 })
-      .bindPopup(`<b>Do not cross</b><br>${esc(b.label)} · km ${b.river_km.toFixed(1)}<br>wave ~${b.arrival_early}`).addTo(layers.bridge));
+  d.bridges_at_risk.forEach(b => L.polyline(b.geometry.map(p => [p[1], p[0]]), { color: '#d7263d',
+        weight: MODE === 'dmg' && b.p_destroyed != null ? 3 + 14 * b.p_destroyed : 6 })
+      .bindPopup(`<b>Do not cross</b><br>${esc(b.label)} · km ${b.river_km.toFixed(1)}<br>wave ~${b.arrival_early}` +
+        (b.p_destroyed == null ? '' : `<br>damage model: P(destroyed) ${(100 * b.p_destroyed).toFixed(0)}%`)).addTo(layers.bridge));
   d.settlements.forEach(s => {
-    const col = { red: '#d7263d', amber: '#f4a259', green: '#2a9d8f' }[s.status];
+    const col = colFor(s, d);
     if (s.route && s.route.length > 1) L.polyline(s.route.map(p => [p[1], p[0]]), { color: '#16a34a', weight: 4, dashArray: '6 5' })
       .bindTooltip(`escape route · ${Math.round(s.route_len_m)} m, climb ${Math.round(s.route_climb_m)} m`).addTo(layers.route);
     s._m = L.circleMarker([s.lat, s.lon], { radius: 4 + Math.sqrt(s.people_at_risk) / 3, color: '#111', weight: 1, fillColor: col, fillOpacity: .9 })
@@ -133,12 +153,16 @@ function draw(d, foot) {
   });
   $('list').innerHTML = d.settlements.map((s, i) => `<div class="s" data-i="${i}"><div class="dot ${s.status}"></div>
       <div><b>#${s.alert_rank} ${esc(s.name)}</b><br><small>wave ~${s.arrival_early} · ${Math.round(s.people_at_risk)} ppl · walk ≤${s.walk_min_max.toFixed(0)} min</small></div>
-      <div class="num"><b>${s.slack_min.toFixed(0)}</b><br><small>min slack</small></div></div>`).join('');
+      <div class="num">${MODE === 'dmg' && s.expected_destroyed != null ? `<b>${s.expected_destroyed}</b><br><small>exp. destroyed</small>` : `<b>${s.slack_min.toFixed(0)}</b><br><small>min slack</small>`}</div></div>`).join('');
   document.querySelectorAll('.s').forEach(el => el.onclick = () => { const s = d.settlements[+el.dataset.i]; map.setView([s.lat, s.lon], 14); s._m.openPopup(); });
   const sm = d.summary;
   $('summary').innerHTML = `<b style="color:var(--red)">${Math.round(sm.people_without_time)}</b> of ${Math.round(sm.people_at_risk)} without time · ${sm.red} red / ${sm.amber} amber`;
   $('host').innerHTML = `<span class="badge">${d.host.machine}</span><span class="badge">${d.host.byteorder}-endian</span>` +
-    `<span class="badge">compute ${d.timing.scenario_compute_s}s</span>`;
+    `<span class="badge">compute ${d.timing.scenario_compute_s}s</span>` +
+    (d.damage_model && d.damage_model.available ? `<span class="badge">damage model ${d.damage_model.version} · ${d.damage_model.runtime_s}s</span>` : '');
+  $('dmgnote').textContent = d.damage_model && d.damage_model.available
+    ? `Damage model ${d.damage_model.version}: ${d.damage_model.buildings_scored} buildings scored on LinuxONE in ${d.damage_model.runtime_s}s · ~${d.damage_model.expected_destroyed_total} expected destroyed in this flood. Trained on Aug 26 damage (AUC 0.97 on an unseen part of the river).`
+    : 'Damage model unavailable on this server' + (d.damage_model && d.damage_model.error ? ': ' + d.damage_model.error : '');
   document.querySelectorAll('.trig').forEach(el => el.classList.toggle('sel', el.dataset.t === d.warning));
   $('slider').value = 0; front();
   if (!draw.fitted) { map.fitBounds(L.latLngBounds(cs.map(c => [c[1], c[0]])).pad(0.08)); draw.fitted = true; }
@@ -162,6 +186,9 @@ async function render() {
 }
 
 $('apply').onclick = () => { CUSTOM = null; render(); };
+const setMode = m => { MODE = m; $('m_slack').classList.toggle('on', m === 'slack'); $('m_dmg').classList.toggle('on', m === 'dmg');
+  $('legend').innerHTML = LEG[m] + LEG_TAIL; if (DATA) draw(DATA, draw.foot); };
+$('m_slack').onclick = () => setMode('slack'); $('m_dmg').onclick = () => setMode('dmg');
 $('slider').oninput = front;
 $('pick').onclick = () => { PICKING = !PICKING; $('pick').classList.toggle('on', PICKING); $('pickmsg').textContent = PICKING ? 'Click a point on a river…' : 'Reuses the Oct 11 curves.'; };
 map.on('click', async e => {

@@ -56,14 +56,46 @@ def _near_bridges(S, s, bridges, radius_m=2500):
     return [b for d, b in sorted(out, key=lambda t: t[0])]
 
 
+def _damage(S, sett, bridges):
+    """Damage model (agent-lcpizani, models/damage) on this scenario: NEW keys only, nothing existing changes.
+    Per settlement: mean P(destroyed) and expected destroyed buildings over its buildings in the 500 m corridor;
+    per bridge at risk: P(destroyed) at its river crossing. Probabilities are calibrated but low for October-sized
+    floods, so the UI ranks and colours by them instead of thresholding at 0.5. Cached on the scenario."""
+    if not hasattr(S, "_dmg"):
+        try:
+            from engine import damage_model as dm
+            S._dmg = dm.predict_scenario(S)
+        except Exception as e:                                # missing model files must not break /api/scenario
+            S._dmg = {"error": f"{type(e).__name__}: {e}"}
+    res = S._dmg
+    if "error" in res:
+        return {"available": False, "error": res["error"]}
+    V, p = S.V, res["p_building"]
+    place = {(float(V.p_ll[i, 0]), float(V.p_ll[i, 1])): i for i in range(len(V.p_ll))}
+    for s in sett:
+        m = (V.b_place == place.get((s["lon"], s["lat"]), -2)) & np.isfinite(p)
+        s["n_scored"] = int(m.sum())
+        s["p_destroyed_mean"] = round(float(p[m].mean()), 4) if m.any() else None
+        s["expected_destroyed"] = round(float(p[m].sum()), 1) if m.any() else None
+    pb = {b["id"]: b["p_destroyed"] for b in res["bridges"]}
+    for b in bridges:
+        b["p_destroyed"] = pb.get(b["id"])
+    return {"available": True, "version": res["version"], "runtime_s": round(res["runtime_s"], 2),
+            "expected_destroyed_total": round(float(np.nansum(p[V.b_place >= 0])), 1),
+            "buildings_scored": int(np.isfinite(p).sum()),
+            "note": "P(destroyed) from a model trained on Aug 26 damage tags (spatial-holdout AUC 0.968/0.818); "
+                    "rank and colour, do not threshold at 0.5"}
+
+
 def payload(S, warn):
     t = time.time()
     sett = S.settlements(warn); bridges = S.bridges_at_risk()
     wmin = hhmm_to_min(warn) - S.t0
     for s in sett:
         s["alerts"] = alerts.build(s, _near_bridges(S, s, bridges), warn, wmin)
+    damage = _damage(S, sett, bridges)
     return {"replay": S.rep["event"], "burst_time": S.rep["burst_time"] if S.t0 == hhmm_to_min(S.rep["burst_time"]) else None,
-            "warning": warn, "summary": S.summary(warn), "settlements": sett,
+            "warning": warn, "summary": S.summary(warn), "settlements": sett, "damage_model": damage,
             "bridges_at_risk": [{k: v for k, v in b.items() if k != "geometry"} | {"geometry": b["geometry"]} for b in bridges],
             "path": S.path_geojson(), "wave_speeds_kmh": S.F.wave_speed_kmh(),
             "timing": {"scenario_compute_s": round(S.runtime_s, 2), "walk_s": round(S.walk_s, 2),
