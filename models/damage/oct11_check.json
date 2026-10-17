@@ -1,0 +1,604 @@
+{
+  "event": "Budhi Gandaki flash flood, Gorkha, 2026-10-11",
+  "arch": "s390x",
+  "path_km": 94.81566660714577,
+  "envelope_height_knots": [
+    [
+      0.0,
+      22.5
+    ],
+    [
+      20.228956697920022,
+      22.5
+    ],
+    [
+      62.54157138848593,
+      6.029999999999999
+    ]
+  ],
+  "versions": {
+    "v1": {
+      "features": [
+        "hand",
+        "dist_channel_m",
+        "slope_deg",
+        "valley_width_m",
+        "channel_slope",
+        "bend_curv",
+        "outside_bend",
+        "ls_500m",
+        "kind"
+      ],
+      "predict_s": 0.4,
+      "corridor_buildings": 3727,
+      "corridor_bridges": 49,
+      "expected_affected_buildings": 271.1,
+      "buildings_p_ge_0.5": 1,
+      "bridges_p_ge_0.5": 5,
+      "lost_bridges": [
+        {
+          "reported": "Nyakchet-Sirdibas suspension",
+          "places_matched": [
+            "Nyak",
+            "Nyak Phedi",
+            "Sirdibas"
+          ],
+          "candidates": [
+            {
+              "osm_id": 1120107633,
+              "name": "",
+              "kind": "path",
+              "dist_to_place_m": 432,
+              "river_km": 9.0,
+              "crossing_hand_m": 0.0,
+              "crossing_dist_channel_m": 0.0,
+              "crossing_freeboard_m": -22.5,
+              "p": 0.483,
+              "rank": 6,
+              "engine_at_risk": true
+            },
+            {
+              "osm_id": 342079196,
+              "name": "",
+              "kind": "path",
+              "dist_to_place_m": 653,
+              "river_km": 15.3,
+              "crossing_hand_m": 26.3,
+              "crossing_dist_channel_m": 228.0,
+              "crossing_freeboard_m": 3.8,
+              "p": 0.106,
+              "rank": 33,
+              "engine_at_risk": true
+            },
+            {
+              "osm_id": 341862574,
+              "name": "Manaslu Circuit",
+              "kind": "",
+              "dist_to_place_m": 857,
+              "river_km": 9.5,
+              "crossing_hand_m": 6.5,
+              "crossing_dist_channel_m": 67.0,
+              "crossing_freeboard_m": -16.0,
+              "p": 0.565,
+              "rank": 1,
+              "engine_at_risk": true
+            }
+          ]
+        },
+        {
+          "reported": "Machhakhola-Kerauja suspension",
+          "places_matched": [
+            "Machhakhola"
+          ],
+          "candidates": [
+            {
+              "osm_id": 341904717,
+              "name": "",
+              "kind": "path",
+              "dist_to_place_m": 219,
+              "river_km": 36.5,
+              "crossing_hand_m": 26.8,
+              "crossing_dist_channel_m": 201.0,
+              "crossing_freeboard_m": 10.7,
+              "p": 0.106,
+              "rank": 32,
+              "engine_at_risk": false
+            },
+            {
+              "osm_id": 341240434,
+              "name": "",
+              "kind": "path",
+              "dist_to_place_m": 242,
+              "river_km": 36.6,
+              "crossing_hand_m": 0.0,
+              "crossing_dist_channel_m": 0.0,
+              "crossing_freeboard_m": -16.1,
+              "p": 0.05,
+              "rank": 41,
+              "engine_at_risk": true
+            },
+            {
+              "osm_id": 341084501,
+              "name": "",
+              "kind": "path",
+              "dist_to_place_m": 423,
+              "river_km": 36.5,
+              "crossing_hand_m": 51.0,
+              "crossing_dist_channel_m": 495.0,
+              "crossing_freeboard_m": 34.9,
+              "p": 0.008,
+              "rank": 48,
+              "engine_at_risk": false
+            }
+          ]
+        },
+        {
+          "reported": "Dobhan Bailey",
+          "places_matched": [
+            "Dobhan"
+          ],
+          "candidates": [
+            {
+              "osm_id": 90264548,
+              "name": "Manaslu Circuit",
+              "kind": "path",
+              "dist_to_place_m": 95,
+              "river_km": 27.6,
+              "crossing_hand_m": 14.1,
+              "crossing_dist_channel_m": 85.0,
+              "crossing_freeboard_m": -5.5,
+              "p": 0.342,
+              "rank": 12,
+              "engine_at_risk": true
+            },
+            {
+              "osm_id": 639131370,
+              "name": "",
+              "kind": "path",
+              "dist_to_place_m": 347,
+              "river_km": 28.1,
+              "crossing_hand_m": 0.0,
+              "crossing_dist_channel_m": 0.0,
+              "crossing_freeboard_m": -19.5,
+              "p": 0.547,
+              "rank": 3,
+              "engine_at_risk": true
+            },
+            {
+              "osm_id": 90264573,
+              "name": "Tatopani Foot-Bridge",
+              "kind": "path",
+              "dist_to_place_m": 1748,
+              "river_km": 29.8,
+              "crossing_hand_m": 0.0,
+              "crossing_dist_channel_m": 0.0,
+              "crossing_freeboard_m": -18.8,
+              "p": 0.372,
+              "rank": 10,
+              "engine_at_risk": true
+            }
+          ]
+        },
+        {
+          "reported": "Soti iron motorable",
+          "places_matched": [
+            "lon/lat (84.8547, 28.1353)"
+          ],
+          "candidates": [
+            {
+              "osm_id": 90264460,
+              "name": "Manaslu Circuit",
+              "kind": "path",
+              "dist_to_place_m": 228,
+              "river_km": 49.1,
+              "crossing_hand_m": 28.4,
+              "crossing_dist_channel_m": 95.0,
+              "crossing_freeboard_m": 17.2,
+              "p": 0.42,
+              "rank": 8,
+              "engine_at_risk": false
+            },
+            {
+              "osm_id": 340660890,
+              "name": "",
+              "kind": "path",
+              "dist_to_place_m": 892,
+              "river_km": 48.3,
+              "crossing_hand_m": 0.0,
+              "crossing_dist_channel_m": 0.0,
+              "crossing_freeboard_m": -11.6,
+              "p": 0.523,
+              "rank": 5,
+              "engine_at_risk": true
+            }
+          ]
+        },
+        {
+          "reported": "Arughat concrete (1 of 3 spans)",
+          "places_matched": [
+            "lon/lat (84.8089, 28.0416)"
+          ],
+          "candidates": [
+            {
+              "osm_id": 340432178,
+              "name": "Ghyampesal - Aarughat Road",
+              "kind": "secondary",
+              "dist_to_place_m": 20,
+              "river_km": 62.5,
+              "crossing_hand_m": 17.2,
+              "crossing_dist_channel_m": 175.0,
+              "crossing_freeboard_m": 11.1,
+              "p": 0.165,
+              "rank": 26,
+              "engine_at_risk": false
+            },
+            {
+              "osm_id": 340443908,
+              "name": "",
+              "kind": "unclassified",
+              "dist_to_place_m": 867,
+              "river_km": 61.4,
+              "crossing_hand_m": 0.0,
+              "crossing_dist_channel_m": 0.0,
+              "crossing_freeboard_m": -6.5,
+              "p": 0.165,
+              "rank": 27,
+              "engine_at_risk": false
+            }
+          ]
+        },
+        {
+          "reported": "Nyakchet-Philim Bazar",
+          "places_matched": [
+            "Nyak",
+            "Nyak Phedi",
+            "Philim"
+          ],
+          "candidates": [
+            {
+              "osm_id": 90264445,
+              "name": "Manaslu Circuit",
+              "kind": "path",
+              "dist_to_place_m": 410,
+              "river_km": 14.8,
+              "crossing_hand_m": 0.0,
+              "crossing_dist_channel_m": 0.0,
+              "crossing_freeboard_m": -22.5,
+              "p": 0.246,
+              "rank": 22,
+              "engine_at_risk": false
+            },
+            {
+              "osm_id": 1120107633,
+              "name": "",
+              "kind": "path",
+              "dist_to_place_m": 432,
+              "river_km": 9.0,
+              "crossing_hand_m": 0.0,
+              "crossing_dist_channel_m": 0.0,
+              "crossing_freeboard_m": -22.5,
+              "p": 0.483,
+              "rank": 6,
+              "engine_at_risk": true
+            },
+            {
+              "osm_id": 341862574,
+              "name": "Manaslu Circuit",
+              "kind": "",
+              "dist_to_place_m": 857,
+              "river_km": 9.5,
+              "crossing_hand_m": 6.5,
+              "crossing_dist_channel_m": 67.0,
+              "crossing_freeboard_m": -16.0,
+              "p": 0.565,
+              "rank": 1,
+              "engine_at_risk": true
+            }
+          ]
+        }
+      ]
+    },
+    "v2": {
+      "features": [
+        "hand",
+        "dist_channel_m",
+        "slope_deg",
+        "valley_width_m",
+        "channel_slope",
+        "bend_curv",
+        "outside_bend",
+        "ls_500m",
+        "kind",
+        "freeboard"
+      ],
+      "predict_s": 0.25,
+      "corridor_buildings": 3727,
+      "corridor_bridges": 49,
+      "expected_affected_buildings": 146.0,
+      "buildings_p_ge_0.5": 0,
+      "bridges_p_ge_0.5": 3,
+      "lost_bridges": [
+        {
+          "reported": "Nyakchet-Sirdibas suspension",
+          "places_matched": [
+            "Nyak",
+            "Nyak Phedi",
+            "Sirdibas"
+          ],
+          "candidates": [
+            {
+              "osm_id": 1120107633,
+              "name": "",
+              "kind": "path",
+              "dist_to_place_m": 432,
+              "river_km": 9.0,
+              "crossing_hand_m": 0.0,
+              "crossing_dist_channel_m": 0.0,
+              "crossing_freeboard_m": -22.5,
+              "p": 0.25,
+              "rank": 11,
+              "engine_at_risk": true
+            },
+            {
+              "osm_id": 342079196,
+              "name": "",
+              "kind": "path",
+              "dist_to_place_m": 653,
+              "river_km": 15.3,
+              "crossing_hand_m": 26.3,
+              "crossing_dist_channel_m": 228.0,
+              "crossing_freeboard_m": 3.8,
+              "p": 0.085,
+              "rank": 27,
+              "engine_at_risk": true
+            },
+            {
+              "osm_id": 341862574,
+              "name": "Manaslu Circuit",
+              "kind": "",
+              "dist_to_place_m": 857,
+              "river_km": 9.5,
+              "crossing_hand_m": 6.5,
+              "crossing_dist_channel_m": 67.0,
+              "crossing_freeboard_m": -16.0,
+              "p": 0.51,
+              "rank": 3,
+              "engine_at_risk": true
+            }
+          ]
+        },
+        {
+          "reported": "Machhakhola-Kerauja suspension",
+          "places_matched": [
+            "Machhakhola"
+          ],
+          "candidates": [
+            {
+              "osm_id": 341904717,
+              "name": "",
+              "kind": "path",
+              "dist_to_place_m": 219,
+              "river_km": 36.5,
+              "crossing_hand_m": 26.8,
+              "crossing_dist_channel_m": 201.0,
+              "crossing_freeboard_m": 10.7,
+              "p": 0.03,
+              "rank": 39,
+              "engine_at_risk": false
+            },
+            {
+              "osm_id": 341240434,
+              "name": "",
+              "kind": "path",
+              "dist_to_place_m": 242,
+              "river_km": 36.6,
+              "crossing_hand_m": 0.0,
+              "crossing_dist_channel_m": 0.0,
+              "crossing_freeboard_m": -16.1,
+              "p": 0.082,
+              "rank": 29,
+              "engine_at_risk": true
+            },
+            {
+              "osm_id": 341084501,
+              "name": "",
+              "kind": "path",
+              "dist_to_place_m": 423,
+              "river_km": 36.5,
+              "crossing_hand_m": 51.0,
+              "crossing_dist_channel_m": 495.0,
+              "crossing_freeboard_m": 34.9,
+              "p": 0.006,
+              "rank": 48,
+              "engine_at_risk": false
+            }
+          ]
+        },
+        {
+          "reported": "Dobhan Bailey",
+          "places_matched": [
+            "Dobhan"
+          ],
+          "candidates": [
+            {
+              "osm_id": 90264548,
+              "name": "Manaslu Circuit",
+              "kind": "path",
+              "dist_to_place_m": 95,
+              "river_km": 27.6,
+              "crossing_hand_m": 14.1,
+              "crossing_dist_channel_m": 85.0,
+              "crossing_freeboard_m": -5.5,
+              "p": 0.305,
+              "rank": 9,
+              "engine_at_risk": true
+            },
+            {
+              "osm_id": 639131370,
+              "name": "",
+              "kind": "path",
+              "dist_to_place_m": 347,
+              "river_km": 28.1,
+              "crossing_hand_m": 0.0,
+              "crossing_dist_channel_m": 0.0,
+              "crossing_freeboard_m": -19.5,
+              "p": 0.553,
+              "rank": 1,
+              "engine_at_risk": true
+            },
+            {
+              "osm_id": 90264573,
+              "name": "Tatopani Foot-Bridge",
+              "kind": "path",
+              "dist_to_place_m": 1748,
+              "river_km": 29.8,
+              "crossing_hand_m": 0.0,
+              "crossing_dist_channel_m": 0.0,
+              "crossing_freeboard_m": -18.8,
+              "p": 0.173,
+              "rank": 18,
+              "engine_at_risk": true
+            }
+          ]
+        },
+        {
+          "reported": "Soti iron motorable",
+          "places_matched": [
+            "lon/lat (84.8547, 28.1353)"
+          ],
+          "candidates": [
+            {
+              "osm_id": 90264460,
+              "name": "Manaslu Circuit",
+              "kind": "path",
+              "dist_to_place_m": 228,
+              "river_km": 49.1,
+              "crossing_hand_m": 28.4,
+              "crossing_dist_channel_m": 95.0,
+              "crossing_freeboard_m": 17.2,
+              "p": 0.156,
+              "rank": 20,
+              "engine_at_risk": false
+            },
+            {
+              "osm_id": 340660890,
+              "name": "",
+              "kind": "path",
+              "dist_to_place_m": 892,
+              "river_km": 48.3,
+              "crossing_hand_m": 0.0,
+              "crossing_dist_channel_m": 0.0,
+              "crossing_freeboard_m": -11.6,
+              "p": 0.483,
+              "rank": 4,
+              "engine_at_risk": true
+            }
+          ]
+        },
+        {
+          "reported": "Arughat concrete (1 of 3 spans)",
+          "places_matched": [
+            "lon/lat (84.8089, 28.0416)"
+          ],
+          "candidates": [
+            {
+              "osm_id": 340432178,
+              "name": "Ghyampesal - Aarughat Road",
+              "kind": "secondary",
+              "dist_to_place_m": 20,
+              "river_km": 62.5,
+              "crossing_hand_m": 17.2,
+              "crossing_dist_channel_m": 175.0,
+              "crossing_freeboard_m": 11.1,
+              "p": 0.026,
+              "rank": 42,
+              "engine_at_risk": false
+            },
+            {
+              "osm_id": 340443908,
+              "name": "",
+              "kind": "unclassified",
+              "dist_to_place_m": 867,
+              "river_km": 61.4,
+              "crossing_hand_m": 0.0,
+              "crossing_dist_channel_m": 0.0,
+              "crossing_freeboard_m": -6.5,
+              "p": 0.219,
+              "rank": 14,
+              "engine_at_risk": false
+            }
+          ]
+        },
+        {
+          "reported": "Nyakchet-Philim Bazar",
+          "places_matched": [
+            "Nyak",
+            "Nyak Phedi",
+            "Philim"
+          ],
+          "candidates": [
+            {
+              "osm_id": 90264445,
+              "name": "Manaslu Circuit",
+              "kind": "path",
+              "dist_to_place_m": 410,
+              "river_km": 14.8,
+              "crossing_hand_m": 0.0,
+              "crossing_dist_channel_m": 0.0,
+              "crossing_freeboard_m": -22.5,
+              "p": 0.104,
+              "rank": 25,
+              "engine_at_risk": false
+            },
+            {
+              "osm_id": 1120107633,
+              "name": "",
+              "kind": "path",
+              "dist_to_place_m": 432,
+              "river_km": 9.0,
+              "crossing_hand_m": 0.0,
+              "crossing_dist_channel_m": 0.0,
+              "crossing_freeboard_m": -22.5,
+              "p": 0.25,
+              "rank": 11,
+              "engine_at_risk": true
+            },
+            {
+              "osm_id": 341862574,
+              "name": "Manaslu Circuit",
+              "kind": "",
+              "dist_to_place_m": 857,
+              "river_km": 9.5,
+              "crossing_hand_m": 6.5,
+              "crossing_dist_channel_m": 67.0,
+              "crossing_freeboard_m": -16.0,
+              "p": 0.51,
+              "rank": 3,
+              "engine_at_risk": true
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "engine_rule": {
+    "buildings_in_footprint": 365,
+    "bridges_at_risk": 18
+  },
+  "reported": {
+    "houses": "35-45 destroyed + 27 partly damaged (research \u00a71.1); Shanti Bazaar 40 of 42",
+    "bridges_lost": [
+      "Nyakchet-Sirdibas suspension",
+      "Machhakhola-Kerauja suspension",
+      "Dobhan Bailey",
+      "Soti iron motorable",
+      "Arughat concrete (1 of 3 spans)",
+      "Nyakchet-Philim Bazar"
+    ]
+  },
+  "timing_s": {
+    "valley_load": 1.04,
+    "path_context_build": 0.49,
+    "total": 2.79
+  }
+}

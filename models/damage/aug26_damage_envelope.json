@@ -1,0 +1,67 @@
+{
+  "method": "p90 HAND of affected buildings per 5 km bin (>= 30 positives)",
+  "fitted_on": "all Aug 26 rows <= 500 m",
+  "knots": [
+    {
+      "km": 2.5,
+      "height_m": 56.03,
+      "n_pos": 428
+    },
+    {
+      "km": 7.5,
+      "height_m": 42.5,
+      "n_pos": 83
+    },
+    {
+      "km": 12.5,
+      "height_m": 62.79,
+      "n_pos": 57
+    },
+    {
+      "km": 17.5,
+      "height_m": 45.5,
+      "n_pos": 195
+    },
+    {
+      "km": 47.5,
+      "height_m": 25.65,
+      "n_pos": 707
+    },
+    {
+      "km": 52.5,
+      "height_m": 28.19,
+      "n_pos": 299
+    },
+    {
+      "km": 57.5,
+      "height_m": 27.53,
+      "n_pos": 408
+    },
+    {
+      "km": 62.5,
+      "height_m": 24.51,
+      "n_pos": 204
+    },
+    {
+      "km": 67.5,
+      "height_m": 21.38,
+      "n_pos": 456
+    },
+    {
+      "km": 72.5,
+      "height_m": 24.81,
+      "n_pos": 97
+    },
+    {
+      "km": 92.5,
+      "height_m": 13.14,
+      "n_pos": 38
+    },
+    {
+      "km": 97.5,
+      "height_m": 16.49,
+      "n_pos": 58
+    }
+  ],
+  "note": "Reconstructed from damage marks because replay/aug26.json has no usable height knot inside the Trishuli grid. Engine FloodEnvelope interpolation: held constant before the first knot, decays to 3 m (30 km scale) after the last."
+}

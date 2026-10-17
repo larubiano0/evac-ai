@@ -17,6 +17,8 @@ for training and inference, from an engine.terrain.Terrain and a flood path (fla
   kind            0 = building, 1 = bridge
   freeboard       (v2 only) hand - envelope height at river_km, m; < 0 = below that event's flood line
 
+Bridges are scored at their crossing point (crossing_points), not their midpoint.
+The models use FEATURES_V1 / FEATURES_V2 (local terrain; river_km and log_acc only in the table, see below).
 Rows outside the corridor (not draining into the path, or more than max_dist_m from it) get NaN.
 """
 import csv, os, time
@@ -31,8 +33,13 @@ BEND = 10                        # path cells each side for the bend angle
 WIDTH_HAND_M = 30.0              # HAND level that defines the valley floor for valley_width_m
 LANDSLIDE_R_M = 500.0
 MAX_DIST_M = 500.0               # corridor half-width used for training and inference
-FEATURES_V1 = ["hand", "river_km", "dist_channel_m", "slope_deg", "valley_width_m", "channel_slope",
-               "bend_curv", "outside_bend", "log_acc", "ls_500m", "kind"]
+# Table columns (training table and features() default). river_km / log_acc describe *where along this
+# river* a row is; the ablation (models/damage/ablation.json) showed they hurt transfer to unseen reaches,
+# so the models use only local terrain (+ freeboard, which carries river position via the event's flood line).
+FEATURES_ALL = ["hand", "river_km", "dist_channel_m", "slope_deg", "valley_width_m", "channel_slope",
+                "bend_curv", "outside_bend", "log_acc", "ls_500m", "kind"]
+POSITIONAL = ["river_km", "log_acc"]
+FEATURES_V1 = [f for f in FEATURES_ALL if f not in POSITIONAL]
 FEATURES_V2 = FEATURES_V1 + ["freeboard"]
 KIND = {"building": 0, "bridge": 1}
 
@@ -40,6 +47,8 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LANDSLIDES_CSV = os.path.join(REPO, "data", "processed", "landslides_2015.csv")
 MODEL_DIR = os.path.join(REPO, "models", "damage")
 TF = Transformer.from_crs(4326, 32645, always_xy=True)
+INV = Transformer.from_crs(32645, 4326, always_xy=True)
+BRIDGE_STEP_M = 10.0
 
 _landslide_tree = None
 
@@ -103,10 +112,35 @@ class PathContext:
         return np.where(ok, r, 0), np.where(ok, c, 0), ok
 
 
-def features(ctx, lonlat, kinds, envelope=None, max_dist_m=MAX_DIST_M):
+def crossing_points(ctx, lines, step_m=BRIDGE_STEP_M):
+    """Bridge lines [[(lon, lat), ...], ...] -> one (lon, lat) per bridge: the densified point closest to the
+    flood channel (ties: lowest HAND). A bridge's midpoint often lands on a terrace beside the 30 m D8
+    channel (e.g. Arughat: 190 m off, HAND 30 m); the crossing point is where the flood meets the bridge.
+    A single-vertex 'line' (OSM node) is returned as is."""
+    out = np.empty((len(lines), 2))
+    for i, line in enumerate(lines):
+        ll = np.asarray(line, float).reshape(-1, 2)
+        if len(ll) == 1:
+            out[i] = ll[0]; continue
+        x, y = TF.transform(ll[:, 0], ll[:, 1])
+        seg = [np.c_[x[j] + t * (x[j + 1] - x[j]), y[j] + t * (y[j + 1] - y[j])]
+               for j in range(len(x) - 1)
+               for t in [np.linspace(0, 1, max(int(np.hypot(x[j + 1] - x[j], y[j + 1] - y[j]) / step_m), 1) + 1)[:-1]]]
+        P = np.vstack(seg + [np.array([[x[-1], y[-1]]])])
+        r, c, ok = ctx.cells(P[:, 0], P[:, 1])
+        d = np.where(ok, ctx.dist[r, c], np.inf)
+        h = np.where(ok, ctx.hand[r, c], np.inf)
+        h = np.where(np.isfinite(h), h, np.inf)
+        k = np.lexsort((h, d))[0]
+        out[i] = INV.transform(P[k, 0], P[k, 1])
+    return out
+
+
+def features(ctx, lonlat, kinds, envelope=None, max_dist_m=MAX_DIST_M, names=None):
     """Feature matrix for points (lon, lat) of the given kinds ('building' / 'bridge' or 0 / 1).
 
-    Returns (X, cols, in_corridor, extra) where X has NaN rows outside the corridor and extra holds
+    names: columns to return (default FEATURES_ALL, plus freeboard when an envelope is given).
+    Returns (X, names, in_corridor, extra) where X has NaN rows outside the corridor and extra holds
     per-row river_km / dist (also for rows outside, NaN when undefined) for reporting.
     """
     lonlat = np.asarray(lonlat, float).reshape(-1, 2)
@@ -130,10 +164,14 @@ def features(ctx, lonlat, kinds, envelope=None, max_dist_m=MAX_DIST_M):
     cols = {"hand": hand, "river_km": river_km, "dist_channel_m": dist, "slope_deg": ctx.slope.ravel()[flat],
             "valley_width_m": ctx.valley_width[jj], "channel_slope": ctx.channel_slope[jj], "bend_curv": turn,
             "outside_bend": -side * turn, "log_acc": ctx.log_acc[jj], "ls_500m": ls, "kind": k}
-    names = list(FEATURES_V1)
     if envelope is not None:
         cols["freeboard"] = hand - np.asarray(envelope.height(river_km), float)
-        names = list(FEATURES_V2)
+    if names is None:
+        names = list(FEATURES_ALL) + (["freeboard"] if envelope is not None else [])
+    missing = [n for n in names if n not in cols]
+    if missing:
+        raise ValueError(f"cannot compute {missing} (freeboard needs an envelope)")
+    names = list(names)
     X = np.column_stack([cols[n] for n in names]).astype(np.float64)
     corridor &= np.isfinite(X).all(axis=1)
     X[~corridor] = np.nan
@@ -143,6 +181,21 @@ def features(ctx, lonlat, kinds, envelope=None, max_dist_m=MAX_DIST_M):
 
 
 # ---------------- model artefacts ----------------
+
+def logit(p, eps=1e-6):
+    p = np.clip(np.asarray(p, float), eps, 1 - eps)
+    return np.log(p / (1 - p))
+
+
+def sigmoid(z):
+    return 1.0 / (1.0 + np.exp(-np.asarray(z, float)))
+
+
+def calibrated(bundle, p_raw):
+    """Apply the bundle's Platt scaling (fitted on out-of-fold spatial-holdout predictions)."""
+    c = bundle.get("calibration")
+    return p_raw if c is None else sigmoid(c["a"] * logit(p_raw) + c["b"])
+
 
 def load(version="v2", model_dir=MODEL_DIR):
     import joblib
@@ -154,23 +207,31 @@ def predict(bundle, ctx, lonlat, kinds, envelope=None, max_dist_m=MAX_DIST_M):
     need_env = "freeboard" in bundle["features"]
     if need_env and envelope is None:
         raise ValueError(f"model {bundle['version']} needs a flood envelope (freeboard)")
-    X, names, ok, _ = features(ctx, lonlat, kinds, envelope if need_env else None, max_dist_m)
-    assert names == bundle["features"], (names, bundle["features"])
+    X, _, ok, _ = features(ctx, lonlat, kinds, envelope if need_env else None, max_dist_m,
+                           names=bundle["features"])
     p = np.full(len(X), np.nan)
     if ok.any():
-        p[ok] = bundle["model"].predict_proba(X[ok])[:, 1]
+        p[ok] = calibrated(bundle, bundle["model"].predict_proba(X[ok])[:, 1])
     return p
 
 
-_ctx_cache = {}
+_ctx_cache, _bundles = {}, {}
 
 
 def context_for(T, path):
-    key = (id(T), len(path), int(path[0]), int(path[-1]))
+    """PathContext for (terrain, path), cached for the most recent path (the API reuses scenarios)."""
+    path = np.asarray(path, np.int64)
+    key = (id(T), T.shape, hash(path.tobytes()))
     if key not in _ctx_cache:
         _ctx_cache.clear()
         _ctx_cache[key] = PathContext(T, path)
     return _ctx_cache[key]
+
+
+def cached_bundle(version="v2"):
+    if version not in _bundles:
+        _bundles[version] = load(version)
+    return _bundles[version]
 
 
 def predict_scenario(S, version="v2", bundle=None):
@@ -180,12 +241,13 @@ def predict_scenario(S, version="v2", bundle=None):
              "bridges": [{"id", "name", "lon", "lat", "p_destroyed"}], "runtime_s"}.
     """
     t0 = time.time()
-    bundle = bundle or load(version)
+    bundle = bundle or cached_bundle(version)
     ctx = context_for(S.V.T, S.path)
     env = S.F if "freeboard" in bundle["features"] else None
     p_b = predict(bundle, ctx, S.V.b_ll, ["building"] * len(S.V.b_ll), env)
     bm = S.V.bridge_meta
-    p_br = predict(bundle, ctx, [(b["lon"], b["lat"]) for b in bm], ["bridge"] * len(bm), env) if bm else []
+    lines = [b.get("geometry") or [(b["lon"], b["lat"])] for b in bm]
+    p_br = predict(bundle, ctx, crossing_points(ctx, lines), ["bridge"] * len(bm), env) if bm else []
     bridges = [{"id": b["id"], "name": b.get("name", ""), "lon": b["lon"], "lat": b["lat"],
                 "p_destroyed": None if not np.isfinite(p) else round(float(p), 4)} for b, p in zip(bm, p_br)]
     return {"version": bundle["version"], "p_building": p_b, "bridges": bridges, "runtime_s": time.time() - t0}

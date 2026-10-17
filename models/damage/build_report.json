@@ -25,7 +25,7 @@
   "kept_le_500m": {
     "building_0": 20358,
     "building_1": 3093,
-    "bridge_0": 72,
+    "bridge_0": 73,
     "bridge_1": 63
   },
   "dropped": {
@@ -81,8 +81,8 @@
   ],
   "arch": "s390x",
   "timing_s": {
-    "path_context": 2.71,
-    "features": 0.83,
-    "total": 6.34
+    "path_context": 2.3,
+    "features": 0.82,
+    "total": 5.93
   }
 }

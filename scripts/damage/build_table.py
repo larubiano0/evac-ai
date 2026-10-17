@@ -6,6 +6,7 @@ Labels (Aug 26 2026 OSM tagging, data/docs/osm_damage_labels.md):
   buildings: damage_event == 2026NepalFlood -> 1 (destroyed or damaged), empty -> 0, other events dropped
   bridges:   destroyed:bridge (event 2026NepalFlood) or a still-mapped bridge tagged with the event -> 1,
              other bridge=* highway ways -> 0 (dropped if within 50 m of a positive: likely a rebuilt crossing)
+  bridges are featurised at their crossing point (damage_model.crossing_points), not the midpoint
 Writes <out>/table_trishuli.npz and models/damage/build_report.json.
 
 Run on the VM from the repo root:
@@ -60,9 +61,12 @@ def load_bridges(bbox):
                                                 and ("highway" in p or "destroyed:highway" in p))
         if not is_bridge:
             continue
-        pt = mid(g["coordinates"]) if g["type"] == "LineString" else g["coordinates"]
-        if g["type"] in ("LineString", "Point") and inb(pt):
-            pos.append((pt[0], pt[1], f.get("id") or p.get("id", "")))
+        if g["type"] not in ("LineString", "Point"):
+            continue
+        line = g["coordinates"] if g["type"] == "LineString" else [g["coordinates"]]
+        pt = mid(line)
+        if inb(pt):
+            pos.append((pt[0], pt[1], f.get("id") or p.get("id", ""), line))
     for f in json.load(open(os.path.join(OSM, "roads.geojson")))["features"]:
         p, g = f["properties"], f["geometry"]
         if p.get("bridge") in (None, "no") or "highway" not in p or g["type"] != "LineString":
@@ -70,15 +74,13 @@ def load_bridges(bbox):
         pt = mid(g["coordinates"])
         if not inb(pt):
             continue
-        if p.get("damage:event") == EVENT:
-            pos.append((pt[0], pt[1], f.get("id") or p.get("id", "")))
-        else:
-            neg.append((pt[0], pt[1], f.get("id") or p.get("id", "")))
+        row = (pt[0], pt[1], f.get("id") or p.get("id", ""), g["coordinates"])
+        (pos if p.get("damage:event") == EVENT else neg).append(row)
     return pos, neg
 
 
 def dedupe(rows, r_m):
-    """Keep the first of any rows closer than r_m (rows: list of (lon, lat, id))."""
+    """Keep the first of any rows closer than r_m (rows: list of (lon, lat, id, line); by midpoint)."""
     if not rows:
         return rows, 0
     x, y = dm.TF.transform([r[0] for r in rows], [r[1] for r in rows])
@@ -123,7 +125,8 @@ def main():
     else:
         near_pos = 0
     br = br_pos + br_neg
-    ll = np.vstack([b_ll, np.array([(q[0], q[1]) for q in br]).reshape(-1, 2)])
+    br_xing = dm.crossing_points(ctx, [q[3] for q in br]) if br else np.empty((0, 2))   # score bridges where they cross
+    ll = np.vstack([b_ll, br_xing.reshape(-1, 2)])
     y = np.concatenate([b_y, np.ones(len(br_pos), int), np.zeros(len(br_neg), int)])
     des = np.concatenate([b_des, np.ones(len(br_pos), int), np.zeros(len(br_neg), int)])
     kind = np.array(["building"] * len(b_ll) + ["bridge"] * len(br))
