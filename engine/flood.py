@@ -55,6 +55,8 @@ def calibrate_from_replay(rep, km_of):
         if o.get("use") != "calibration":
             continue
         km = float(km_of(o["lon"], o["lat"]))
+        if not np.isfinite(km):                                # outside the grid / not draining to the path
+            continue
         if "first_arrival" in o:
             ak.append((km, hhmm_to_min(o["first_arrival"]) - t0))
         if "peak_height_m" in o:
@@ -63,4 +65,7 @@ def calibrate_from_replay(rep, km_of):
             hk.append((km, float(o["gauge_peak_m"]) - 2.4))   # stage rise above assumed ~2.4 m normal stage (assumption)
     if hk and hk[0][0] > 0:
         hk.insert(0, (0.0, hk[0][1]))                          # hold source height = first observed
+    if not hk:
+        raise ValueError(f"{rep['event']}: no height observation inside this grid; pass a FloodEnvelope "
+                         "(e.g. models/damage/aug26_damage_envelope.json) instead")
     return FloodEnvelope(ak, hk)

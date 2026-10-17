@@ -18,6 +18,10 @@ app = FastAPI(title="evac-ai: time to safety")
 V = None
 REPLAYS = {os.path.basename(p)[:-5]: json.load(open(p)) for p in sorted(glob.glob(f"{ROOT}/replay/*.json"))}
 EXTRA_PEOPLE = {"oct11": {"Jagat": 100}}    # stranded trekkers (MCAP via Onlinekhabar, Oct 11)
+# Replays this server can compute: the loaded Valley is the Budhi Gandaki build (data/proc). aug26 needs the
+# Trishuli build + Trishuli OSM files in the Valley format; until then it is refused instead of being run on the
+# wrong grid. Validation numbers for aug26: docs/validation.md.
+VALLEY_REPLAYS = {"oct11"}
 CACHE = {}
 
 
@@ -33,6 +37,8 @@ def scenario(replay, src=None, burst=None):
     if key not in CACHE:
         if replay not in REPLAYS:
             raise HTTPException(404, f"unknown replay {replay}")
+        if replay not in VALLEY_REPLAYS:
+            raise HTTPException(501, f"replay {replay} needs a valley build this server has not loaded")
         rep = REPLAYS[replay]
         env = scenario(replay).F if src else None          # new source -> reuse calibrated envelope
         CACHE[key] = Scenario(valley(), rep, source_lonlat=src, extra_people=EXTRA_PEOPLE.get(replay),

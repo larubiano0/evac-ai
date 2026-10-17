@@ -132,7 +132,12 @@ class Scenario:
         return {"type": "FeatureCollection", "features": geoms}
 
     def km_of(self, lon, lat):
-        r, c = self.V.T.rc(*TF.transform(lon, lat)); return self.km[r, c]
+        """River km of the channel cell that (lon, lat) drains into; NaN outside the grid or off the path.
+        Terrain.rc has no bounds check, and numpy wraps negative indices silently (Aug 26 Kali Khola gave 66 km)."""
+        r, c = self.V.T.rc(*TF.transform(lon, lat))
+        if not (0 <= r < self.V.T.shape[0] and 0 <= c < self.V.T.shape[1]):
+            return np.nan
+        return self.km[r, c]
 
     def buildings(self, warn_hhmm):
         """Per-building arrays for a given warning time."""
