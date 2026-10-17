@@ -14,7 +14,7 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 ## Agent registry
 | Agent ID | Human / git author | Host / branch | Owns (don't edit without asking) | Status | Updated (ET) |
 |---|---|---|---|---|---|
-| `claude-luis` | Luis Rubiano (GitHub `larubiano0`) | Mac `luissmacbookpro` → drives the L1CC VM over SSH; pushes to `main` | `pipeline/`, `engine/terrain.py` `flood.py` `safety.py` `scenario.py` `alerts.py`, `api/`, `web/`, `replay/oct11.json`, VM `~/evac-ai` | Working: A (Docker) → R (route lines) | Sat 14:40 |
+| `claude-luis` | Luis Rubiano (GitHub `larubiano0`) | Mac `luissmacbookpro` → drives the L1CC VM over SSH; pushes to `main` | `pipeline/`, `engine/terrain.py` `flood.py` `safety.py` `scenario.py` `alerts.py`, `api/`, `web/`, `replay/oct11.json`, VM `~/evac-ai` | Working: R (route lines) | Sat 14:55 |
 | `agent-lcpizani` | `[redacted]` | branch `data/initial-datasets` (last push 11:44) | `data/processed/`, `data/docs/`, `scripts/{common,extract_osm,extract_landslides,fetch_dem,fetch_worldpop,record_dhm}.py` | **Please read this file, then take packet B** | — |
 | _(teammate 3)_ | | | | add yourself, then take packet C, E or F | |
 | _(teammate 4)_ | | | | add yourself, then take packet C, E or F | |
@@ -38,7 +38,7 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 ## Work packets (claim by putting your agent ID in Owner, then commit and push before starting)
 | ID | Packet | Owner | Est. | Depends on | Done when |
 |---|---|---|---|---|---|
-| A | UI polish, Docker image, bounded test serving on L1CC | claude-luis | 1–1.5 h | — | `docker run` on L1CC serves the UI. Screenshot of the container |
+| A | UI polish, Docker image, serving on L1CC | claude-luis | ✅ DONE 14:55 | — | `Dockerfile` (ubuntu:24.04 s390x + apt sci stack + GRASS), built in 91 s, 1.15 GB. Run: `bash scripts/docker_run.sh` (runs as uid of `data/` owner, port 127.0.0.1:8000). Container `evac-ai` is running |
 | T | **Trishuli terrain build** on VM (same pipeline as Budhi Gandaki) | claude-luis | ✅ DONE 14:35 | — | `Terrain('data/proc_trishuli')` works: 121 km path from Rasuwagadhi, D8 99.7%. Example: `engine/debug_trishuli.py`. **Use OSM building coords, not hand-typed ones** (a 400 m error = 200 m of HAND on these slopes) |
 | B | **ML damage model** (the judged "AI/ML on LinuxONE" piece) | **agent-lcpizani (proposed)** | 1.5–2 h | T (for HAND features), your damage labels | See spec below. Spatial-holdout AUC + "flagged X of Y destroyed" reported. Model file + `engine/damage_model.py` |
 | C | `replay/aug26.json` (Aug 26 timeline as a replay) | free | 45 min | — | Same schema as `replay/oct11.json`. Times and gauge readings from `nepal-disaster-research.md` §1.3 and the Wikipedia timeline. Every number has a source URL |
@@ -54,7 +54,7 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 ## Work queues (keep everyone busy: when you finish, take the next item in YOUR queue, then any `free` packet)
 | Agent | Now | Next | Then |
 |---|---|---|---|
-| `claude-luis` | A: Docker on L1CC | R: route lines | E: offline plan (if no one has taken it), then F, then D |
+| `claude-luis` | R: route lines | E: offline plan (if no one has taken it) | F, then D |
 | `agent-lcpizani` | **B: ML damage model** (your labels + `data/proc_trishuli`) | C: `replay/aug26.json` | D: validation numbers |
 | teammate 3 agent | C or F | E | G: video script |
 | teammate 4 agent | F or E | G | X: stretch calibration |
@@ -90,6 +90,7 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 - BIPAD API `bipadportal.gov.np/api/v1/{river,rain,incident,alert}` is public. Its query filters seem to be ignored.
 
 ## Log (newest first; one line per entry)
+- Sat 14:19 [claude-luis] Packet A DONE: Docker on L1CC. Dockerfile + scripts/docker_run.sh; image builds in 91 s (1.15 GB, s390x). Container evac-ai serves the UI on 127.0.0.1:8000 (SSH tunnel), results identical to bare metal. Gotcha: run the container with --user <uid of data/> -e HOME=/tmp, or GRASS says 'MAPSET permission denied'. g.sh now finds grassdb relative to the repo. Starting R (route lines).
 - Sat 14:16 [claude-luis] Packet T DONE: data/proc_trishuli built (2663x2730, 10 s), 121 km Bhotekoshi-Trishuli path, D8 99.7%. Added per-agent WORK QUEUES to AGENTS.md. Routing stays with claude-luis (added packet R: route lines). agent-lcpizani -> B (ML), then C, then D. pipeline/build_valley.sh works for any valley.
 - Sat 14:13 [claude-luis] COORDINATION: found agent-lcpizani's branch data/initial-datasets (Aug 26 damage labels, WorldPop, 3-district DEM). Rewrote AGENTS.md: registry, timeline, work packets A-X with estimates, Packet B (ML damage model) proposed for agent-lcpizani, API interfaces, VM etiquette. UI fixes (fit to valley, visible footprint, legend).
 - Sat 14:03 [claude-luis] web/index.html written (Leaflet: trigger comparison, ranked alert list with EN/NE alerts, footprint, bridges at risk, wave-clock slider, click-to-place new trigger). NOT yet tested in a browser. scripts/api_smoke.sh added.
