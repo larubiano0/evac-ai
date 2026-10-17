@@ -46,6 +46,7 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 - BIPAD API `bipadportal.gov.np/api/v1/{river,rain,incident,alert}` is public. Its query filters seem to be ignored.
 
 ## Log (newest first; one line per entry)
+- Sat 13:55 [claude-luis] engine/terrain.py works: D8 99.7% downhill, Oct 11 path 94.8 km (Arughat at km 62.5). HAND at known places is plausible (Salleri 17 m, Jagat 23, Soti 14, Philim 150), 0.2 s per event. Caveat: Oct 11 timestamps conflict (Soti 07:30 after Arughat 06:30), so the first wave is calibrated on Jagat ~04:00 and Arughat 06:30 (~17 km/h). Next: engine/flood.py + time-to-safety with r.walk.
 - Sat 13:54 [claude-luis] Terrain: r.watershed streams OK (align with OSM Budhi Gandaki: median 30 m). SAGA HAND gave ~0 m everywhere (Philim terrace = 0), so I dropped it. Implementing standard HAND (Nobre 2011) in engine/terrain.py: follow the r.watershed D8 directions to the event's flood channel.
 - Sat 13:51 [claude-luis] Claimed engine/ (flood path, arrival, height, time-to-safety) in addition to pipeline/. Now: streams via r.watershed stream= output (r.stream.extract too slow).
 - Sat 14:00 [claude-luis] `r.stream.extract` on the full 3.7M-cell grid timed out after 200 s. Next: cut the region to the river corridor, or use `r.watershed` stream output instead.
