@@ -25,20 +25,20 @@
 
 ## 4. Page: route drawing
 
-- [ ] 4.1 Replace `drawPath` per-segment colouring with one cased polyline (dark 9 px under white 5 px) plus an animated dash overlay; add `prefers-reduced-motion` handling
-- [ ] 4.2 Remove the red unsafe dots; draw one ⚠ divIcon from `r.hazard` with a permanent tooltip
-- [ ] 4.3 Destination pin label and zone colour from `destination_safe` (green "Safe ground" / amber "Best ground you can reach · N% risk")
-- [ ] 4.4 Backup hidden by default; "Show another way (N min)" toggle in the card draws it thin and grey dashed
-- [ ] 4.5 Banner leads with WALK / HURRY / RUN (RUN in the danger style), then walk time and time to spare
-- [ ] 4.6 Update the legend (way out / safe ground / best ground / ⚠ hazard / backup)
+- [x] 4.1 Replace `drawPath` per-segment colouring with one cased polyline (dark 9 px under white 5 px) plus an animated dash overlay; add `prefers-reduced-motion` handling
+- [x] 4.2 Remove the red unsafe dots; draw one ⚠ divIcon from `r.hazard` with a permanent tooltip
+- [x] 4.3 Destination pin label and zone colour from `destination_safe` (green "Safe ground" / amber "Best ground you can reach · N% risk")
+- [x] 4.4 Backup hidden by default; "Show another way (N min)" toggle in the card draws it thin and grey dashed
+- [x] 4.5 Banner leads with WALK / HURRY / RUN (RUN in the danger style), then walk time and time to spare
+- [x] 4.6 Update the legend (way out / safe ground / best ground / ⚠ hazard / backup)
 
 ## 5. Page: camera and overlay
 
-- [ ] 5.1 Replace the `fitted !== you` refit with "fit only if the answer bounds are not inside `map.getBounds()` or zoom < 13"; no refit on time-slider re-queries
-- [ ] 5.2 Dim the overlay (0.85 → 0.45) while a route is shown; restore it on no-route answers and scenario reload
+- [x] 5.1 Replace the `fitted !== you` refit with "fit only if the answer bounds are not inside `map.getBounds()` or zoom < 13"; no refit on time-slider re-queries
+- [x] 5.2 Dim the overlay (0.85 → 0.45) while a route is shown; restore it on no-route answers and scenario reload
 
 ## 6. Verify and ship
 
-- [ ] 6.1 Manual pass on the VM (port 8001): click the same spot twice (same route, map still); a risky route shows one line, one ⚠, a matching pin and zone; the backup toggle works
-- [ ] 6.2 Screenshot before/after for the demo
-- [ ] 6.3 Commit, push, and log in AGENTS.md
+- [x] 6.1 Manual pass on the VM (port 8001): click the same spot twice (same route, map still); a risky route shows one line, one ⚠, a matching pin and zone; the backup toggle works (done on a separate test server, 127.0.0.1:8004 from ~/work-agent-lcpizani-escape, with a headless-Chrome script; 8001 untouched)
+- [x] 6.2 Screenshot before/after for the demo (kept outside the repo: before = live 8001, after = 8004)
+- [x] 6.3 Commit, push, and log in AGENTS.md

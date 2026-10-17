@@ -41,6 +41,19 @@
   .clock div { border:1px solid var(--line); border-radius:6px; padding:6px 4px }
   .clock b { display:block; font-size:18px } .clock span { font-size:11px; color:var(--muted) }
   ul { margin:6px 0 0 18px; padding:0 } li { margin:2px 0 }
+  /* urgency banner: the word first and largest; RUN in the danger style */
+  .u-run { background:#b3261e } .u-hurry { background:#b9660b } .u-walk { background:#1f7a4d }
+  .banner .urg { font-size:38px; font-weight:800; letter-spacing:.06em; line-height:1.05 }
+  .u-run .urg { animation: pulse 1s ease-in-out infinite }
+  .banner .bline { font-size:16px; font-weight:700; margin-top:2px }
+  .banner .head { font-size:13px; font-weight:600; opacity:.9; margin-top:4px }
+  @keyframes pulse { 50% { opacity:.55 } }
+  /* main route: one white line over a dark casing, dashes moving in the direction of travel */
+  .route-flow { animation: flow 0.9s linear infinite }
+  @keyframes flow { to { stroke-dashoffset: -24 } }
+  .hz-icon { font-size:22px; line-height:26px; text-align:center; color:#ffd400; text-shadow:0 0 3px #000, 0 0 2px #000 }
+  .bk-btn { width:100%; margin-top:8px; font-size:13px; color:var(--muted) }
+  @media (prefers-reduced-motion: reduce) { .route-flow, .u-run .urg { animation:none } }
   @media (max-width: 800px) { #app { grid-template-columns:1fr; grid-template-rows: auto 60vh } #side { max-height:none } }
 </style>
 </head>
@@ -63,7 +76,7 @@
       <div><span class="sw" style="background:rgba(43,182,115,.6)"></span><b class="safe">Green: low risk</b> (&lt; 10% chance of being hit), safe to be</div>
       <div><span class="sw" style="background:rgb(255,150,30)"></span><b>Likely hit</b> 10–50% · <span class="sw" style="background:rgb(255,30,30)"></span><b>Will hit</b> ≥ 50%</div>
       <div>No colour: outside the flood's reach</div>
-      <div style="margin-top:6px"><span class="safe">■</span> your safe zone · <span class="safe">━</span> run this way · <span class="bad">━</span> spot the flood may reach before you · <span style="color:#9aa">┅</span> backup</div>
+      <div style="margin-top:6px"><b style="color:#fff;text-shadow:0 0 2px #000">━</b> your way out · <span class="safe">■</span> safe ground · <span class="warn">■</span> best ground you can reach (not safe) · <span style="color:#ffd400">⚠</span> hazard on the way · <span style="color:#9aa">┅</span> another way (when shown)</div>
       <div>Bridges over the flood river: dot coloured by chance of being destroyed</div>
     </div>
 
@@ -94,7 +107,10 @@ topo.addTo(map);
 L.control.layers({ "Terrain": topo, "Streets": osm }, {}, { position: "topright" }).addTo(map);
 
 const els = id => document.getElementById(id);
-let opts = null, sid = null, mode = "you", you = null, scen = null, pending = null, fitted = null, seq = 0;
+let opts = null, sid = null, mode = "you", you = null, scen = null, pending = null, seq = 0;
+let showBackup = false, last = null;   // backup route is opt-in; last = the answer on screen
+const OVERLAY_OPACITY = 0.85, OVERLAY_DIM = 0.45;
+function overlayOpacity(dim) { if (layers.overlay) layers.overlay.setOpacity(dim ? OVERLAY_DIM : OVERLAY_OPACITY) }
 const layers = { overlay: null, path: null, bridges: L.layerGroup().addTo(map), route: L.layerGroup().addTo(map), marks: L.layerGroup().addTo(map) };
 
 function busy(on) { document.body.classList.toggle("busy", on) }
@@ -115,7 +131,7 @@ async function init() {
   els("valley").value = "budhi"; els("preset").value = opts.valleys.budhi.default_preset;
   els("mode-you").onclick = () => setMode("you"); els("mode-trig").onclick = () => setMode("trig");
   els("t").oninput = () => { els("tlabel").textContent = els("t").value; };
-  els("t").onchange = () => { if (you) escape(you); };
+  els("t").onchange = () => { if (you) escape(you, false, true); };
   await loadScenario();
 }
 function setMode(m) { mode = m; els("mode-you").classList.toggle("on", m === "you"); els("mode-trig").classList.toggle("on", m === "trig"); }
@@ -129,7 +145,7 @@ async function loadScenario(trigger) {
     scen = await post("/api/predict/scenario", body); sid = scen.sid;
     els("host").textContent = `(${scen.host.machine}, ${scen.host.byteorder}-endian)`;
     if (layers.overlay) map.removeLayer(layers.overlay);
-    layers.overlay = L.imageOverlay(API + scen.p_overlay.url, scen.p_overlay.bounds, { opacity: 0.85, interactive: false }).addTo(map);
+    layers.overlay = L.imageOverlay(API + scen.p_overlay.url, scen.p_overlay.bounds, { opacity: OVERLAY_OPACITY, interactive: false }).addTo(map);
     if (layers.path) map.removeLayer(layers.path);
     layers.path = L.polyline(scen.stations.map(s => [s.lat, s.lon]), { color: "#4c9dff", weight: 2, opacity: .9 }).addTo(map)
       .bindTooltip("Flood path from the trigger");
@@ -143,8 +159,9 @@ async function loadScenario(trigger) {
     map.fitBounds(scen.p_overlay.bounds, { padding: [20, 20] });
     els("about").innerHTML = `<b>${scen.preset_label}</b><br>Flood path ${scen.path_km} km · ${scen.cells_scored.toLocaleString()} points scored · computed in ${scen.runtime_s}s.<br>
       Flood heights and arrival times come only from real observations of that flood (${scen.height_notes.join("; ")}).
-      Damage probabilities: model trained on the real Aug 26 2026 destruction (OSM/HOT). Walking: Tobler on the Copernicus 30 m DEM, OSM trails.<br>
-      Chance of being hit = calibrated P(destroyed) from the damage model.<br><b>Known limit:</b> on a 30 m DEM the computed river channel can drift from the real river (≥175 m at Arughat), which makes points there look safer than they are.`;
+      ${scen.cell_model === "v2" ? "Chance of being hit: damage model trained on the real Aug 26 2026 destruction (OSM/HOT)."
+        : `Chance of being hit: impacted-area model (${scen.cell_model}) trained on real satellite flood/debris extents (UNOSAT, Aug 26 + Oct 11): the chance this ground is inside the flood footprint.`}
+      Bridges: damage model v2. Walking: Tobler on the Copernicus 30 m DEM, OSM trails.<br><b>Known limit:</b> on a 30 m DEM the computed river channel can drift from the real river (≥175 m at Arughat), which makes points there look safer than they are.`;
     say(`<div class="note">Click where you are on the map: you get how likely the flood is to hit you there, when it arrives, and where to run.</div>`);
   } catch (e) { say(`<div class="bad">Could not load the flood scenario: ${e.message}</div>`); }
   busy(false);
@@ -152,14 +169,17 @@ async function loadScenario(trigger) {
   if (sid && next) await escape(next);
 }
 
-async function escape(ll, retried) {
+async function escape(ll, retried, fromSlider) {
+  if (!fromSlider && !(you && you.lat === ll.lat && you.lng === ll.lng)) showBackup = false;  // new spot: backup hidden
   you = ll; busy(true); const my = ++seq;
-  layers.route.clearLayers();
-  L.circleMarker(ll, { radius: 7, color: "#fff", fillColor: "#111", fillOpacity: 1, weight: 2 }).addTo(layers.route);
-  say(`<div class="note">Finding where to go from here…</div>`);
+  if (!fromSlider) {
+    layers.route.clearLayers();
+    L.circleMarker(ll, { radius: 7, color: "#fff", fillColor: "#111", fillOpacity: 1, weight: 2 }).addTo(layers.route);
+    say(`<div class="note">Finding where to go from here…</div>`);
+  }
   try {
     const r = await post("/api/predict/escape", { sid, lon: ll.lng, lat: ll.lat, minutes_after_start: +els("t").value });
-    if (my === seq) draw(r);
+    if (my === seq) draw(r, fromSlider);
   } catch (e) {
     if (my !== seq) return;
     busy(false);
@@ -169,51 +189,83 @@ async function escape(ll, retried) {
   busy(false);
 }
 
-function drawPath(pts, dashed) {
-  for (let i = 1; i < pts.length; i++) {
-    const a = pts[i - 1], b = pts[i];
-    L.polyline([[a.lat, a.lon], [b.lat, b.lon]], { color: dashed ? "#9aa" : (b.unsafe ? "#e5484d" : "#2bb673"), weight: dashed ? 3 : 5, dashArray: dashed ? "6 6" : null, opacity: .95 }).addTo(layers.route);
-  }
-  if (!dashed) for (const p of pts.filter(p => p.unsafe))
-    L.circleMarker([p.lat, p.lon], { radius: 5, color: "#e5484d", fillColor: "#e5484d", fillOpacity: 1 }).addTo(layers.route)
-      .bindTooltip(`Unsafe: P(destroyed) ${pct(p.p_destroyed)}, you reach it at ${p.t_min.toFixed(0)} min, flood at ${p.flood_arrival_min ?? "–"} min`);
+// main route: one continuous line, white over a dark casing, with moving dashes for the direction of travel
+function drawRoute(pts) {
+  const ll = pts.map(p => [p.lat, p.lon]);
+  L.polyline(ll, { color: "#111", weight: 9, opacity: .9, lineCap: "round", lineJoin: "round", interactive: false }).addTo(layers.route);
+  L.polyline(ll, { color: "#fff", weight: 5, opacity: 1, lineCap: "round", lineJoin: "round" }).addTo(layers.route)
+    .bindTooltip("Your way out");
+  L.polyline(ll, { color: "#111", weight: 2, opacity: .7, dashArray: "4 20", lineCap: "round", className: "route-flow", interactive: false }).addTo(layers.route);
+}
+function drawBackup(pts) {
+  L.polyline(pts.map(p => [p.lat, p.lon]), { color: "#9aa", weight: 3, dashArray: "6 6", opacity: .95 }).addTo(layers.route)
+    .bindTooltip("Another way");
+}
+function drawHazard(hz, nUnsafe) {
+  const label = hz.kind === "race" ? `Pass before ${Math.max(0, Math.round(hz.pass_before_min))} min`
+                                   : `May already be flooded (${pct(hz.p_destroyed)})`;
+  const icon = L.divIcon({ className: "hz-icon", html: "⚠", iconSize: [26, 26], iconAnchor: [13, 13] });
+  L.marker([hz.lat, hz.lon], { icon, keyboard: false }).addTo(layers.route)
+    .bindTooltip(label + (nUnsafe > 1 ? ` · ${nUnsafe} risky points on the way` : ""), { permanent: true, direction: "right", offset: [12, 0] });
 }
 
 function fmtMin(m) { return m == null ? "–" : (m <= 0 ? "now" : Math.round(m) + " min") }
+function walkMin(m) { return Math.max(1, Math.round(m)) + " min" }
 
-function draw(r) {
+function draw(r, fromSlider) {
+  last = r;
   layers.route.clearLayers();
-  const fit = [[r.you ? r.you.lat : you.lat, r.you ? r.you.lon : you.lng]];
-  L.circleMarker(fit[0], { radius: 7, color: "#fff", fillColor: "#111", fillOpacity: 1, weight: 2 }).addTo(layers.route).bindTooltip("You are here");
+  const youLL = [r.you ? r.you.lat : you.lat, r.you ? r.you.lon : you.lng];
+  const fit = [youLL];
+  const safeDest = r.destination_safe === true;
+  const zoneColor = safeDest ? "#2bb673" : "#f2a33a";
   if (r.safe_zone) {
-    const z = L.geoJSON(r.safe_zone, { style: { color: "#2bb673", weight: 2, fillColor: "#2bb673", fillOpacity: .35 } })
-      .addTo(layers.route).bindTooltip(r.status === "no_route" ? "Least risky ground you can reach" : "Safe zone: go here");
+    const z = L.geoJSON(r.safe_zone, { style: { color: zoneColor, weight: 2, fillColor: zoneColor, fillOpacity: .35 } })
+      .addTo(layers.route).bindTooltip(safeDest ? "Safe ground" : `Best ground you can reach · ${pct(r.destination && r.destination.p_destroyed)} risk`);
     const zb = z.getBounds(); fit.push(zb.getSouthWest(), zb.getNorthEast());
   }
-  if (r.backup) drawPath(r.backup.path, true);
-  if (r.path) { drawPath(r.path, false); r.path.forEach(p => fit.push([p.lat, p.lon])); }
+  if (r.backup && showBackup) drawBackup(r.backup.path);
+  if (r.path) { drawRoute(r.path); r.path.forEach(p => fit.push([p.lat, p.lon])); }
+  if (r.hazard) drawHazard(r.hazard, (r.unsafe_points || []).length);
+  L.circleMarker(youLL, { radius: 7, color: "#fff", fillColor: "#111", fillOpacity: 1, weight: 2 }).addTo(layers.route).bindTooltip("You are here");
   if (r.destination) {
     const d = r.destination;
-    L.marker([d.lat, d.lon], { title: "Go here" }).addTo(layers.route).bindTooltip("Go here", { permanent: true, direction: "top", offset: [-15, -12] });
+    const lab = safeDest ? "Safe ground" : `Best ground you can reach · ${pct(d.p_destroyed)} risk`;
+    L.marker([d.lat, d.lon], { title: lab }).addTo(layers.route).bindTooltip(lab, { permanent: true, direction: "top", offset: [-15, -12] });
   }
+  overlayOpacity(!!r.path);
+
   const tier = r.status === "no_route" ? "none" : (r.tier || "outside");
   const label = { will_hit: "Will hit", likely: "Likely hit", low: "Low risk", outside: "Outside the flood", none: "Danger" }[tier];
-  let h = `<div class="banner t-${tier}"><small>${label}${r.you && r.you.p_destroyed != null ? " · " + pct(r.you.p_destroyed) + " chance" : ""}</small>${r.headline || ""}</div>`;
+  const U = { walk: "WALK", hurry: "HURRY", run: "RUN" }[r.urgency];
+  const to = safeDest ? "to safe ground" : "to the best ground you can reach";
+  const spare = r.min_margin_before_flood_min;
+  const spareTxt = spare == null ? "no race with the flood" : (spare >= 1 ? `${Math.round(spare)} min to spare` : "no time to spare");
+  let h = `<div class="banner ${U ? "u-" + r.urgency : "t-" + tier}"><small>${label}${r.you && r.you.p_destroyed != null ? " · " + pct(r.you.p_destroyed) + " chance" : ""}</small>`;
+  if (U) {
+    h += `<div class="urg">${U}</div>`;
+    if (r.walk_min != null) h += `<div class="bline">${walkMin(r.walk_min)} ${to}${r.status === "route" ? " · " + spareTxt : ""}</div>`;
+    h += `<div class="head">${r.headline || ""}</div>`;
+  } else h += r.headline || "";
+  h += `</div>`;
   if (r.you && r.you.p_destroyed != null) {
-    const spare = r.min_margin_before_flood_min;
     h += `<div class="clock">
       <div><b>${fmtMin(r.minutes_until_flood_here)}</b><span>flood reaches you</span></div>
-      <div><b>${r.walk_min != null ? Math.round(r.walk_min) + " min" : "–"}</b><span>walk to safety</span></div>
+      <div><b>${r.walk_min != null ? walkMin(r.walk_min) : "–"}</b><span>walk ${safeDest || r.walk_min == null ? "to safety" : "to best ground"}</span></div>
       <div><b>${r.status === "route" ? (spare == null ? "✓" : (spare >= 1 ? Math.round(spare) + " min" : "none")) : "–"}</b><span>time to spare</span></div></div>`;
   }
   h += `<div class="msg">${r.message}</div>`;
   if (r.walk_min != null) h += `<div class="kv"><span>Route</span><span>${r.distance_m} m · ${r.climb_m >= 0 ? "+" : ""}${r.climb_m} m climb</span>
       <span>Path confidence</span><span>${pct(r.confidence)} ${r.safe ? "(safe all the way)" : "(some points risky)"}</span></div>`;
-  if (r.backup) h += `<div style="margin-top:8px" class="note">Backup (dashed): ${r.backup.walk_min} min, ${pct(r.backup.confidence)} confidence${r.backup.safe ? "" : ", not safe all the way"}.</div>`;
+  if (r.backup) h += `<button id="bk" class="bk-btn">${showBackup ? "Hide the other way" : `Show another way (${walkMin(r.backup.walk_min)})`}</button>`;
   if (r.host) h += `<div class="note" style="margin-top:8px">Answered in ${r.runtime_s ?? 0}s on ${r.host.machine}.</div>`;
   say(h);
-  if (fit.length > 1 && fitted !== you) map.fitBounds(L.latLngBounds(fit).pad(0.25), { maxZoom: 16 });
-  fitted = you;
+  if (r.backup) els("bk").onclick = () => { showBackup = !showBackup; draw(last, true); };
+  // camera: only move if the answer is not already fully in view (or we are zoomed far out); never on re-queries
+  if (!fromSlider && fit.length > 1) {
+    const b = L.latLngBounds(fit);
+    if (!map.getBounds().contains(b) || map.getZoom() < 13) map.fitBounds(b.pad(0.25), { maxZoom: 16 });
+  }
 }
 
 map.on("click", e => {
