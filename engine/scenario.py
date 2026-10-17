@@ -36,6 +36,8 @@ class Valley:
         pl = [e for e in json.load(open(f"{raw}/osm_{area}_places.json"))["elements"]
               if e["tags"].get("place") in ("town", "village", "hamlet") and "name" in e["tags"]]
         self.p_name = [e["tags"].get("name:en") or e["tags"]["name"] for e in pl]
+        dev = lambda t: t if any("\u0900" <= ch <= "\u097f" for ch in t) else None
+        self.p_name_ne = [e["tags"].get("name:ne") or dev(e["tags"]["name"]) for e in pl]
         self.p_ll = np.array([(e["lon"], e["lat"]) for e in pl])
         px, py = TF.transform(self.p_ll[:, 0], self.p_ll[:, 1])
         d, self.b_place = cKDTree(np.c_[px, py]).query(np.c_[x[ok], y[ok]])
@@ -58,7 +60,7 @@ def _clock(t0_min, minutes):
 
 
 class Scenario:
-    def __init__(self, V, replay, source_lonlat=None, extra_people=None):
+    def __init__(self, V, replay, source_lonlat=None, extra_people=None, envelope=None, burst_hhmm=None):
         self.V, self.rep, T = V, replay, V.T
         t_start = time.time()
         lon, lat = source_lonlat or (replay["source"]["lon"], replay["source"]["lat"])
@@ -69,8 +71,9 @@ class Scenario:
         self.hand, drain = T.hand_to(self.path)
         pos = np.full(T.nxt.size, -1); pos[self.path] = np.arange(len(self.path))
         self.km = np.where(drain >= 0, self.km_path[pos[np.maximum(drain, 0)]], np.nan)
-        self.F = calibrate_from_replay(replay, self.km_of)
-        self.t0 = hhmm_to_min(replay["burst_time"])
+        # A new trigger location reuses an envelope calibrated on a replay (curves are in km from source).
+        self.F = envelope or calibrate_from_replay(replay, self.km_of)
+        self.t0 = hhmm_to_min(burst_hhmm or replay["burst_time"])
         kmz = np.nan_to_num(self.km)
         _, _, self.h_hi = self.F.height_band_at(kmz)
         self.flood = (drain >= 0) & (self.hand <= self.h_hi)
@@ -79,6 +82,52 @@ class Scenario:
         self.a_lo, self.a_mid, self.a_hi = self.F.arrival_band(kmz)
         self.runtime_s = time.time() - t_start
         self.extra_people = extra_people or {}
+
+    def bridges_at_risk(self):
+        """OSM bridges whose midpoint cell is in the conservative footprint (or on the flood channel)."""
+        out = []
+        on_path = set(self.path.tolist())
+        for b in self.V.bridge_meta:
+            r, c = self.V.T.rc(*TF.transform(b["lon"], b["lat"]))
+            if not (0 <= r < self.V.T.shape[0] and 0 <= c < self.V.T.shape[1]):
+                continue
+            i = r * self.V.T.shape[1] + c
+            if self.flood[r, c] or i in on_path:
+                km = self.km[r, c]
+                out.append({**b, "river_km": float(km), "arrival_early": _clock(self.t0, float(self.a_lo[r, c])),
+                            "arrival_minutes_after_burst": float(self.a_lo[r, c])})
+        px, py = TF.transform(self.V.p_ll[:, 0], self.V.p_ll[:, 1]); tree = cKDTree(np.c_[px, py])
+        for b in out:
+            _, k = tree.query(TF.transform(b["lon"], b["lat"]))
+            trail = b["name"] in ("", "Manaslu Circuit", "Tsum Valley Path") or b["name"].lower().endswith("path")
+            b["label"] = f"bridge near {self.V.p_name[k]}" if trail else b["name"]
+            b["label_ne"] = f"{self.V.p_name_ne[k] or self.V.p_name[k]} नजिकको पुल" if trail else b["name"]
+        out.sort(key=lambda b: b["river_km"])
+        return out
+
+    def path_geojson(self, every=10):
+        idx = self.path[::every].tolist() + [int(self.path[-1])]
+        kms = self.km_path[::every].tolist() + [float(self.km_path[-1])]
+        coords, props = [], []
+        for i, k in zip(idx, kms):
+            x, y = self.V.T.xy(*np.unravel_index(i, self.V.T.shape)); lo, la = INV.transform(x, y)
+            coords.append([round(lo, 5), round(la, 5)])
+            props.append({"km": round(k, 2), "arrival": _clock(self.t0, float(self.F.arrival(k) * (1 - self.F.time_band))),
+                          "arrival_min": round(float(self.F.arrival(k) * (1 - self.F.time_band)), 1),
+                          "height_m": round(float(self.F.height_band_at(k)[2]), 1)})
+        return {"type": "Feature", "geometry": {"type": "LineString", "coordinates": coords}, "properties": {"stations": props}}
+
+    def footprint_geojson(self, simplify_m=20):
+        """Conservative footprint as lon/lat polygons (rasterio.features + shapely simplify)."""
+        from rasterio import features
+        from shapely.geometry import shape, mapping
+        from shapely.ops import transform as stransform
+        geoms = []
+        for g, v in features.shapes(self.flood.astype(np.uint8), mask=self.flood, transform=self.V.T.transform):
+            poly = shape(g).simplify(simplify_m)
+            poly = stransform(lambda x, y, z=None: INV.transform(x, y), poly)
+            geoms.append({"type": "Feature", "geometry": mapping(poly), "properties": {}})
+        return {"type": "FeatureCollection", "features": geoms}
 
     def km_of(self, lon, lat):
         r, c = self.V.T.rc(*TF.transform(lon, lat)); return self.km[r, c]
@@ -101,7 +150,7 @@ class Scenario:
             s_min = float(np.min(slack[m]))
             short = m & (slack < 0)
             pop_short = short.sum() * PERSONS_PER_BUILDING + (self.extra_people.get(name, 0) if s_min < 0 else 0)
-            out.append({"name": name, "lon": float(V.p_ll[p, 0]), "lat": float(V.p_ll[p, 1]),
+            out.append({"name": name, "name_ne": V.p_name_ne[p] or name, "lon": float(V.p_ll[p, 0]), "lat": float(V.p_ll[p, 1]),
                         "buildings_at_risk": int(m.sum()), "people_at_risk": float(pop),
                         "people_without_time": float(pop_short),
                         "river_km": float(np.nanmedian(self.km.flat[V.b_flat[m]])),
