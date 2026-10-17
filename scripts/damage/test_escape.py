@@ -54,6 +54,11 @@ def check_destination(S, res, label):
         a = pt["flood_arrival_min"]
         if pt["p_destroyed"] > esc.UNSAFE_P and a is not None and pt["t_min"] >= a:
             fails.append(f"{label}: risky point passed after the flood (t {pt['t_min']} >= {a})"); break
+    if ok:                                                    # audit bugs 1-2: safe ground clears the flood line
+        for nm, q in (("destination", d), ("go_here", res.get("go_here") or d)):
+            x, y = S.V.tf.transform(q["lon"], q["lat"]); r, c = S.V.T.rc(x, y)
+            if S.below[r, c]:
+                fails.append(f"{label}: SAFE {nm} below the planner's flood line")
     z = res.get("safe_zone") or {}
     if ok and z.get("max_risk", 0) > esc.UNSAFE_P + 1e-9:
         fails.append(f"{label}: safe destination but zone max_risk {z.get('max_risk')}")
@@ -90,6 +95,72 @@ def check_destination(S, res, label):
         fails.append(f"{label}: running pace / unsafe destination but urgency {res.get('urgency')}")
     if pace == "run" and can_run and not res.get("walk_only"):
         fails.append(f"{label}: running answer without walk_only")
+    check_go_here(S, res, label)
+
+
+ACTION_OF = {"walk": "leave", "hurry": "hurry", "run": "run"}
+
+
+def check_card(res, label):
+    """predict-clarity: one action per answer, consistent with status/urgency; plain words, no percentages."""
+    say, st = res.get("say") or {}, res["status"]
+    want = {"safe_here": "stay", "outside_impact_zone": "stay", "no_route": "climb", "outside_terrain": None}.get(st)
+    if st == "route":
+        want = "run" if not res["destination_safe"] else ACTION_OF[res["urgency"]]
+    if res.get("action") != want or say.get("action") != want:
+        fails.append(f"{label}: action {res.get('action')} != {want} for {st}/{res.get('urgency')}")
+    if not say.get("title") or not say.get("line"):
+        fails.append(f"{label}: card without title/line")
+    if any("%" in (say.get(k) or "") for k in ("title", "line", "certainty")):
+        fails.append(f"{label}: percentage in the card text: {say}")
+    if want == "stay" and (res.get("you") or {}).get("below_flood_line"):
+        fails.append(f"{label}: 'safe here' on ground below the flood line")
+    if res.get("tier") == "low" and "already" in (say.get("certainty") or ""):
+        fails.append(f"{label}: low-risk spot says the flood may already be here")
+    if st != "outside_terrain" and res.get("runtime_ms") is None:
+        fails.append(f"{label}: no runtime_ms")
+    hz = res.get("hazard")
+    if hz is not None:
+        want_show = hz["kind"] == "flooded" or (hz["margin_min"] is not None and hz["margin_min"] < esc.HURRY_MIN)
+        if hz.get("show") != want_show:
+            fails.append(f"{label}: hazard show {hz.get('show')} != {want_show} (margin {hz.get('margin_min')})")
+
+
+def check_go_here(S, res, label):
+    """go_here: inside the safe zone, reached by contiguous safe steps from the destination within NUDGE_MAX_MIN."""
+    if res["status"] != "route":
+        return
+    d, ext, gh = res["destination"], res.get("path_into_zone"), res.get("go_here")
+    if ext is None or gh is None:
+        fails.append(f"{label}: route without path_into_zone / go_here"); return
+    if not res["destination_safe"]:
+        if ext or (gh["lon"], gh["lat"]) != (d["lon"], d["lat"]):
+            fails.append(f"{label}: nudged although the destination is not safe")
+        return
+    if not ext:
+        if (gh["lon"], gh["lat"]) != (d["lon"], d["lat"]):
+            fails.append(f"{label}: go_here without path_into_zone")
+        return
+    if (gh["lon"], gh["lat"]) != (ext[-1]["lon"], ext[-1]["lat"]):
+        fails.append(f"{label}: go_here is not the end of path_into_zone")
+    chain = [d] + ext
+    xy = np.array([S.V.tf.transform(p["lon"], p["lat"]) for p in chain])
+    if np.hypot(*np.diff(xy, axis=0).T).max() > esc.CELL * 1.5:
+        fails.append(f"{label}: path_into_zone not contiguous")
+    t = [p["t_min"] for p in chain]
+    if any(b <= a for a, b in zip(t, t[1:])):
+        fails.append(f"{label}: path_into_zone time not increasing")
+    if t[-1] - t[0] > esc.NUDGE_MAX_MIN + 1e-6:
+        fails.append(f"{label}: nudge adds {t[-1] - t[0]:.2f} min > {esc.NUDGE_MAX_MIN}")
+    for p in ext:
+        x, y = S.V.tf.transform(p["lon"], p["lat"]); r, c = S.V.T.rc(x, y)
+        if S.p_search[r, c] > esc.UNSAFE_P + 1e-6 or S.blocked[r, c]:
+            fails.append(f"{label}: path_into_zone enters an unsafe cell"); break
+    z = res.get("safe_zone")
+    if z:
+        from shapely.geometry import shape, Point
+        if not shape(z).buffer(1e-4).contains(Point(gh["lon"], gh["lat"])):
+            fails.append(f"{label}: go_here outside the drawn safe zone")
 
 
 def pace_check():
@@ -136,6 +207,11 @@ def unit_checks():
     h = H([pt(0.05, 100, 200), pt(0.4, 109, 114), pt(0.02, 112, None)], [False, False, False], 100)
     if not h or h["kind"] != "race" or h["pass_before_min"] != 14 or h["index"] != 1:
         fails.append(f"hazard race: {h}")
+    if not h or h["margin_min"] != 5 or h["show"] is not True:
+        fails.append(f"hazard race with 5 min to spare must be shown: {h}")
+    h = H([pt(0.05, 100, 200), pt(0.4, 103, 190), pt(0.02, 106, None)], [False, False, False], 100)
+    if not h or h["kind"] != "race" or h["show"] is not False:
+        fails.append(f"hazard race with 87 min to spare must be hidden: {h}")
     h = H([pt(0.05, 0, 9), pt(0.03, 1, None)], [False, False], 0)
     if h is not None:
         fails.append(f"hazard on a clear path: {h}")
@@ -171,9 +247,12 @@ def show(S, name, lon, lat, t):
     t0 = time.time(); res = S.escape(lon, lat, t); dt = time.time() - t0
     check_route(S, res, name)
     check_destination(S, res, f"{name} t={t}")
+    check_card(res, f"{name} t={t}")
     y = res.get("you", {})
     print(f"  {name:28s} t={t:5.0f} -> {res['status']:20s} tier={res.get('tier')} p_here={y.get('p_destroyed')} "
-          f"flood_in={res.get('minutes_until_flood_here')} ({dt:.2f} s)\n      {res.get('headline')} | {res.get('message', '')}")
+          f"flood_in={res.get('minutes_until_flood_here')} ({dt:.2f} s)\n      [{res.get('action')}] {res.get('headline')} | {res.get('message', '')}"
+          + (f"\n      go_here +{len(res.get('path_into_zone') or [])} cells, hazard shown: {(res.get('hazard') or {}).get('show')}"
+             if res["status"] == "route" else ""))
     if not res.get("headline") or not res.get("message"):
         fails.append(f"{name} t={t}: no headline/message")
     if res.get("tier") in ("will_hit", "likely") and res.get("walk_min") is None and "No way out" not in res.get("headline", ""):
@@ -223,7 +302,7 @@ def main():
         lo, la = esc.V_inv(S, r, c)
         t = float((0, 30, 90)[i % 3])
         t0 = time.perf_counter(); res = S.escape(lo, la, t); times.append(time.perf_counter() - t0)
-        check_route(S, res, f"random {i}"); check_destination(S, res, f"random {i}")
+        check_route(S, res, f"random {i}"); check_destination(S, res, f"random {i}"); check_card(res, f"random {i}")
         if res.get("walk_only"):
             check_route(S, res["walk_only"], f"random {i} can't run")
             check_destination(S, res["walk_only"], f"random {i} can't run")

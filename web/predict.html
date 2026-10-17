@@ -2,287 +2,507 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Evac-AI Prediction</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Where do I go? · Evac-AI</title>
+<link rel="icon" href="data:,">
+<meta name="description" content="Flash-flood escape planner: tap where you are, see if you need to leave and where to go.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-  :root { --bg:#0f1419; --panel:#161c23; --line:#2a333d; --text:#e6e9ec; --muted:#93a0ad; --safe:#2bb673; --warn:#f2a33a; --bad:#e5484d; --accent:#4c9dff; }
-  * { box-sizing: border-box }
-  html, body { margin:0; height:100%; background:var(--bg); color:var(--text); font:14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif }
-  #app { display:grid; grid-template-columns: 360px 1fr; height:100vh }
-  #side { background:var(--panel); border-right:1px solid var(--line); overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:14px }
-  #map { height:100% }
-  h1 { font-size:16px; margin:0 }
-  .sub { color:var(--muted); font-size:12px; margin-top:2px }
-  label { display:block; color:var(--muted); font-size:12px; margin-bottom:4px }
-  select, input[type=number] { width:100%; background:#0f1419; color:var(--text); border:1px solid var(--line); border-radius:6px; padding:7px 8px; font-size:14px }
-  .row { display:grid; grid-template-columns:1fr 1fr; gap:8px }
-  .modes { display:grid; grid-template-columns:1fr 1fr; gap:6px }
-  button { background:#0f1419; color:var(--text); border:1px solid var(--line); border-radius:6px; padding:8px; font-size:14px; cursor:pointer }
-  button.on { border-color:var(--accent); color:#fff; background:#16304d }
-  input[type=range] { width:100% }
-  .card { border:1px solid var(--line); border-radius:8px; padding:12px; background:#121820 }
-  .verdict { font-weight:700; font-size:16px; margin-bottom:6px }
-  .safe { color:var(--safe) } .bad { color:var(--bad) } .warn { color:var(--warn) }
-  .kv { display:grid; grid-template-columns:auto 1fr; gap:2px 10px; font-size:14px }
-  .kv span:nth-child(odd) { color:var(--muted) }
-  .legend { font-size:12px; color:var(--muted) }
-  .sw { display:inline-block; width:12px; height:12px; border-radius:2px; vertical-align:-2px; margin-right:4px }
-  details summary { cursor:pointer; color:var(--muted); font-size:12px }
-  #map { cursor:crosshair }
-  .note { font-size:12px; color:var(--muted) }
-  .busy #side { opacity:.7 } .busy #map { cursor:progress }
-  .banner { border-radius:8px; padding:12px; margin:-12px -12px 10px; font-weight:700; font-size:22px; line-height:1.3; color:#fff }
-  .banner small { display:block; font-weight:600; font-size:12px; opacity:.85; text-transform:uppercase; letter-spacing:.04em; margin-bottom:2px }
-  .t-will_hit { background:#b3261e } .t-likely { background:#b9660b } .t-low { background:#1f7a4d } .t-outside { background:#2d5d8a } .t-none { background:#5a2330 }
-  .msg { margin-bottom:10px }
-  .clock { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:10px; text-align:center }
-  .clock div { border:1px solid var(--line); border-radius:6px; padding:6px 4px }
-  .clock b { display:block; font-size:18px } .clock span { font-size:11px; color:var(--muted) }
-  ul { margin:6px 0 0 18px; padding:0 } li { margin:2px 0 }
-  /* urgency banner: the word first and largest; RUN in the danger style */
-  .u-run { background:#b3261e } .u-hurry { background:#b9660b } .u-walk { background:#1f7a4d }
-  .banner .urg { font-size:38px; font-weight:800; letter-spacing:.06em; line-height:1.05 }
-  .u-run .urg { animation: pulse 1s ease-in-out infinite }
-  .banner .bline { font-size:16px; font-weight:700; margin-top:2px }
-  .banner .head { font-size:13px; font-weight:600; opacity:.9; margin-top:4px }
-  @keyframes pulse { 50% { opacity:.55 } }
-  /* main route: one white line over a dark casing, dashes moving in the direction of travel */
-  .route-flow { animation: flow 0.9s linear infinite }
-  @keyframes flow { to { stroke-dashoffset: -24 } }
-  .hz-icon { font-size:22px; line-height:26px; text-align:center; color:#ffd400; text-shadow:0 0 3px #000, 0 0 2px #000 }
-  .bk-btn { width:100%; margin-top:8px; font-size:13px; color:var(--muted) }
-  @media (prefers-reduced-motion: reduce) { .route-flow, .u-run .urg { animation:none } }
-  @media (max-width: 800px) { #app { grid-template-columns:1fr; grid-template-rows: auto 60vh } #side { max-height:none } }
+  /* tokens shared with the replay viewer (viewer/index.html) */
+  :root {
+    --ink: #1f1f1f; --ink-2: #44474e; --ink-3: #5f6368;
+    --surface: #fff; --surface-2: #f5f4f1; --line: #dcd9d2; --line-2: #c4c0b8;
+    --focus: #0b57d0; --accent: #0b57d0;
+    --radius: 12px; --shadow: 0 1px 2px rgba(0,0,0,.10), 0 6px 24px rgba(0,0,0,.10);
+    --sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    /* one colour per action, from calm to worst (white text >= 4.5:1 on each) */
+    --a-stay: #188038; --a-leave: #b45309; --a-hurry: #c2410c; --a-run: #c5221f; --a-climb: #7f1d1d; --a-none: #44474e;
+    /* map: risk heat (server PNG) and the answer overlays */
+    --heat-low: #2bb673; --heat-mid: #ff961e; --heat-high: #ff1e1e;
+    --zone: #0891b2; --zone-best: #d97706; --hazard: #fbbf24;
+    --side-w: 380px; --target: 40px;
+  }
+  @media (pointer: coarse) { :root { --target: 44px; } }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; overflow: hidden; background: #e9e6df; color: var(--ink); font: 400 15px/1.5 var(--sans); }
+  button, input, select { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .ic { width: 20px; height: 20px; flex: none; }
+  .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+  #app { display: grid; grid-template-columns: var(--side-w) 1fr; height: 100dvh; }
+  #map { grid-column: 2; grid-row: 1; height: 100%; cursor: crosshair; background: #dfe3e0; }
+  .busy #map { cursor: progress; }
+  #side { grid-column: 1; grid-row: 1; background: var(--surface); border-right: 1px solid var(--line); overflow-y: auto;
+          padding: 20px 20px 24px; display: flex; flex-direction: column; gap: 18px; overscroll-behavior: contain; z-index: 2; }
+  .grab { display: none; }
+
+  header h1 { font-size: 22px; font-weight: 700; letter-spacing: -.01em; line-height: 1.2; }
+  header p { color: var(--ink-3); font-size: 14px; margin-top: 2px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 3px 10px; border-radius: 999px;
+          background: var(--surface-2); border: 1px solid var(--line); font-size: 12px; font-weight: 500; color: var(--ink-2); }
+  .chip i { width: 7px; height: 7px; border-radius: 50%; background: var(--a-stay); }
+
+  /* ---------- answer card ---------- */
+  #result { border-radius: var(--radius); }
+  .empty { border: 1.5px dashed var(--line-2); border-radius: var(--radius); padding: 22px 18px; text-align: center; color: var(--ink-2); }
+  .empty .ic { width: 34px; height: 34px; color: var(--ink); margin-bottom: 8px; }
+  .empty b { display: block; font-size: 18px; color: var(--ink); line-height: 1.3; }
+  .empty span { font-size: 14px; }
+  .wait { display: flex; gap: 12px; align-items: center; padding: 18px; border-radius: var(--radius); background: var(--surface-2); }
+  .wait b { display: block; font-weight: 600; } .wait span { font-size: 13px; color: var(--ink-3); }
+  .spin { width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--ink); animation: spin .8s linear infinite; flex: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .err { padding: 14px 16px; border-radius: var(--radius); background: #fce8e6; color: #8c1d18; font-size: 14px; }
+  .err b { display: block; }
+
+  .ans { border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); overflow: hidden; }
+  .ans-head { --a: var(--a-none); background: var(--a); color: #fff; padding: 16px 18px 16px; display: grid; grid-template-columns: 36px 1fr; gap: 12px; align-items: start; }
+  .a-stay .ans-head { --a: var(--a-stay); } .a-leave .ans-head { --a: var(--a-leave); } .a-hurry .ans-head { --a: var(--a-hurry); }
+  .a-run .ans-head { --a: var(--a-run); } .a-climb .ans-head { --a: var(--a-climb); }
+  .a-run .ans-head, .a-climb .ans-head { animation: ring 1.4s ease-out infinite; }
+  @keyframes ring { 0% { box-shadow: inset 0 0 0 0 rgba(255,255,255,.45); } 100% { box-shadow: inset 0 0 0 10px rgba(255,255,255,0); } }
+  .ans-head .ic { width: 36px; height: 36px; }
+  .ans-title { font-size: 26px; font-weight: 700; line-height: 1.15; letter-spacing: -.01em; }
+  .ans-line { font-size: 16px; font-weight: 500; line-height: 1.4; margin-top: 4px; }
+  .ans-body { padding: 14px 18px 16px; display: grid; gap: 12px; }
+  .cert { font-size: 14px; color: var(--ink-2); }
+
+  /* walk vs flood timeline */
+  .tl { padding: 22px 0 22px; position: relative; }
+  .tl-track { position: relative; height: 8px; border-radius: 4px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); }
+  .tl-walk { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; background: var(--a, var(--ink)); min-width: 8px; }
+  .tl-dot { position: absolute; top: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; background: #fff; border: 3px solid var(--a, var(--ink)); }
+  .tl-flood { position: absolute; top: -12px; width: 3px; height: 20px; margin-left: -1.5px; background: #1d4ed8; border-radius: 2px; }
+  .tl-lab { position: absolute; white-space: nowrap; font-size: 13px; color: var(--ink-2); }
+  .tl-lab b { color: var(--ink); font-weight: 600; }
+  .tl-lab.top { top: -2px; } .tl-lab.bot { bottom: -2px; }
+  .a-stay .tl { --a: var(--a-stay); } .a-leave .tl { --a: var(--a-leave); } .a-hurry .tl { --a: var(--a-hurry); } .a-run .tl { --a: var(--a-run); } .a-climb .tl { --a: var(--a-climb); }
+
+  .opt { display: flex; gap: 10px; align-items: center; min-height: var(--target); font-size: 14px; cursor: pointer; }
+  .opt input { width: 18px; height: 18px; accent-color: var(--ink); flex: none; }
+  .opt small { display: block; color: var(--ink-3); font-size: 12px; }
+  .link { background: none; border: 0; color: var(--accent); font-size: 14px; font-weight: 500; min-height: var(--target); text-align: left; }
+  .link:hover { text-decoration: underline; }
+  details.more summary, details.fold summary { cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: var(--target); }
+  details.more summary::-webkit-details-marker, details.fold summary::-webkit-details-marker { display: none; }
+  details summary .ic { width: 16px; height: 16px; transition: transform .15s ease-out; color: var(--ink-3); }
+  details[open] > summary .ic { transform: rotate(180deg); }
+  details.more { border-top: 1px solid var(--line); }
+  details.more summary { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+  dl.facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 13px; padding-bottom: 4px; }
+  dl.facts dt { color: var(--ink-3); } dl.facts dd { font-weight: 500; }
+
+  /* ---------- controls ---------- */
+  .field label, .lbl { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; font-weight: 600; }
+  .field output { font-weight: 500; color: var(--ink-2); }
+  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: var(--target); background: transparent; cursor: pointer; display: block; }
+  input[type=range]::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: linear-gradient(to right, var(--ink) var(--p, 0%), #d9d6cf var(--p, 0%)); }
+  input[type=range]::-moz-range-track { height: 6px; border-radius: 3px; background: #d9d6cf; }
+  input[type=range]::-moz-range-progress { height: 6px; border-radius: 3px; background: var(--ink); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -8px; border-radius: 50%; background: #fff; border: 3px solid var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+  input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: #fff; border: 3px solid var(--ink); }
+  input[type=range]:focus-visible { outline: none; }
+  input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px #fff, 0 0 0 6px var(--focus); }
+  .hint { font-size: 12px; color: var(--ink-3); }
+
+  details.fold { border-top: 1px solid var(--line); padding-top: 2px; }
+  details.fold > summary { font-size: 14px; font-weight: 600; }
+  details.fold > summary .v { display: block; font-weight: 400; color: var(--ink-3); font-size: 13px; line-height: 1.35; }
+  details.fold > summary { padding: 6px 0; }
+  .fold-body { display: grid; gap: 12px; padding: 4px 0 6px; }
+  .sel label { display: block; font-size: 13px; color: var(--ink-2); margin-bottom: 4px; }
+  select { width: 100%; min-height: var(--target); background: var(--surface); border: 1px solid var(--line-2); border-radius: 8px; padding: 6px 10px; }
+  .btn { min-height: var(--target); padding: 6px 14px; border: 1px solid var(--line-2); border-radius: 8px; background: var(--surface); font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; }
+  .btn:hover { border-color: var(--ink); }
+  .btn[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+
+  ul.key { list-style: none; display: grid; gap: 8px; font-size: 13px; padding: 4px 0 6px; }
+  ul.key li { display: grid; grid-template-columns: 30px 1fr; align-items: center; gap: 8px; }
+  .k-heat { display: flex; gap: 4px; } .k-heat i { flex: 1; height: 12px; border-radius: 3px; }
+  .heatrow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; font-size: 12px; }
+  .heatrow span { display: flex; align-items: center; gap: 6px; } .heatrow i { width: 14px; height: 14px; border-radius: 3px; flex: none; }
+  .k-route { height: 6px; border-radius: 3px; background: #fff; box-shadow: 0 0 0 2px #111; }
+  .k-zone { height: 16px; border-radius: 4px; border: 3px solid var(--zone); background: rgba(8,145,178,.12); }
+  .k-dot { width: 14px; height: 14px; border-radius: 50%; justify-self: center; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.5); }
+  .about { font-size: 13px; color: var(--ink-2); display: grid; gap: 8px; padding: 4px 0 8px; }
+
+  /* ---------- map overlays ---------- */
+  #armbar { position: absolute; z-index: 1000; top: 14px; left: calc(50% + var(--side-w) / 2); transform: translateX(-50%);
+            background: var(--ink); color: #fff; border-radius: 999px; padding: 6px 6px 6px 16px; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow); font-size: 14px; font-weight: 500; }
+  #armbar button { background: #fff; color: var(--ink); border: 0; border-radius: 999px; padding: 6px 14px; font-weight: 600; min-height: 34px; }
+  .gohere { display: flex; align-items: flex-end; pointer-events: none; }
+  .gohere svg { width: 30px; height: 36px; flex: none; filter: drop-shadow(0 1px 2px rgba(0,0,0,.45)); }
+  .gohere span { margin: 0 0 18px 2px; padding: 3px 9px; border-radius: 6px; background: var(--ink); color: #fff; font: 600 13px/1.2 var(--sans); white-space: nowrap; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+  .gohere.best span { background: var(--zone-best); }
+  .hz { display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+  .hz svg { width: 26px; height: 24px; flex: none; filter: drop-shadow(0 1px 1px rgba(0,0,0,.5)); }
+  .hz span { margin-top: 3px; padding: 2px 8px; border-radius: 6px; background: #fff; color: var(--ink); font: 600 12px/1.25 var(--sans); white-space: nowrap; box-shadow: 0 0 0 1px rgba(0,0,0,.15), 0 1px 3px rgba(0,0,0,.25); }
+  .youdot { width: 18px; height: 18px; border-radius: 50%; background: #111; border: 3px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.5), 0 1px 4px rgba(0,0,0,.4); }
+  .route-flow { animation: flow .9s linear infinite; }
+  @keyframes flow { to { stroke-dashoffset: -24; } }
+  .leaflet-container { font-family: var(--sans); }
+  .leaflet-tooltip { font-size: 13px; }
+
+  /* ---------- phone: map first, answer in a bottom sheet ---------- */
+  @media (max-width: 760px) {
+    #app { display: block; }
+    #map { position: fixed; inset: 0; height: 100dvh; }
+    #side { position: fixed; left: 0; right: 0; bottom: 0; max-height: 52dvh; border-right: 0; border-radius: 16px 16px 0 0;
+            box-shadow: 0 -4px 24px rgba(0,0,0,.18); padding: 8px 16px calc(20px + env(safe-area-inset-bottom)); gap: 14px; }
+    .grab { order: -2; } #result { order: -1; }
+    .leaflet-control-attribution { font-size: 10px; max-width: calc(100vw - 72px); }
+    .grab { display: block; width: 40px; height: 4px; border-radius: 2px; background: var(--line-2); margin: 0 auto 2px; flex: none; }
+    header h1 { font-size: 18px; } header p { display: none; } .chip { margin-top: 4px; }
+    .ans-title { font-size: 22px; }
+    #armbar { left: 50%; transform: translateX(-50%); top: 10px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
 </style>
 </head>
 <body>
 <div id="app">
-  <aside id="side">
-    <div>
-      <h1>Where should I run?</h1>
-      <div class="sub">Flood prediction mode · runs on IBM LinuxONE <span id="host"></span></div>
-    </div>
+  <div id="map" role="application" aria-label="Flood map. Tap where you are."></div>
+  <div id="armbar" role="status" hidden>Tap the river where the flood should start <button id="arm-cancel" type="button">Cancel</button></div>
 
-    <div id="result" class="card"><div class="note">Click where you are on the map: you get how likely the flood is to hit you there, when it arrives, and where to run.</div></div>
+  <aside id="side" aria-label="Your answer and settings">
+    <div class="grab" aria-hidden="true"></div>
+    <header>
+      <h1>Where do I go?</h1>
+      <p>Flash-flood escape planner</p>
+      <span class="chip" id="host" title=""><i aria-hidden="true"></i>Runs on IBM LinuxONE</span>
+    </header>
 
-    <div>
-      <label for="t">Time now: <b id="tlabel">0</b> min after the flood starts</label>
+    <section id="result" role="status" aria-live="polite" aria-atomic="true"></section>
+
+    <div class="field">
+      <label for="t"><span>The flood started</span><output id="tlabel" for="t">just now</output></label>
       <input id="t" type="range" min="0" max="240" step="1" value="0">
-      <label style="margin-top:8px; display:flex; gap:6px; align-items:center; font-size:13px; color:var(--text)">
-        <input id="cantrun" type="checkbox"> I can't run (plan at walking pace only)</label>
     </div>
 
-    <div class="card legend">
-      <div><span class="sw" style="background:rgba(43,182,115,.6)"></span><b class="safe">Green: low risk</b> (&lt; 10% chance of being hit), safe to be</div>
-      <div><span class="sw" style="background:rgb(255,150,30)"></span><b>Likely hit</b> 10–50% · <span class="sw" style="background:rgb(255,30,30)"></span><b>Will hit</b> ≥ 50%</div>
-      <div>No colour: outside the flood's reach</div>
-      <div style="margin-top:6px"><b style="color:#fff;text-shadow:0 0 2px #000">━</b> your way out · <span class="safe">■</span> safe ground · <span class="warn">■</span> best ground you can reach (not safe) · <span style="color:#ffd400">⚠</span> hazard on the way · <span style="color:#9aa">┅</span> another way (when shown)</div>
-      <div>Bridges over the flood river: dot coloured by chance of being destroyed</div>
-    </div>
-
-    <div class="card">
-      <div class="row">
-        <div><label for="valley">Valley</label><select id="valley"></select></div>
-        <div><label for="preset">Flood type (real past flood)</label><select id="preset"></select></div>
+    <details class="fold" id="scen">
+      <summary><span>Scenario<small class="v" id="scen-v"></small></span><span id="scen-ic"></span></summary>
+      <div class="fold-body">
+        <div class="sel"><label for="valley">Valley</label><select id="valley"></select></div>
+        <div class="sel"><label for="preset">Flood type (a real past flood)</label><select id="preset"></select></div>
+        <div><button class="btn" id="arm" type="button" aria-pressed="false"></button>
+          <p class="hint" style="margin-top:4px">Then tap the river on the map.</p></div>
       </div>
-      <div style="margin-top:10px">
-        <label>A click on the map sets…</label>
-        <div class="modes">
-          <button id="mode-you" class="on">where you are</button>
-          <button id="mode-trig">where the flood starts</button>
-        </div>
-      </div>
-    </div>
+    </details>
 
-    <details class="card"><summary>About this flood and the data</summary><div class="note" id="about" style="margin-top:6px"></div></details>
+    <details class="fold" id="keyfold">
+      <summary>Map key <span id="key-ic"></span></summary>
+      <ul class="key">
+        <li style="grid-template-columns:1fr"><div class="heatrow">
+          <span><i style="background:var(--heat-low)"></i>Safe to be</span>
+          <span><i style="background:var(--heat-mid)"></i>May flood</span>
+          <span><i style="background:var(--heat-high)"></i>Will flood</span></div></li>
+        <li><span class="k-route"></span><span>Your way out</span></li>
+        <li><span class="k-zone"></span><span>Safe area (flag: go here)</span></li>
+        <li><span id="k-hz"></span><span>Pass this point quickly</span></li>
+        <li><span class="k-dot" style="background:#4c9dff"></span><span>Where the flood starts</span></li>
+        <li><span class="k-dot" style="background:var(--heat-mid)"></span><span>Bridge, coloured by the chance it is destroyed</span></li>
+        <li><span class="youdot" style="justify-self:center;width:16px;height:16px"></span><span>You (the spot you tapped)</span></li>
+        <li style="grid-template-columns:1fr" class="hint">No colour: the flood does not reach that ground. Small black squares on the base map are buildings, dotted lines are footpaths.</li>
+      </ul>
+    </details>
+
+    <details class="fold">
+      <summary>About this flood and the data <span id="about-ic"></span></summary>
+      <div class="about" id="about"></div>
+    </details>
   </aside>
-  <div id="map"></div>
 </div>
 <script>
 const API = "";
-const map = L.map("map", { zoomControl: true }).setView([28.2, 84.88], 11);
+const map = L.map("map", { zoomControl: false }).setView([28.2, 84.88], 11);
+L.control.zoom({ position: "topright" }).addTo(map);
+if (matchMedia("(max-width: 760px)").matches) map.attributionControl.setPosition("topleft");   // not under the bottom sheet
 const osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18, attribution: "© OpenStreetMap contributors" });
 const topo = L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", { maxZoom: 17, attribution: "© OpenStreetMap contributors, SRTM · © OpenTopoMap (CC-BY-SA)" });
 topo.addTo(map);
 L.control.layers({ "Terrain": topo, "Streets": osm }, {}, { position: "topright" }).addTo(map);
 
 const els = id => document.getElementById(id);
-let opts = null, sid = null, mode = "you", you = null, scen = null, pending = null, seq = 0;
-let showBackup = false, last = null;   // backup route is opt-in; last = the answer on screen
-let raw = null;                        // the full server answer (may carry walk_only)
-// "I can't run": show the walking-pace answer the server sent along (walk_only) when the main one relies on running
-const view = r => (els("cantrun").checked && r && r.walk_only) ? r.walk_only : r;
+const phone = () => matchMedia("(max-width: 760px)").matches;
+let opts = null, sid = null, you = null, scen = null, pending = null, seq = 0, armed = false;
+let showBackup = false, last = null, raw = null, cantRun = false;
+const UNSAFE_P = 0.10, WILL_HIT_P = 0.50;   // same thresholds as engine/escape.py (heat colours, bridge dots)
 const OVERLAY_OPACITY = 0.85, OVERLAY_DIM = 0.45;
-function overlayOpacity(dim) { if (layers.overlay) layers.overlay.setOpacity(dim ? OVERLAY_DIM : OVERLAY_OPACITY) }
 const layers = { overlay: null, path: null, bridges: L.layerGroup().addTo(map), route: L.layerGroup().addTo(map), marks: L.layerGroup().addTo(map) };
 
-function busy(on) { document.body.classList.toggle("busy", on) }
-function say(html) { els("result").innerHTML = html }
-function pct(x) { return x == null ? "–" : Math.round(100 * x) + "%" }
-function riskColor(p) { return p <= 0.10 ? "#2bb673" : (p <= 0.30 ? "#f2a33a" : "#e5484d") }
+// ---------- small helpers ----------
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function busy(on) { document.body.classList.toggle("busy", on); }
+function say(html) { els("result").innerHTML = html; }
+function pct(x) { return x == null ? "–" : Math.round(100 * x) + "%"; }
+function dur(m) {                       // same wording as engine/escape.py _dur
+  if (m == null) return "–";
+  if (m < 1) return "under 1 min";
+  m = Math.round(m);
+  if (m < 60) return m + " min";
+  const h = Math.floor(m / 60), r = m % 60;
+  return r ? `${h} h ${r} min` : `${h} h`;
+}
+function riskColor(p) { return p <= UNSAFE_P ? "#2bb673" : (p < WILL_HIT_P ? "#ff961e" : "#ff1e1e"); }
+const ICON = {
+  pin: '<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+  stay: '<path d="M12 3l7.5 3v5.5c0 4.6-3.2 8.2-7.5 9.5-4.3-1.3-7.5-4.9-7.5-9.5V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
+  leave: '<path d="M7 17L17 7M9 7h8v8"/>',
+  hurry: '<path d="M5 17l5-5-5-5M12 17l5-5-5-5"/>',
+  run: '<path d="M4 17l5-5-5-5M11 17l5-5-5-5"/><path d="M20 6v8M20 18v.2"/>',
+  climb: '<path d="M3 20l6.5-10 4 6 2.5-3.5L21 20z"/><path d="M15 9V3M12.5 5.5L15 3l2.5 2.5"/>',
+  none: '<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16v.2"/>',
+  down: '<path d="M6 9.5l6 6 6-6"/>',
+  flag: '<path d="M6 21V4"/><path d="M6 4h11l-2.5 4L17 12H6" fill="currentColor"/>',
+};
+const svg = (n, extra = "") => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" ${extra}>${ICON[n]}</svg>`;
+const HZ_SVG = '<svg viewBox="0 0 26 24" aria-hidden="true"><path d="M13 2l11.5 20h-23z" fill="#fbbf24" stroke="#1f1f1f" stroke-width="1.6" stroke-linejoin="round"/><path d="M13 9v6M13 18.3v.2" stroke="#1f1f1f" stroke-width="2.4" stroke-linecap="round"/></svg>';
+for (const id of ["scen-ic", "key-ic", "about-ic"]) els(id).innerHTML = svg("down");
+els("k-hz").innerHTML = `<span class="hz" style="justify-content:center">${HZ_SVG}</span>`;
+
 async function post(url, body) {
   const r = await fetch(API + url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  const j = await r.json(); if (!r.ok) throw new Error(j.detail || r.statusText); return j;
+  let j = {}; try { j = await r.json(); } catch { /* non-JSON error page */ }
+  if (!r.ok) throw new Error(j.detail || r.statusText || "request failed");
+  return j;
 }
 
+// ---------- states of the answer card ----------
+const EMPTY = `<div class="empty">${svg("pin")}<b>Tap where you are on the map</b><span>You'll see if you need to leave, and where to go.</span></div>`;
+const wait = (t, s) => `<div class="wait"><span class="spin" aria-hidden="true"></span><div><b>${t}</b><span>${s}</span></div></div>`;
+const fail = (t, m) => `<div class="err" role="alert"><b>${t}</b>${esc(m)}</div>`;
+
+// ---------- setup ----------
 async function init() {
-  opts = await (await fetch(API + "/api/predict/options")).json();
+  setArm(false);
+  say(wait("Loading…", "Getting the valleys and past floods."));
+  try { opts = await (await fetch(API + "/api/predict/options")).json(); }
+  catch (e) { say(fail("Could not reach the server.", "Reload the page to try again.")); return; }
   for (const [k, v] of Object.entries(opts.valleys)) els("valley").add(new Option(v.name, k));
   for (const [k, v] of Object.entries(opts.presets)) els("preset").add(new Option(v.label, k));
-  els("valley").onchange = () => { you = null; els("preset").value = opts.valleys[els("valley").value].default_preset; loadScenario(); };
+  els("valley").onchange = () => { you = null; raw = null; els("preset").value = opts.valleys[els("valley").value].default_preset; loadScenario(); };
   els("preset").onchange = () => loadScenario(scen && scen.trigger);
   els("valley").value = "budhi"; els("preset").value = opts.valleys.budhi.default_preset;
-  els("mode-you").onclick = () => setMode("you"); els("mode-trig").onclick = () => setMode("trig");
-  els("t").oninput = () => { els("tlabel").textContent = els("t").value; };
-  els("t").onchange = () => { if (you) escape(you, false, true); };
-  els("cantrun").onchange = () => { if (raw && you) draw(view(raw), true); };
+  els("arm").onclick = () => setArm(!armed);
+  els("arm-cancel").onclick = () => setArm(false);
+  addEventListener("keydown", e => { if (e.key === "Escape" && armed) setArm(false); });
+  let tq = 0;
+  els("t").oninput = () => {               // live: re-ask for the same spot shortly after the slider settles
+    setT();
+    clearTimeout(tq); if (you && sid) tq = setTimeout(() => escape(you, false, true), 120);
+  };
+  setT();
   await loadScenario();
 }
-function setMode(m) { mode = m; els("mode-you").classList.toggle("on", m === "you"); els("mode-trig").classList.toggle("on", m === "trig"); }
+function setT() {
+  const v = +els("t").value;
+  els("tlabel").textContent = v === 0 ? "just now" : `${dur(v)} ago`;
+  els("t").style.setProperty("--p", `${100 * v / +els("t").max}%`);
+  els("t").setAttribute("aria-valuetext", v === 0 ? "The flood started just now" : `The flood started ${dur(v)} ago`);
+}
+function setArm(on) {
+  armed = on;
+  els("arm").setAttribute("aria-pressed", String(on));
+  els("arm").textContent = on ? "Tap the river…" : "Move where the flood starts";
+  els("armbar").hidden = !on;
+}
 
 async function loadScenario(trigger) {
   busy(true); sid = null;
-  say(`<div class="note">Computing this flood for every point near the river…</div>`);
+  say(wait("Computing this flood…", "Every point near the river, on IBM LinuxONE."));
   try {
     const body = { valley: els("valley").value, preset: els("preset").value };
     if (trigger) { body.lon = trigger.lon; body.lat = trigger.lat; }
     scen = await post("/api/predict/scenario", body); sid = scen.sid;
-    els("host").textContent = `(${scen.host.machine}, ${scen.host.byteorder}-endian)`;
+    els("host").title = `Computed on ${scen.host.machine}, ${scen.host.byteorder}-endian`;
+    els("scen-v").textContent = `${els("valley").selectedOptions[0].text.split(" (")[0]} · ${scen.preset_label.split(" (")[0]}`;
     if (layers.overlay) map.removeLayer(layers.overlay);
     layers.overlay = L.imageOverlay(API + scen.p_overlay.url, scen.p_overlay.bounds, { opacity: OVERLAY_OPACITY, interactive: false }).addTo(map);
     if (layers.path) map.removeLayer(layers.path);
-    layers.path = L.polyline(scen.stations.map(s => [s.lat, s.lon]), { color: "#4c9dff", weight: 2, opacity: .9 }).addTo(map)
-      .bindTooltip("Flood path from the trigger");
+    layers.path = L.polyline(scen.stations.map(s => [s.lat, s.lon]), { color: "#4c9dff", weight: 2, opacity: .9, interactive: false }).addTo(map);
     layers.marks.clearLayers(); layers.route.clearLayers(); layers.bridges.clearLayers();
     L.circleMarker([scen.trigger.lat, scen.trigger.lon], { radius: 8, color: "#fff", fillColor: "#4c9dff", fillOpacity: 1, weight: 2 })
-      .addTo(layers.marks).bindTooltip("Flood starts here");
+      .addTo(layers.marks).bindTooltip("Where the flood starts");
     for (const b of scen.bridges.filter(b => b.crosses_flood_river)) {
       L.circleMarker([b.lat, b.lon], { radius: 6, color: "#111", weight: 1, fillColor: riskColor(b.p_destroyed ?? 0), fillOpacity: 1 })
-        .addTo(layers.bridges).bindTooltip(`${b.name || "Bridge"}<br>P(destroyed) ${pct(b.p_destroyed)}<br>flood reaches it at ${b.flood_arrival_min ?? "–"} min`);
+        .addTo(layers.bridges).bindTooltip(`<b>${esc(b.name || "Bridge")}</b><br>Chance it is destroyed: ${pct(b.p_destroyed)}` +
+          (b.flood_arrival_min != null ? `<br>Flood reaches it ${dur(b.flood_arrival_min)} after the start` : ""));
     }
-    map.fitBounds(scen.p_overlay.bounds, { padding: [20, 20] });
-    els("about").innerHTML = `<b>${scen.preset_label}</b><br>Flood path ${scen.path_km} km · ${scen.cells_scored.toLocaleString()} points scored · computed in ${scen.runtime_s}s.<br>
-      Flood heights and arrival times come only from real observations of that flood (${scen.height_notes.join("; ")}).
-      ${scen.cell_model === "v2" ? "Chance of being hit: damage model trained on the real Aug 26 2026 destruction (OSM/HOT)."
-        : `Chance of being hit: impacted-area model (${scen.cell_model}) trained on real satellite flood/debris extents (UNOSAT, Aug 26 + Oct 11): the chance this ground is inside the flood footprint.`}
-      Bridges: damage model v2. Walking: Tobler on the Copernicus 30 m DEM, OSM trails.<br><b>Known limit:</b> on a 30 m DEM the computed river channel can drift from the real river (≥175 m at Arughat), which makes points there look safer than they are.`;
-    say(`<div class="note">Click where you are on the map: you get how likely the flood is to hit you there, when it arrives, and where to run.</div>`);
-  } catch (e) { say(`<div class="bad">Could not load the flood scenario: ${e.message}</div>`); }
+    // no animation: an answer drawn right after this (a tap made while computing) would be undone when a zoom
+    // animation still running here ends (Leaflet finishes it at the old target)
+    map.fitBounds(scen.p_overlay.bounds, fitOpts({ animate: false }));
+    els("about").innerHTML = `<p><b>${esc(scen.preset_label)}</b>. Flood path ${scen.path_km} km, ${scen.cells_scored.toLocaleString()} points scored in ${scen.runtime_s} s.</p>
+      <p>Flood heights and arrival times come only from real observations of that flood (${esc(scen.height_notes.join("; "))}).</p>
+      <p>${scen.cell_model === "v2" ? "Chance of flooding: damage model trained on the real Aug 26 2026 destruction (OSM/HOT)."
+        : `Chance of flooding: impacted-area model (${esc(scen.cell_model)}) trained on real satellite flood and debris extents (UNOSAT, Aug 26 and Oct 11): the chance this ground is inside the flood footprint.`}
+      Bridges: damage model v2. Walking times: Tobler's hiking function on the Copernicus 30 m DEM and OSM trails.
+      "Safe" means a chance of flooding of ${100 * UNSAFE_P}% or less.</p>
+      <p><b>Known limit:</b> on a 30 m DEM the computed river channel can drift from the real river (175 m or more at Arughat), which makes points there look safer than they are.</p>`;
+    if (!pending && !you) say(EMPTY);
+  } catch (e) { say(fail("Could not load the flood scenario.", e.message)); }
   busy(false);
   const next = pending || you; pending = null;
   if (sid && next) await escape(next);
 }
 
+function fitOpts(extra = {}) {   // keep the answer clear of the phone bottom sheet
+  const pad = phone() ? { paddingTopLeft: [24, 24], paddingBottomRight: [24, els("side").offsetHeight + 24] } : { padding: [28, 28] };
+  return { ...pad, ...extra };
+}
+
+// ---------- one query ----------
 async function escape(ll, retried, fromSlider) {
-  if (!fromSlider && !(you && you.lat === ll.lat && you.lng === ll.lng)) showBackup = false;  // new spot: backup hidden
+  if (!fromSlider && !(you && you.lat === ll.lat && you.lng === ll.lng)) showBackup = false;   // new spot: backup hidden
   you = ll; busy(true); const my = ++seq;
   if (!fromSlider) {
     layers.route.clearLayers();
-    L.circleMarker(ll, { radius: 7, color: "#fff", fillColor: "#111", fillOpacity: 1, weight: 2 }).addTo(layers.route);
-    say(`<div class="note">Finding where to go from here…</div>`);
+    youMarker([ll.lat, ll.lng]);
+    say(wait("Finding your way out…", "Checking every path against the flood."));
   }
   try {
-    const r = await post("/api/predict/escape", { sid, lon: ll.lng, lat: ll.lat, minutes_after_start: +els("t").value,
-                                                  can_run: !els("cantrun").checked });
+    // always ask with running allowed: the answer carries walk_only for "I can't run" (switched here, no request)
+    const r = await post("/api/predict/escape", { sid, lon: ll.lng, lat: ll.lat, minutes_after_start: +els("t").value, can_run: true });
     if (my === seq) { raw = r; draw(view(r), fromSlider); }
   } catch (e) {
     if (my !== seq) return;
     busy(false);
     if (!retried && /expired|unknown/.test(e.message)) { pending = ll; return loadScenario(scen && scen.trigger); }
-    say(`<div class="bad">Could not get an answer: ${e.message}. Click again.</div>`);
+    say(fail("Could not get an answer.", `${e.message}. Tap the map again.`));
   }
   busy(false);
 }
+const view = r => (cantRun && r && r.walk_only) ? r.walk_only : r;
 
-// main route: one continuous line, white over a dark casing, with moving dashes for the direction of travel
+// ---------- map drawing ----------
+function youMarker(llArr) {
+  L.marker(llArr, { icon: L.divIcon({ className: "", html: '<div class="youdot"></div>', iconSize: [18, 18], iconAnchor: [9, 9] }), keyboard: false })
+    .addTo(layers.route).bindTooltip("You", { direction: "left", offset: [-8, 0] });
+}
 function drawRoute(pts) {
   const ll = pts.map(p => [p.lat, p.lon]);
   L.polyline(ll, { color: "#111", weight: 9, opacity: .9, lineCap: "round", lineJoin: "round", interactive: false }).addTo(layers.route);
-  L.polyline(ll, { color: "#fff", weight: 5, opacity: 1, lineCap: "round", lineJoin: "round" }).addTo(layers.route)
-    .bindTooltip("Your way out");
+  L.polyline(ll, { color: "#fff", weight: 5, opacity: 1, lineCap: "round", lineJoin: "round" }).addTo(layers.route).bindTooltip("Your way out");
   L.polyline(ll, { color: "#111", weight: 2, opacity: .7, dashArray: "4 20", lineCap: "round", className: "route-flow", interactive: false }).addTo(layers.route);
 }
 function drawBackup(pts) {
-  L.polyline(pts.map(p => [p.lat, p.lon]), { color: "#9aa", weight: 3, dashArray: "6 6", opacity: .95 }).addTo(layers.route)
-    .bindTooltip("Another way");
+  const ll = pts.map(p => [p.lat, p.lon]);
+  L.polyline(ll, { color: "#fff", weight: 7, opacity: .85, lineCap: "round", lineJoin: "round", interactive: false }).addTo(layers.route);
+  L.polyline(ll, { color: "#1f1f1f", weight: 3, dashArray: "2 8", lineCap: "round", opacity: 1 }).addTo(layers.route).bindTooltip("Another way");
 }
-function drawHazard(hz, nUnsafe) {
-  const label = hz.kind === "race" ? `Pass before ${Math.max(0, Math.round(hz.pass_before_min))} min`
-                                   : `May already be flooded (${pct(hz.p_destroyed)})`;
-  const icon = L.divIcon({ className: "hz-icon", html: "⚠", iconSize: [26, 26], iconAnchor: [13, 13] });
-  L.marker([hz.lat, hz.lon], { icon, keyboard: false }).addTo(layers.route)
-    .bindTooltip(label + (nUnsafe > 1 ? ` · ${nUnsafe} risky points on the way` : ""), { permanent: true, direction: "right", offset: [12, 0] });
+function drawHazard(hz) {
+  const label = hz.kind === "flooded" ? "May be flooded when you get here" : `Pass quickly: flood here in ${dur(Math.max(0, hz.pass_before_min))}`;
+  L.marker([hz.lat, hz.lon], { keyboard: false, interactive: false, zIndexOffset: 500,
+    icon: L.divIcon({ className: "", html: `<div class="hz">${HZ_SVG}<span>${label}</span></div>`, iconSize: [26, 24], iconAnchor: [13, 12] }) }).addTo(layers.route);
+}
+function drawGoHere(pt, best) {
+  const html = `<div class="gohere${best ? " best" : ""}"><svg viewBox="0 0 24 30" aria-hidden="true"><path d="M5 29V3" stroke="#1f1f1f" stroke-width="2.6" stroke-linecap="round"/><path d="M5 3h15l-3.5 5 3.5 5H5z" fill="${best ? "#d97706" : "#0891b2"}" stroke="#1f1f1f" stroke-width="1.6" stroke-linejoin="round"/></svg><span>${best ? "Safest ground" : "Go here"}</span></div>`;
+  L.marker([pt.lat, pt.lon], { keyboard: false, interactive: false, zIndexOffset: 1000,
+    icon: L.divIcon({ className: "", html, iconSize: [30, 36], iconAnchor: [6, 35] }) }).addTo(layers.route);
 }
 
-function fmtMin(m) { return m == null ? "–" : (m <= 0 ? "now" : Math.round(m) + " min") }
-function walkMin(m) { return Math.max(1, Math.round(m)) + " min" }
+// ---------- the answer ----------
+function timeline(r) {
+  if (r.status !== "route" || r.walk_min == null) return "";
+  const walk = Math.max(r.walk_min, 0.5), fh = r.minutes_until_flood_here;
+  const already = fh != null && fh <= 0;
+  const end = Math.max(walk, fh > 0 ? fh : 0) * 1.06 || 1;
+  const xw = 100 * walk / end, xf = already ? 0 : (fh == null ? null : 100 * fh / end);
+  const anchor = x => `left:${x}%;transform:translateX(-${x}%)`;      // label anchored proportionally: never clipped
+  const safeLab = `${r.destination_safe ? "Safe in" : "There in"} <b>${dur(r.walk_min)}</b>`;
+  const floodLab = already ? "<b>Flood may already be here</b>" : (fh == null ? "" : `Flood here in <b>${dur(fh)}</b>`);
+  const sr = `${r.destination_safe ? "You reach safe ground in" : "You reach the safest ground in"} ${dur(r.walk_min)}. ` +
+             (already ? "The flood may already be at your spot." : fh == null ? "" : `The flood reaches your spot in ${dur(fh)}.`);
+  return `<div class="tl" role="img" aria-label="${esc(sr)}">
+    ${floodLab ? `<span class="tl-lab top" style="${anchor(xf)}">${floodLab}</span>` : ""}
+    <div class="tl-track"><div class="tl-walk" style="width:${xw}%"></div>
+      ${xf != null ? `<div class="tl-flood" style="left:${xf}%"></div>` : ""}
+      <div class="tl-dot" style="left:${xw}%"></div></div>
+    <span class="tl-lab bot" style="${anchor(xw)}">${safeLab}</span></div>`;
+}
+
+function details(r) {
+  const rows = [];
+  const add = (k, v) => { if (v != null && v !== "") rows.push(`<dt>${k}</dt><dd>${v}</dd>`); };
+  if (r.you && r.you.p_destroyed != null) add("Chance this spot floods", pct(r.you.p_destroyed));
+  // only when it explains a low model number next to a "may flood" answer
+  if (r.you && r.you.below_flood_line && !(r.you.p_destroyed > UNSAFE_P)) add("Flood line", "this spot is below the expected flood height");
+  if (r.walk_min != null) {
+    add("Route", `${r.distance_m} m, ${r.climb_m >= 0 ? "+" : ""}${r.climb_m} m climb, ${dur(r.walk_min)}`);
+    if (r.path_into_zone && r.path_into_zone.length)
+      add("Go-here flag", `${dur(r.go_here.t_min - r.destination.t_min)} further in, away from the edge`);
+    add(r.destination_safe ? "Safe area" : "Safest ground", r.destination_safe ? `${100 * UNSAFE_P}% chance of flooding or less`
+                                                                             : `${pct(r.destination.p_destroyed)} chance of flooding`);
+    if (r.min_margin_before_flood_min != null) add("Tightest spot on the way", `${dur(Math.max(0, r.min_margin_before_flood_min))} ahead of the flood`);
+    if (r.confidence != null) add("Route confidence", pct(r.confidence));
+    add("Pace", r.pace === "run" ? "running for the first 5 min, then walking" : "walking");
+  }
+  const ms = r.runtime_ms != null ? r.runtime_ms : (r.runtime_s != null ? 1000 * r.runtime_s : null);
+  if (ms != null && r.host) add("Computed", `in ${ms < 10 ? ms.toFixed(1) : Math.round(ms)} ms on IBM LinuxONE (${esc(r.host.machine)})`);
+  return rows.length ? `<details class="more"><summary>Details ${svg("down")}</summary><dl class="facts">${rows.join("")}</dl></details>` : "";
+}
 
 function draw(r, fromSlider) {
   last = r;
   layers.route.clearLayers();
   const youLL = [r.you ? r.you.lat : you.lat, r.you ? r.you.lon : you.lng];
   const fit = [youLL];
-  const safeDest = r.destination_safe === true;
-  const zoneColor = safeDest ? "#2bb673" : "#f2a33a";
+  const best = r.destination_safe === false || r.status === "no_route";
   if (r.safe_zone) {
-    const z = L.geoJSON(r.safe_zone, { style: { color: zoneColor, weight: 2, fillColor: zoneColor, fillOpacity: .35 } })
-      .addTo(layers.route).bindTooltip(safeDest ? "Safe ground" : `Best ground you can reach · ${pct(r.destination && r.destination.p_destroyed)} risk`);
-    const zb = z.getBounds(); fit.push(zb.getSouthWest(), zb.getNorthEast());
+    const c = best ? "#d97706" : "#0891b2";
+    L.geoJSON(r.safe_zone, { interactive: false, style: { color: "#0b1f2a", weight: 6, opacity: .35, fill: false } }).addTo(layers.route);
+    L.geoJSON(r.safe_zone, { style: { color: c, weight: 3, dashArray: best ? "8 6" : null, fillColor: c, fillOpacity: .12 } })
+      .addTo(layers.route).bindTooltip(r.status === "no_route" ? "Safer ground (not reachable before the flood)" : best ? "Safest ground you can reach in time" : "Safe area");
   }
   if (r.backup && showBackup) drawBackup(r.backup.path);
-  if (r.path) { drawRoute(r.path); r.path.forEach(p => fit.push([p.lat, p.lon])); }
-  if (r.hazard) drawHazard(r.hazard, (r.unsafe_points || []).length);
-  L.circleMarker(youLL, { radius: 7, color: "#fff", fillColor: "#111", fillOpacity: 1, weight: 2 }).addTo(layers.route).bindTooltip("You are here");
-  if (r.destination) {
-    const d = r.destination;
-    const lab = safeDest ? "Safe ground" : `Best ground you can reach · ${pct(d.p_destroyed)} risk`;
-    L.marker([d.lat, d.lon], { title: lab }).addTo(layers.route).bindTooltip(lab, { permanent: true, direction: "top", offset: [-15, -12] });
-  }
-  overlayOpacity(!!r.path);
+  const full = r.path ? r.path.concat(r.path_into_zone || []) : null;
+  if (full) { drawRoute(full); full.forEach(p => fit.push([p.lat, p.lon])); }
+  if (r.hazard && r.hazard.show) drawHazard(r.hazard);
+  youMarker(youLL);
+  const goal = r.go_here || r.destination;
+  if (goal) { drawGoHere(goal, best); fit.push([goal.lat, goal.lon]); }
+  if (layers.overlay) layers.overlay.setOpacity(full ? OVERLAY_DIM : OVERLAY_OPACITY);
 
-  const tier = r.status === "no_route" ? "none" : (r.tier || "outside");
-  const label = { will_hit: "Will hit", likely: "Likely hit", low: "Low risk", outside: "Outside the flood", none: "Danger" }[tier];
-  const U = { walk: "WALK", hurry: "HURRY", run: "RUN" }[r.urgency];
-  const to = safeDest ? "to safe ground" : "to the best ground you can reach";
-  const spare = r.min_margin_before_flood_min;
-  const spareTxt = spare == null ? "no race with the flood" : (spare >= 1 ? `${Math.round(spare)} min to spare` : "no time to spare");
-  let h = `<div class="banner ${U ? "u-" + r.urgency : "t-" + tier}"><small>${label}${r.you && r.you.p_destroyed != null ? " · " + pct(r.you.p_destroyed) + " chance" : ""}</small>`;
-  if (U) {
-    h += `<div class="urg">${U}</div>`;
-    if (r.walk_min != null) h += `<div class="bline">${walkMin(r.walk_min)} ${to}${r.status === "route" ? " · " + spareTxt : ""}</div>`;
-    h += `<div class="head">${r.headline || ""}</div>`;
-  } else h += r.headline || "";
-  h += `</div>`;
-  if (r.you && r.you.p_destroyed != null) {
-    h += `<div class="clock">
-      <div><b>${fmtMin(r.minutes_until_flood_here)}</b><span>flood reaches you</span></div>
-      <div><b>${r.walk_min != null ? walkMin(r.walk_min) : "–"}</b><span>walk ${safeDest || r.walk_min == null ? "to safety" : "to best ground"}</span></div>
-      <div><b>${r.status === "route" ? (spare == null ? "✓" : (spare >= 1 ? Math.round(spare) + " min" : "none")) : "–"}</b><span>time to spare</span></div></div>`;
-  }
-  if (r.pace === "run") h += `<div class="note" style="margin-bottom:8px">Assumes you can run for about 5 min. Tick “I can't run” below the time slider if you can't.</div>`;
-  h += `<div class="msg">${r.message}</div>`;
-  if (r.walk_min != null) h += `<div class="kv"><span>Route</span><span>${r.distance_m} m · ${r.climb_m >= 0 ? "+" : ""}${r.climb_m} m climb</span>
-      <span>Path confidence</span><span>${pct(r.confidence)} ${r.safe ? "(safe all the way)" : "(some points risky)"}</span></div>`;
-  if (r.backup) h += `<button id="bk" class="bk-btn">${showBackup ? "Hide the other way" : `Show another way (${walkMin(r.backup.walk_min)})`}</button>`;
-  if (r.host) h += `<div class="note" style="margin-top:8px">Answered in ${r.runtime_s ?? 0}s on ${r.host.machine}.</div>`;
+  const s = r.say || { action: null, title: r.headline || "", line: r.message || "", certainty: "" };
+  const a = s.action || "none";
+  let h = `<div class="ans a-${a}"><div class="ans-head">${svg(a)}<div><h2 class="ans-title">${esc(s.title)}</h2>
+      ${s.line ? `<p class="ans-line">${esc(s.line)}</p>` : ""}</div></div><div class="ans-body">`;
+  h += timeline(r);
+  if (s.certainty) h += `<p class="cert">${esc(s.certainty)}</p>`;
+  if (raw && raw.walk_only)
+    h += `<label class="opt"><input type="checkbox" id="cantrun" ${cantRun ? "checked" : ""}><span>I can't run<small>${cantRun ? "Showing the answer at walking pace." : "This answer assumes you can run for about 5 minutes."}</small></span></label>`;
+  if (r.backup) h += `<button id="bk" class="link" type="button">${showBackup ? "Hide the other way" : `Show another way (${dur(r.backup.walk_min)})`}</button>`;
+  h += details(r) + `</div></div>`;
+  const keepOpen = !!document.querySelector("#result details.more[open]");
   say(h);
-  if (r.backup) els("bk").onclick = () => { showBackup = !showBackup; draw(last, true); };
-  // camera: only move if the answer is not already fully in view (or we are zoomed far out); never on re-queries
+  if (keepOpen) document.querySelector("#result details.more")?.setAttribute("open", "");
+  if (els("cantrun")) els("cantrun").onchange = e => { cantRun = e.target.checked; draw(view(raw), true); };
+  if (els("bk")) els("bk").onclick = () => { showBackup = !showBackup; draw(last, true); };
+  // camera: only move if the answer is not already in view (or we are zoomed far out); never on re-queries
   if (!fromSlider && fit.length > 1) {
     const b = L.latLngBounds(fit);
-    if (!map.getBounds().contains(b) || map.getZoom() < 13) map.fitBounds(b.pad(0.25), { maxZoom: 16 });
+    if (!map.getBounds().contains(b) || map.getZoom() < 13) map.fitBounds(b.pad(0.3), fitOpts({ maxZoom: 16 }));
   }
 }
 
 map.on("click", e => {
-  if (!sid) {
-    if (mode === "you") { pending = e.latlng; say(`<div class="note">Still computing the flood. Your spot will be answered as soon as it is ready…</div>`); }
+  if (armed) {
+    if (!sid) return;
+    setArm(false);                         // your spot (if any) is answered again for the new flood
+    loadScenario({ lon: e.latlng.lng, lat: e.latlng.lat });
     return;
   }
-  if (mode === "trig") { loadScenario({ lon: e.latlng.lng, lat: e.latlng.lat }); setMode("you"); }
-  else escape(e.latlng);
+  if (!sid) { pending = e.latlng; say(wait("Still computing the flood…", "Your spot will be answered as soon as it is ready.")); return; }
+  escape(e.latlng);
 });
 init();
 </script>
