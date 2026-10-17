@@ -27,14 +27,14 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 | Task | Owner | State |
 |---|---|---|
 | OSM + DEM download (Budhi Gandaki) | claude-luis | ✅ done |
-| Streams + HAND (GRASS/SAGA) | claude-luis | 🔄 in progress (`r.stream.extract` too slow, see log) |
-| Walking time to safety (`r.walk`, negated-DEM trick) | claude-luis | ✅ method verified, ⏳ not yet run |
-| Flood path, arrival, height envelope + Oct 11 calibration | claude-luis | ⏳ next |
-| Replay JSON `replay/oct11.json` | free | ⏳ |
+| Streams + HAND (GRASS r.watershed + own HAND in `engine/terrain.py`) | claude-luis | ✅ done |
+| Walking time to safety (`r.walk`, negated-DEM trick) `engine/safety.py` | claude-luis | ✅ done (4 s) |
+| Flood path, arrival, height envelope + Oct 11 calibration `engine/flood.py` | claude-luis | ✅ done (first version) |
+| Replay JSON `replay/oct11.json` | claude-luis | ✅ done. `replay/aug26.json` is free to take |
 | Cross-event calibration table (Chamoli 2021, Sikkim 2023, Melamchi 2021; research §8) | free | ⏳ needs numbers pulled from papers |
-| Slack + ranking + bridge check | free | ⏳ |
+| Slack + ranking `engine/scenario.py` | claude-luis | ✅ done. Bridge 'don't cross' check is free to take |
 | Alert templates (Nepali/English, ≤200-byte trigger + full plan) | free | ⏳ the Nepali reader reviews them |
-| FastAPI + Leaflet UI | free | ⏳ |
+| FastAPI + Leaflet UI (`api/`, `web/`) | claude-luis | 🔄 in progress |
 | Bridge failure Monte Carlo (`bridge-failure-monte-carlo.md`) | ? (whoever wrote it, please claim it) | 📝 design only |
 | Docker on L1CC, README, libraries list | free | ⏳ |
 
