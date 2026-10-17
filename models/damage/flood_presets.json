@@ -1,0 +1,170 @@
+{
+  "rules": "A preset = arrival(km) and height(km) curves in km downstream of the flood source, taken ONLY from real\nobservations of one past flood, so a new trigger anywhere can reuse that flood's behaviour:\n\n  oct11  Budhi Gandaki, 11 Oct 2026 (replay/oct11.json, sources inside):\n         arrival: the 'calibration' first_arrival observations (Jagat/Salleri 04:00, Arughat 06:30; burst 03:45)\n         height:  Salleri 25 m (upper end of the reported 20-25 m); Arughat 8.43 m = the gauge's peak stage,\n                  used as an UPPER BOUND on height above the channel (normal stage unknown and >= 0), so the\n                  flood is never understated\n  aug26  Bhotekoshi-Trishuli, 26 Aug 2026:\n         arrival: replay/aug26.json 'calibration' first_arrival observations inside the Trishuli grid\n                  (Syabrubesi 08:50, Betrawati 09:20, Malekhu 11:26; burst 08:37). Points outside the grid\n                  (Kali Khola, Devghat) are skipped: their km cannot be measured on this grid\n         height:  reconstructed from real damage marks (models/damage/aug26_damage_envelope.json)\nBeyond the last height observation the height is held constant (no invented decay rate); before the first\nit is held at the first value (np.interp). Arrival beyond the last knot uses the last observed wave speed.",
+  "presets": {
+    "oct11": {
+      "label": "Landslide/avalanche-dam burst (Budhi Gandaki, 11 Oct 2026)",
+      "native_valley": "budhi",
+      "burst_time": "03:45",
+      "path_km": 94.81566660714577,
+      "arrival_knots": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          20.228956697920022,
+          15.0
+        ],
+        [
+          62.54157138848593,
+          165.0
+        ]
+      ],
+      "arrival_observations": [
+        {
+          "place": "Paiyu/Bagar/Ghattekhola/Jagat/Salleri",
+          "km": 20.23,
+          "minutes_after_burst": 15.0,
+          "src": "BWSN SitRep 1 (04:00 flood enters); Trekguard/ICIMOD (20-25 m at Salleri)"
+        },
+        {
+          "place": "Arughat",
+          "km": 62.54,
+          "minutes_after_burst": 165.0,
+          "src": "DHM hydrologist Binod Parajuli via Wikipedia; NDRRMA (8.43 m)"
+        }
+      ],
+      "height_knots": [
+        [
+          20.228956697920022,
+          25.0
+        ],
+        [
+          62.54157138848593,
+          8.43
+        ]
+      ],
+      "height_notes": [
+        "Salleri: upper end of reported 20-25 m",
+        "Arughat: gauge peak stage 8.43 m used as upper bound"
+      ],
+      "sources": [
+        "https://www.adrrn.net/wp-content/uploads/2026/10/Budhi_Gandaki_Flood_SitRep_1.pdf",
+        "https://kathmandupost.com/interviews/2026/10/11/sms-alerts-helped-avert-loss-of-life-in-budhi-gandaki-floods-says-disaster-management-chief",
+        "https://english.onlinekhabar.com/warnings-saved-lives-budhi-gandaki.html",
+        "https://en.wikipedia.org/wiki/2026_Budhi_Gandaki_flood",
+        "https://trekguard.app/blog/budhi-gandaki-flash-flood-manaslu-circuit-safety-2026/"
+      ]
+    },
+    "aug26": {
+      "label": "Glacier/ice-rock avalanche debris flood (Bhotekoshi-Trishuli, 26 Aug 2026)",
+      "native_valley": "trishuli",
+      "burst_time": "08:37",
+      "path_km": 121.18137654188048,
+      "arrival_knots": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          14.239402589451755,
+          13.0
+        ],
+        [
+          47.892828970813994,
+          43.0
+        ],
+        [
+          109.29741551120158,
+          169.0
+        ]
+      ],
+      "arrival_observations": [
+        {
+          "place": "Syabrubesi gauge (Bhote Koshi at Shyaprubesi, DHM 446.25)",
+          "km": 14.24,
+          "minutes_after_burst": 13.0,
+          "src": "Kathmandu Post (08:40 reading 1.62 m); ReliefWeb (station stops 08:50), via Wikipedia timeline"
+        },
+        {
+          "place": "Betrawati gauge (Trishuli at Betrawati, DHM 447)",
+          "km": 47.89,
+          "minutes_after_burst": 43.0,
+          "src": "Onlinekhabar technical report, via Wikipedia timeline"
+        },
+        {
+          "place": "Malekhu / Phurke gauge",
+          "km": 109.3,
+          "minutes_after_burst": 169.0,
+          "src": "Kathmandu Post (11:26 above danger); Onlinekhabar (11:43 station and Phurke bridge swept away), via Wikipedia timeline"
+        },
+        {
+          "place": "Devghat gauge (Narayani at Devghat, DHM 450, Chitwan)",
+          "skipped": "outside this grid"
+        }
+      ],
+      "height_knots": [
+        [
+          2.5,
+          56.03
+        ],
+        [
+          7.5,
+          42.5
+        ],
+        [
+          12.5,
+          62.79
+        ],
+        [
+          17.5,
+          45.5
+        ],
+        [
+          47.5,
+          25.65
+        ],
+        [
+          52.5,
+          28.19
+        ],
+        [
+          57.5,
+          27.53
+        ],
+        [
+          62.5,
+          24.51
+        ],
+        [
+          67.5,
+          21.38
+        ],
+        [
+          72.5,
+          24.81
+        ],
+        [
+          92.5,
+          13.14
+        ],
+        [
+          97.5,
+          16.49
+        ]
+      ],
+      "height_notes": [
+        "p90 HAND of affected buildings per 5 km bin (>= 30 positives) (Reconstructed from damage marks because replay/aug26)"
+      ],
+      "sources": [
+        "https://en.wikipedia.org/wiki/Timeline_of_the_2026_Nepal%E2%80%93Tibet_floods",
+        "https://en.wikipedia.org/wiki/2026_Nepal%E2%80%93Tibet_floods",
+        "https://ndrrma.gov.np/mediafiles/rasuwa/Rasuwa_Flood_SitRep_Temp_ENG_01_01092026.pdf",
+        "https://news.mongabay.com/2026/09/during-nepal-floods-decentralized-community-based-warning-saved-lives/",
+        "https://english.onlinekhabar.com/how-many-floods-to-react.html",
+        "https://hydrology.gov.np (gauge coordinates and warning/danger levels, DHM live feed snapshot 20261017T151626Z)",
+        "OSM damage:event=2026NepalFlood (HOT), see data/docs/osm_damage_labels.md"
+      ]
+    }
+  }
+}

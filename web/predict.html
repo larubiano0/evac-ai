@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evac-AI Prediction</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root { --bg:#0f1419; --panel:#161c23; --line:#2a333d; --text:#e6e9ec; --muted:#93a0ad; --safe:#2bb673; --warn:#f2a33a; --bad:#e5484d; --accent:#4c9dff; }
+  * { box-sizing: border-box }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--text); font:14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif }
+  #app { display:grid; grid-template-columns: 360px 1fr; height:100vh }
+  #side { background:var(--panel); border-right:1px solid var(--line); overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:14px }
+  #map { height:100% }
+  h1 { font-size:20px; margin:0 }
+  .sub { color:var(--muted); font-size:12px; margin-top:2px }
+  label { display:block; color:var(--muted); font-size:12px; margin-bottom:4px }
+  select, input[type=number] { width:100%; background:#0f1419; color:var(--text); border:1px solid var(--line); border-radius:6px; padding:7px 8px; font-size:14px }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:8px }
+  .modes { display:grid; grid-template-columns:1fr 1fr; gap:6px }
+  button { background:#0f1419; color:var(--text); border:1px solid var(--line); border-radius:6px; padding:8px; font-size:14px; cursor:pointer }
+  button.on { border-color:var(--accent); color:#fff; background:#16304d }
+  input[type=range] { width:100% }
+  .card { border:1px solid var(--line); border-radius:8px; padding:12px; background:#121820 }
+  .verdict { font-weight:700; font-size:16px; margin-bottom:6px }
+  .safe { color:var(--safe) } .bad { color:var(--bad) } .warn { color:var(--warn) }
+  .kv { display:grid; grid-template-columns:auto 1fr; gap:2px 10px; font-size:14px }
+  .kv span:nth-child(odd) { color:var(--muted) }
+  .legend { font-size:12px; color:var(--muted) }
+  .ramp { height:10px; border-radius:3px; background:linear-gradient(90deg, rgba(255,220,40,.35), rgba(255,0,40,.9)); margin:4px 0 }
+  .note { font-size:12px; color:var(--muted) }
+  .busy { opacity:.55; pointer-events:none }
+  ul { margin:6px 0 0 18px; padding:0 } li { margin:2px 0 }
+  @media (max-width: 800px) { #app { grid-template-columns:1fr; grid-template-rows: auto 60vh } #side { max-height:none } }
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="side">
+    <div>
+      <h1>Where should I go?</h1>
+      <div class="sub">Flood prediction mode · runs on IBM LinuxONE <span id="host"></span></div>
+    </div>
+
+    <div class="row">
+      <div><label for="valley">Valley</label><select id="valley"></select></div>
+      <div><label for="preset">Flood type (real past flood)</label><select id="preset"></select></div>
+    </div>
+
+    <div>
+      <label>Click on the map to…</label>
+      <div class="modes">
+        <button id="mode-you" class="on">set where you are</button>
+        <button id="mode-trig">move the flood start</button>
+      </div>
+    </div>
+
+    <div>
+      <label for="t">Time now: <b id="tlabel">0</b> min after the flood starts</label>
+      <input id="t" type="range" min="0" max="240" step="1" value="0">
+    </div>
+
+    <div id="result" class="card"><div class="note">Click anywhere on the map to see the safest path from there.</div></div>
+
+    <div class="card legend">
+      <div><b>Map</b></div>
+      <div class="ramp"></div>
+      <div>P(destroyed) if this flood comes: yellow = low · red = high</div>
+      <div style="margin-top:6px"><span class="safe">━</span> path, safe point · <span class="bad">━</span> unsafe point (reached after the flood could be there) · <span style="color:#9aa">┅</span> backup</div>
+      <div style="margin-top:6px">Bridges over the flood river: coloured by P(destroyed)</div>
+    </div>
+
+    <div class="card note" id="about"></div>
+  </aside>
+  <div id="map"></div>
+</div>
+<script>
+const API = "";
+const map = L.map("map", { zoomControl: true }).setView([28.2, 84.88], 11);
+const osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18, attribution: "© OpenStreetMap contributors" });
+const topo = L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", { maxZoom: 17, attribution: "© OpenStreetMap contributors, SRTM · © OpenTopoMap (CC-BY-SA)" });
+topo.addTo(map);
+L.control.layers({ "Terrain": topo, "Streets": osm }, {}, { position: "topright" }).addTo(map);
+
+const els = id => document.getElementById(id);
+let opts = null, sid = null, mode = "you", you = null, scen = null;
+const layers = { overlay: null, path: null, bridges: L.layerGroup().addTo(map), route: L.layerGroup().addTo(map), marks: L.layerGroup().addTo(map) };
+
+function busy(on) { document.body.classList.toggle("busy", on) }
+function pct(x) { return x == null ? "–" : Math.round(100 * x) + "%" }
+function riskColor(p) { return p <= 0.10 ? "#2bb673" : (p <= 0.30 ? "#f2a33a" : "#e5484d") }
+async function post(url, body) {
+  const r = await fetch(API + url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const j = await r.json(); if (!r.ok) throw new Error(j.detail || r.statusText); return j;
+}
+
+async function init() {
+  opts = await (await fetch(API + "/api/predict/options")).json();
+  for (const [k, v] of Object.entries(opts.valleys)) els("valley").add(new Option(v.name, k));
+  for (const [k, v] of Object.entries(opts.presets)) els("preset").add(new Option(v.label, k));
+  els("valley").onchange = () => { els("preset").value = opts.valleys[els("valley").value].default_preset; loadScenario(); };
+  els("preset").onchange = () => loadScenario(scen && scen.trigger);
+  els("valley").value = "budhi"; els("preset").value = opts.valleys.budhi.default_preset;
+  els("mode-you").onclick = () => setMode("you"); els("mode-trig").onclick = () => setMode("trig");
+  els("t").oninput = () => { els("tlabel").textContent = els("t").value; };
+  els("t").onchange = () => { if (you) escape(you); };
+  await loadScenario();
+}
+function setMode(m) { mode = m; els("mode-you").classList.toggle("on", m === "you"); els("mode-trig").classList.toggle("on", m === "trig"); }
+
+async function loadScenario(trigger) {
+  busy(true);
+  try {
+    const body = { valley: els("valley").value, preset: els("preset").value };
+    if (trigger) { body.lon = trigger.lon; body.lat = trigger.lat; }
+    scen = await post("/api/predict/scenario", body); sid = scen.sid;
+    els("host").textContent = `(${scen.host.machine}, ${scen.host.byteorder}-endian)`;
+    if (layers.overlay) map.removeLayer(layers.overlay);
+    layers.overlay = L.imageOverlay(API + scen.p_overlay.url, scen.p_overlay.bounds, { opacity: 0.85, interactive: false }).addTo(map);
+    if (layers.path) map.removeLayer(layers.path);
+    layers.path = L.polyline(scen.stations.map(s => [s.lat, s.lon]), { color: "#4c9dff", weight: 2, opacity: .9 }).addTo(map)
+      .bindTooltip("Flood path from the trigger");
+    layers.marks.clearLayers(); layers.route.clearLayers(); layers.bridges.clearLayers();
+    L.circleMarker([scen.trigger.lat, scen.trigger.lon], { radius: 8, color: "#fff", fillColor: "#4c9dff", fillOpacity: 1, weight: 2 })
+      .addTo(layers.marks).bindTooltip("Flood starts here");
+    for (const b of scen.bridges.filter(b => b.crosses_flood_river)) {
+      L.circleMarker([b.lat, b.lon], { radius: 6, color: "#111", weight: 1, fillColor: riskColor(b.p_destroyed ?? 0), fillOpacity: 1 })
+        .addTo(layers.bridges).bindTooltip(`${b.name || "Bridge"}<br>P(destroyed) ${pct(b.p_destroyed)}<br>flood reaches it at ${b.flood_arrival_min ?? "–"} min`);
+    }
+    map.fitBounds(scen.p_overlay.bounds, { padding: [20, 20] });
+    els("about").innerHTML = `<b>${scen.preset_label}</b><br>Flood path ${scen.path_km} km · ${scen.cells_scored.toLocaleString()} points scored · computed in ${scen.runtime_s}s.<br>
+      Flood heights and arrival times come only from real observations of that flood (${scen.height_notes.join("; ")}).
+      Damage probabilities: model trained on the real Aug 26 2026 destruction (OSM/HOT). Walking: Tobler on the Copernicus 30 m DEM, OSM trails.<br>
+      <b>Known limit:</b> on a 30 m DEM the computed river channel can drift from the real river (≥175 m at Arughat), which makes points there look safer than they are.`;
+    els("result").innerHTML = `<div class="note">Click anywhere on the map to see the safest path from there.</div>`;
+    you = null;
+  } catch (e) { els("result").innerHTML = `<div class="bad">${e.message}</div>`; }
+  busy(false);
+}
+
+async function escape(ll) {
+  you = ll; busy(true);
+  try {
+    const r = await post("/api/predict/escape", { sid, lon: ll.lng, lat: ll.lat, minutes_after_start: +els("t").value });
+    draw(r);
+  } catch (e) { els("result").innerHTML = `<div class="bad">${e.message}</div>`; }
+  busy(false);
+}
+
+function drawPath(pts, dashed) {
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1], b = pts[i];
+    L.polyline([[a.lat, a.lon], [b.lat, b.lon]], { color: dashed ? "#9aa" : (b.unsafe ? "#e5484d" : "#2bb673"), weight: dashed ? 3 : 5, dashArray: dashed ? "6 6" : null, opacity: .95 }).addTo(layers.route);
+  }
+  if (!dashed) for (const p of pts.filter(p => p.unsafe))
+    L.circleMarker([p.lat, p.lon], { radius: 5, color: "#e5484d", fillColor: "#e5484d", fillOpacity: 1 }).addTo(layers.route)
+      .bindTooltip(`Unsafe: P(destroyed) ${pct(p.p_destroyed)}, you reach it at ${p.t_min.toFixed(0)} min, flood at ${p.flood_arrival_min ?? "–"} min`);
+}
+
+function draw(r) {
+  layers.route.clearLayers();
+  L.circleMarker([r.you.lat, r.you.lon], { radius: 7, color: "#fff", fillColor: "#111", fillOpacity: 1, weight: 2 }).addTo(layers.route).bindTooltip("You are here");
+  let h = "";
+  if (r.status === "outside_impact_zone" || r.status === "safe_here") {
+    h = `<div class="verdict safe">✓ ${r.status === "safe_here" ? "Safe here" : "Outside the impact zone"}</div><div>${r.message}</div>`;
+  } else if (r.status === "route") {
+    drawPath(r.path, false);
+    if (r.backup) drawPath(r.backup.path, true);
+    const d = r.destination;
+    L.circleMarker([d.lat, d.lon], { radius: 8, color: "#fff", fillColor: r.safe ? "#2bb673" : "#f2a33a", fillOpacity: 1, weight: 2 }).addTo(layers.route).bindTooltip("Go here");
+    h = `<div class="verdict ${r.safe ? "safe" : "bad"}">${r.safe ? "✓ Safe path" : "✗ Not safe everywhere"} · ${pct(r.confidence)} confidence</div>
+      <div class="kv"><span>Walk</span><span>${r.walk_min} min · ${r.distance_m} m · ${r.climb_m >= 0 ? "+" : ""}${r.climb_m} m</span>
+      <span>Destination</span><span>${pct(1 - d.risk)} confidence it stays dry</span>
+      <span>Flood at your spot</span><span>${r.you.flood_arrival_min ?? "–"} min${r.you.flood_already_here ? " (already here)" : ""}</span>
+      <span>Margin</span><span>${r.min_margin_before_flood_min == null ? "no risky point on the path" : r.min_margin_before_flood_min + " min before the flood at the riskiest point"}</span></div>`;
+    if (!r.safe) h += `<div style="margin-top:8px" class="bad">${r.unsafe_points.length} unsafe point(s) on this path (red on the map). No fully safe path was found from here at this time.</div>`;
+    if (r.backup) h += `<div style="margin-top:8px" class="note">Backup (dashed): ${r.backup.safe ? "safe" : "NOT safe everywhere"}, ${pct(r.backup.confidence)} confidence, ${r.backup.walk_min} min.</div>`;
+  } else if (r.status === "no_route") {
+    h = `<div class="verdict bad">✗ No safe path found</div><div>${r.message}</div>`;
+  } else { h = `<div class="warn">${r.message}</div>`; }
+  h += `<div class="note" style="margin-top:8px">Answered in ${r.runtime_s ?? 0}s on ${r.host.machine}.</div>`;
+  els("result").innerHTML = h;
+}
+
+map.on("click", e => {
+  if (!sid) return;
+  if (mode === "trig") { loadScenario({ lon: e.latlng.lng, lat: e.latlng.lat }); setMode("you"); }
+  else escape(e.latlng);
+});
+init();
+</script>
+</body>
+</html>

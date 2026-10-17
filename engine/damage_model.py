@@ -69,6 +69,9 @@ class PathContext:
     def __init__(self, T, path):
         t0 = time.time()
         self.T, self.path = T, np.asarray(path, np.int64)
+        epsg = T.crs.to_epsg() if hasattr(T.crs, "to_epsg") else None       # valleys outside Nepal use other UTM zones
+        self.tf = Transformer.from_crs(4326, epsg or T.crs, always_xy=True)
+        self.inv = Transformer.from_crs(epsg or T.crs, 4326, always_xy=True)
         n = len(self.path)
         self.prc = np.array(np.unravel_index(self.path, T.shape))            # 2 x n (rows, cols)
         step = np.hypot(*np.diff(self.prc, axis=1)) * CELL
@@ -122,7 +125,7 @@ def crossing_points(ctx, lines, step_m=BRIDGE_STEP_M):
         ll = np.asarray(line, float).reshape(-1, 2)
         if len(ll) == 1:
             out[i] = ll[0]; continue
-        x, y = TF.transform(ll[:, 0], ll[:, 1])
+        x, y = ctx.tf.transform(ll[:, 0], ll[:, 1])
         seg = [np.c_[x[j] + t * (x[j + 1] - x[j]), y[j] + t * (y[j + 1] - y[j])]
                for j in range(len(x) - 1)
                for t in [np.linspace(0, 1, max(int(np.hypot(x[j + 1] - x[j], y[j + 1] - y[j]) / step_m), 1) + 1)[:-1]]]
@@ -132,7 +135,7 @@ def crossing_points(ctx, lines, step_m=BRIDGE_STEP_M):
         h = np.where(ok, ctx.hand[r, c], np.inf)
         h = np.where(np.isfinite(h), h, np.inf)
         k = np.lexsort((h, d))[0]
-        out[i] = INV.transform(P[k, 0], P[k, 1])
+        out[i] = ctx.inv.transform(P[k, 0], P[k, 1])
     return out
 
 
@@ -145,7 +148,7 @@ def features(ctx, lonlat, kinds, envelope=None, max_dist_m=MAX_DIST_M, names=Non
     """
     lonlat = np.asarray(lonlat, float).reshape(-1, 2)
     k = np.array([KIND.get(v, v) for v in kinds], float)
-    x, y = TF.transform(lonlat[:, 0], lonlat[:, 1])
+    x, y = ctx.tf.transform(lonlat[:, 0], lonlat[:, 1])
     r, c, inside = ctx.cells(x, y)
     flat = r * ctx.T.shape[1] + c
     d = np.where(inside, ctx.drain.ravel()[flat], -1)
@@ -160,7 +163,8 @@ def features(ctx, lonlat, kinds, envelope=None, max_dist_m=MAX_DIST_M, names=Non
     vy = -(r - ctx.prc[0][jj])
     side = np.sign(ctx.dir_x[jj] * vy - ctx.dir_y[jj] * vx)                 # + = left bank (looking downstream)
     turn = ctx.turn[jj]
-    ls = landslide_tree().query_ball_point(np.c_[x, y], LANDSLIDE_R_M, return_length=True).astype(float)
+    lx, ly = TF.transform(lonlat[:, 0], lonlat[:, 1])                      # inventory is in UTM 45N (Nepal only)
+    ls = landslide_tree().query_ball_point(np.c_[lx, ly], LANDSLIDE_R_M, return_length=True).astype(float)
     cols = {"hand": hand, "river_km": river_km, "dist_channel_m": dist, "slope_deg": ctx.slope.ravel()[flat],
             "valley_width_m": ctx.valley_width[jj], "channel_slope": ctx.channel_slope[jj], "bend_curv": turn,
             "outside_bend": -side * turn, "log_acc": ctx.log_acc[jj], "ls_500m": ls, "kind": k}
