@@ -1,6 +1,6 @@
 # evac-ai: "Time to Safety" flash-flood warning
 
-**IBM Z Datathon 2026 · team Latinos** · runs on IBM LinuxONE Community Cloud (s390x, big-endian, CPU only)
+**IBM Z Datathon 2026 · team Latinos** · runs on IBM LinuxONE Community Cloud (s390x, big-endian, CPU only) · [we tested the Telum AI accelerator: measured, CPU wins for our model](docs/linuxone-ai.md)
 
 > Nepal can't predict when the mountain falls. It can predict who has time to run.
 

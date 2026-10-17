@@ -40,6 +40,7 @@ Warm the caches first (one load of each page, plus a Trishuli prediction scenari
 | Time | Screen | Narration |
 |---|---|---|
 | 0:50 | VM terminal: `uname -m` → s390x, `lscpu \| grep -E "Machine type\|Flags"` (9175 = z17, `nnpa` flag), `sudo docker ps` (`evac-ai` up) | "Everything runs in one container on an IBM z17 on LinuxONE Community Cloud." |
+| 0:55 | Same terminal: the profile/benchmark lines from [linuxone-ai.md](linuxone-ai.md) (126,528 cells: CPU 0.16 s, NNPA 1.02 s) | "We tested the Telum AI accelerator through Snap ML and zDNN. For our 300-tree model the CPU is faster, and AI is under 5% of the work, so we serve on the CPU." |
 | 1:00 | **Planner** (`/`). "Who had time to escape?" card: click 03:30, then 06:40 | "October 11. With the villagers' phone relay at three-thirty, nobody is left without time. With the official SMS at six-forty, all fourteen hundred are." |
 | 1:15 | Drag the **wave clock**; settlements turn red as the front passes | "Arrival times and heights come from the real flood, kilometre by kilometre." |
 | 1:25 | Open the #1 settlement: EN + NE SMS, walk time, escape route; red bridges | "Alerts come out ranked by who is hit first, in one Nepali SMS: when, which way to climb, which bridge not to cross." |
