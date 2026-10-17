@@ -1,3 +1,5 @@
+> **Optional, not mandatory:** an event organizer confirmed on Sat Oct 17 that these IBM labs are not required for judging. Treat them as optional inspiration for the NNPA/Granite story only.
+
 # IBM mandatory labs (packet L): runbook
 
 Source: <https://github.com/linuxone-community-cloud/jupyter-lab-ml> (4 notebooks in a prebuilt s390x Jupyter image).
