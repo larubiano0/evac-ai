@@ -16,7 +16,7 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 |---|---|---|---|---|---|
 | `claude-luis` | Luis Rubiano (GitHub `larubiano0`) | Mac `luissmacbookpro` → drives the L1CC VM over SSH; pushes to `main` | `pipeline/`, `engine/terrain.py` `flood.py` `safety.py` `scenario.py` `alerts.py`, `api/`, `web/`, `replay/oct11.json`, VM `~/evac-ai` | Working: E (offline plan). B fallback at 15:30 | Sat 14:22 |
 | `agent-lcpizani` | `[redacted]` | Mac (lucas) → pushes to `main`; VM `~/work-agent-lcpizani` | `data/processed/`, `data/docs/`, `scripts/{common,extract_osm,extract_landslides,fetch_dem,fetch_worldpop,record_dhm}.py`, `engine/damage_model.py`, `models/damage/` | Working: **B (ML damage model)** → B2 (approved) → D. *C moved to agent-aayush* | Sat 14:24 |
-| `agent-aayush` | Aayush Poudel (GitHub `apoudel20`) | cloud session; push to `main` | `replay/aug26.json`, `README.md`, `docs/` (video script) | Working: **C** (`replay/aug26.json`), then F, then G | Sat 14:31 |
+| `agent-aayush` | Aayush Poudel (GitHub `apoudel20`) | cloud session; push to `main` | `replay/aug26.json`, `README.md`, `docs/` (video script) | C ✅ DONE. Working: **F** (README), then G | Sat 14:35 |
 | _(teammate 4)_ | | | | add yourself, then take packet C, E or F | |
 
 ### ⚠️ For `agent-lcpizani`: your branch vs. `main`
@@ -43,7 +43,7 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 | B | **ML damage model** (the judged "AI/ML on LinuxONE" piece) | **agent-lcpizani** | 1.5–2 h | T (for HAND features), your damage labels | See spec below. Spatial-holdout AUC + "flagged X of Y destroyed" reported. Model file + `engine/damage_model.py` |
 | B2 | **Route reliability (APPROVED by claude-luis 14:35, conditions in next row)**: Monte Carlo over the flood band (height, wave speed, warning delay) + B's `p_destroyed` for bridges → P(escape route still works) and P(settlement cut off) per settlement. **Reads** packet R routes and `engine.scenario` outputs; does **not** replace or edit `engine/safety.py`/`scenario.py`. New file `engine/route_reliability.py` + optional API fields | agent-lcpizani (proposed) | 1.5 h | B, R | `route_p_works`, `p_cut_off` per settlement; list of bridges whose loss flips a route |
 |  | ↳ B2 conditions | agent-lcpizani | ≤1 h | **B integrated first** | (1) Start only after B is merged and in `/api/scenario`. (2) Vectorized numpy, **≤2 s per scenario** on the VM (it runs inside the API request). (3) Output: per settlement `p_route_ok`, `p_cut_off`; per bridge `p_fail`. Add as **new keys only**, don't rename existing ones. (4) Hook it in by calling `engine/route_reliability.py` from `api/app.py:payload()`. Tell claude-luis, who owns `api/`, and I'll add the one line if you prefer. (5) Read-only use of `Scenario.tdir/tts/route`. |
-| C | `replay/aug26.json` (Aug 26 timeline as a replay) | **agent-aayush** | 45 min | — | Same schema as `replay/oct11.json`. Times and gauge readings from `nepal-disaster-research.md` §1.3 and the Wikipedia timeline. Every number has a source URL |
+| C | `replay/aug26.json` (Aug 26 timeline as a replay) | **agent-aayush** | ✅ DONE 14:35 | — | Same schema as `replay/oct11.json`. Times and gauge readings from `nepal-disaster-research.md` §1.3 and the Wikipedia timeline. Every number has a source URL |
 | D | Validation numbers for the video | free (after B, C) | 45 min | B, C | Table: Oct 11 settlements predicted vs. reported; bridges predicted vs. lost (known miss: Soti, Arughat); Aug 26 footprint vs. destroyed buildings; arrival errors |
 | R | **Route lines**: walking route from each at-risk settlement to its safe ground | claude-luis | ✅ DONE 14:20 | — | `route`, `route_len_m`, `route_climb_m` per settlement in `/api/scenario` (from r.walk `outdir`; verified that walking time falls at every step and reaches 0). Green dashed lines in the UI |
 | E | **Printable offline plan per settlement** (`web/plan.html?name=...`) | free | 45 min | API schema below | One A4 page per settlement: EN + NE full alert, arrival time, walk time, bridges to avoid, small map. Works offline once saved |
@@ -58,7 +58,7 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 |---|---|---|---|
 | `claude-luis` | E: offline plan | **B: ML model if agent-lcpizani hasn't checked in by 15:30** | D |
 | `agent-lcpizani` | **B: ML damage model** (your labels + `data/proc_trishuli`) | B2: route reliability (approved, ≤1 h) | D: validation numbers |
-| `agent-aayush` | **C: `replay/aug26.json`** | F: README | G: video script |
+| `agent-aayush` | ~~C~~ ✅ → **F: README** | G: video script | help D |
 | (any further agent) | X: stretch calibration | help D | — |
 | humans | **L: mandatory labs** (everyone, now) | H: Nepali review | G: record video (Sun 06:00–08:30) |
 
@@ -99,6 +99,7 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 - BIPAD API `bipadportal.gov.np/api/v1/{river,rain,incident,alert}` is public. Its query filters seem to be ignored.
 
 ## Log (newest first; one line per entry)
+- Sat 14:35 [agent-aayush] Packet C DONE: replay/aug26.json (same top-level keys as oct11, 9 observations). 5 calibration points: Syabrubesi 08:50, Betrawati 09:20, Malekhu 11:26, Kali Khola peak 14:14 12.3 m, Devghat 15:20/peak 16:00 6.57 m. Excluded: Trishuli school time, Mugling, Galchhi, Timure. Loads via api/app.py's replay/*.json glob; engine.flood.calibrate_from_replay parses it (tested with a dummy km_of). **For claude-luis (your files, not edited):** (1) api/app.py valley() is hardcoded to data/proc (Budhi Gandaki), so /api/scenario?replay=aug26 needs a per-replay Valley(data/proc_trishuli). (2) Devghat (27.71) is south of the 3-district DEM bbox (south 27.73), and Kali Khola may be past the 121 km path end; Terrain.rc has no bounds check, so km_of may IndexError or wrap. Suggest a bounds check or set Devghat to excluded for the Trishuli build. Starting F.
 - Sat 14:33 [claude-luis] Coordination: approved agent-lcpizani's B2 (route reliability) with conditions: after B, <=1 h, <=2 s per scenario, new keys only. Packet C goes to agent-aayush (removed from lcpizani's queue to avoid duplication). Packet L (labs): a human posts the lab links, an agent runs them on a SEPARATE L1CC VM, a human submits the proof. Now starting E (offline plan).
 - Sat 14:31 [agent-aayush] Joined (Aayush). Claimed C, then F, then G. Heads-up for C/D: the Devghat 6.57 m gauge is **Narayani at Devghat** (DHM 450, lat 27.71 lon 84.43, Chitwan), not **Devighat** near Bidur (27.86/85.11) listed in the quickstart.
 - Sat 14:24 [agent-lcpizani] Checked in. Merged data/initial-datasets into main (3ef815c). Claimed B (ML damage model; Trishuli labels, spatial holdout by river km, buildings + bridges, target: fix the Soti/Arughat miss). Proposed B2 route reliability on top of packet R: claude-luis, OK or not?
