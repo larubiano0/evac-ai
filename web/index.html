@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>evac-ai · Time to Safety</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root { --red:#d7263d; --amber:#f4a259; --green:#2a9d8f; --ink:#1d2433; --mute:#6b7280; }
+  * { box-sizing:border-box } body { margin:0; font:14px/1.35 system-ui,-apple-system,Segoe UI,sans-serif; color:var(--ink) }
+  #app { display:grid; grid-template-columns: 400px 1fr; height:100vh }
+  #side { overflow:auto; padding:12px 14px; border-right:1px solid #e5e7eb; background:#fafafa }
+  #map { height:100vh }
+  h1 { font-size:18px; margin:0 0 2px } .sub { color:var(--mute); font-size:12px; margin-bottom:10px }
+  .badge { display:inline-block; padding:1px 7px; border-radius:10px; background:#111827; color:#fff; font-size:11px; margin-right:4px }
+  .card { background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:10px; margin-bottom:10px }
+  .card h2 { font-size:13px; margin:0 0 6px; text-transform:uppercase; letter-spacing:.04em; color:var(--mute) }
+  .trig { display:grid; grid-template-columns: 52px 1fr 70px; gap:6px; align-items:center; padding:5px 6px; border-radius:6px; cursor:pointer }
+  .trig:hover { background:#f3f4f6 } .trig.sel { background:#e0f2fe }
+  .bar { height:10px; background:#e5e7eb; border-radius:5px; overflow:hidden } .bar > div { height:100%; background:var(--red) }
+  .num { text-align:right; font-variant-numeric:tabular-nums } .big { font-size:22px; font-weight:700 }
+  .s { display:grid; grid-template-columns: 22px 1fr auto; gap:6px; padding:5px 4px; border-bottom:1px solid #f0f0f0; cursor:pointer }
+  .s:hover { background:#f9fafb } .dot { width:12px; height:12px; border-radius:50%; margin-top:3px }
+  .s small { color:var(--mute) } .red{background:var(--red)} .amber{background:var(--amber)} .green{background:var(--green)}
+  .alert { font-size:12px; background:#fff7ed; border-left:3px solid var(--amber); padding:6px; margin:4px 0; white-space:normal }
+  .ne { font-family: "Noto Sans Devanagari", system-ui, sans-serif }
+  .row { display:flex; gap:6px; align-items:center; flex-wrap:wrap } input[type=time]{ font:inherit }
+  button { font:inherit; padding:4px 9px; border:1px solid #d1d5db; background:#fff; border-radius:6px; cursor:pointer }
+  button.on { background:#111827; color:#fff } .warn { color:#b45309; font-size:12px }
+  #clock { font-size:20px; font-weight:700; font-variant-numeric:tabular-nums }
+  .leaflet-popup-content { width: 340px !important }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="side">
+    <h1>Time to Safety</h1>
+    <div class="sub">Flash-flood warning planner · Budhi Gandaki, Gorkha · <span id="host"></span></div>
+
+    <div class="card">
+      <h2>Who had time to escape? (Oct 11 replay)</h2>
+      <div id="compare">loading…</div>
+      <div class="sub" style="margin-top:6px">People in the conservative flood footprint whose walk uphill would finish
+        after the first wave, given when the warning went out. Assumptions: 4 people/building, 5 min to spread a warning.</div>
+    </div>
+
+    <div class="card">
+      <h2>Warning time</h2>
+      <div class="row"><input type="time" id="warn" value="06:40"><button id="apply">Apply</button>
+        <span id="summary" class="sub"></span></div>
+    </div>
+
+    <div class="card">
+      <h2>Wave clock</h2>
+      <div class="row"><span id="clock">--:--</span><input type="range" id="slider" min="0" max="240" value="0" style="flex:1"></div>
+      <div class="sub">Drag to move the first-wave front down the river.</div>
+    </div>
+
+    <div class="card">
+      <h2>New trigger (click the river)</h2>
+      <div class="row"><button id="pick">Place trigger</button> burst <input type="time" id="burst" value="03:45">
+        warn <input type="time" id="warn2" value="03:50"></div>
+      <div class="sub" id="pickmsg">Reuses the wave speed / height curves calibrated on Oct 11.</div>
+    </div>
+
+    <div class="card">
+      <h2>Alert order</h2>
+      <div id="list"></div>
+    </div>
+    <div class="sub">Data: Copernicus GLO-30 DEM, © OpenStreetMap contributors (ODbL). Engine: GRASS GIS r.watershed/r.walk,
+      numpy/scipy. Runs on IBM LinuxONE. Nepali text is a draft pending review.</div>
+  </div>
+  <div id="map"></div>
+</div>
+<script>
+const map = L.map('map', { preferCanvas: true }).setView([28.25, 84.88], 10);
+const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap contributors' }).addTo(map);
+const sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, attribution: 'Esri World Imagery' });
+const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17, attribution: '© OpenTopoMap (CC-BY-SA)' });
+const layers = { foot: L.layerGroup().addTo(map), path: L.layerGroup().addTo(map), sett: L.layerGroup().addTo(map),
+                 bridge: L.layerGroup().addTo(map), front: L.layerGroup().addTo(map) };
+L.control.layers({ 'OpenStreetMap': osm, 'Topo': topo, 'Satellite': sat },
+  { 'Flood footprint': layers.foot, 'River path': layers.path, 'Settlements': layers.sett, 'Bridges at risk': layers.bridge }).addTo(map);
+
+let REPLAY = 'oct11', DATA = null, TRIGGERS = {}, PICKING = false, CUSTOM = null;
+const $ = id => document.getElementById(id);
+const toMin = s => { const [h, m] = s.split(':').map(Number); return h * 60 + m; };
+const hhmm = m => { m = ((m % 1440) + 1440) % 1440; return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(Math.round(m % 60)).padStart(2, '0'); };
+const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+
+async function j(url, opt) { const r = await fetch(url, opt); if (!r.ok) throw new Error(url + ' ' + r.status); return r.json(); }
+
+async function loadCompare() {
+  const c = await j(`/api/compare?replay=${REPLAY}`);
+  const max = Math.max(...Object.values(c).map(v => v.people_at_risk)) || 1;
+  $('compare').innerHTML = Object.entries(c).map(([k, v]) => `
+    <div class="trig" data-t="${v.time}"><b>${v.time}</b>
+      <div><div>${esc(v.desc)}</div><div class="bar"><div style="width:${100 * v.people_without_time / max}%"></div></div></div>
+      <div class="num"><span class="big">${Math.round(v.people_without_time)}</span><br><small>of ${Math.round(v.people_at_risk)}</small></div></div>`).join('');
+  document.querySelectorAll('.trig').forEach(el => el.onclick = () => { $('warn').value = el.dataset.t; CUSTOM = null; render(); });
+}
+
+function alertHtml(s) {
+  const a = s.alerts;
+  return `<b>${esc(s.name)}</b> · river km ${s.river_km.toFixed(1)} · <span class="${s.status}" style="color:#fff;padding:0 6px;border-radius:8px">${s.status}</span><br>
+   first wave ~<b>${s.arrival_early}</b> · ${Math.round(s.people_at_risk)} people (${s.buildings_at_risk} buildings) ·
+   walk ${s.walk_min_median.toFixed(1)}–${s.walk_min_max.toFixed(1)} min · slack <b>${s.slack_min.toFixed(0)} min</b>
+   <div class="alert">${esc(a.short_en)} <small>(${a.short_en_chars} ch)</small></div>
+   <div class="alert ne">${esc(a.short_ne)} <small>(${a.short_ne_chars} ch)</small></div>
+   <details><summary>Full plan (EN / NE)</summary><div class="alert">${esc(a.full_en)}</div><div class="alert ne">${esc(a.full_ne)}</div></details>
+   ${a.nepali_reviewed ? '' : '<div class="warn">Nepali draft, not yet reviewed</div>'}`;
+}
+
+function draw(d, foot) {
+  DATA = d; Object.values(layers).forEach(l => l.clearLayers());
+  L.geoJSON(foot, { style: { color: '#1d4ed8', weight: 1, fillColor: '#3b82f6', fillOpacity: 0.35 } }).addTo(layers.foot);
+  const st = d.path.properties.stations, cs = d.path.geometry.coordinates;
+  L.polyline(cs.map(c => [c[1], c[0]]), { color: '#0c4a6e', weight: 3 }).addTo(layers.path);
+  cs.forEach((c, i) => { if (i % 25 === 0) L.circleMarker([c[1], c[0]], { radius: 3, color: '#0c4a6e' })
+      .bindTooltip(`km ${st[i].km} · wave ~${st[i].arrival} · up to ${st[i].height_m} m`).addTo(layers.path); });
+  d.bridges_at_risk.forEach(b => L.polyline(b.geometry.map(p => [p[1], p[0]]), { color: '#d7263d', weight: 6 })
+      .bindPopup(`<b>Do not cross</b><br>${esc(b.label)} · km ${b.river_km.toFixed(1)}<br>wave ~${b.arrival_early}`).addTo(layers.bridge));
+  d.settlements.forEach(s => {
+    const col = { red: '#d7263d', amber: '#f4a259', green: '#2a9d8f' }[s.status];
+    s._m = L.circleMarker([s.lat, s.lon], { radius: 5 + Math.sqrt(s.people_at_risk) / 2, color: '#111', weight: 1, fillColor: col, fillOpacity: .9 })
+      .bindPopup(alertHtml(s)).addTo(layers.sett);
+  });
+  $('list').innerHTML = d.settlements.map((s, i) => `<div class="s" data-i="${i}"><div class="dot ${s.status}"></div>
+      <div><b>#${s.alert_rank} ${esc(s.name)}</b><br><small>wave ~${s.arrival_early} · ${Math.round(s.people_at_risk)} ppl · walk ≤${s.walk_min_max.toFixed(0)} min</small></div>
+      <div class="num"><b>${s.slack_min.toFixed(0)}</b><br><small>min slack</small></div></div>`).join('');
+  document.querySelectorAll('.s').forEach(el => el.onclick = () => { const s = d.settlements[+el.dataset.i]; map.setView([s.lat, s.lon], 14); s._m.openPopup(); });
+  const sm = d.summary;
+  $('summary').innerHTML = `<b style="color:var(--red)">${Math.round(sm.people_without_time)}</b> of ${Math.round(sm.people_at_risk)} without time · ${sm.red} red / ${sm.amber} amber`;
+  $('host').innerHTML = `<span class="badge">${d.host.machine}</span><span class="badge">${d.host.byteorder}-endian</span>` +
+    `<span class="badge">compute ${d.timing.scenario_compute_s}s</span>`;
+  document.querySelectorAll('.trig').forEach(el => el.classList.toggle('sel', el.dataset.t === d.warning));
+  $('slider').value = 0; front();
+}
+
+function front() {
+  if (!DATA) return; layers.front.clearLayers();
+  const t = +$('slider').value, st = DATA.path.properties.stations, cs = DATA.path.geometry.coordinates;
+  const burst = CUSTOM ? toMin(CUSTOM.burst) : toMin(TRIGGERS.burst_time);
+  $('clock').textContent = hhmm(burst + t);
+  let k = 0; while (k < st.length - 1 && st[k + 1].arrival_min <= t) k++;
+  L.polyline(cs.slice(0, k + 1).map(c => [c[1], c[0]]), { color: '#ef4444', weight: 6, opacity: .8 }).addTo(layers.front);
+  if (t > 0) L.circleMarker([cs[k][1], cs[k][0]], { radius: 9, color: '#ef4444', fillOpacity: 1 }).bindTooltip(`wave front · km ${st[k].km}`).addTo(layers.front);
+  DATA.settlements.forEach(s => s._m && s._m.setStyle({ weight: s.arrival_minutes_after_burst <= t ? 4 : 1, color: s.arrival_minutes_after_burst <= t ? '#ef4444' : '#111' }));
+}
+
+async function render() {
+  const warn = $('warn').value;
+  const [d, foot] = await Promise.all([j(`/api/scenario?replay=${REPLAY}&warn=${warn}`), j(`/api/footprint?replay=${REPLAY}`)]);
+  draw(d, foot);
+}
+
+$('apply').onclick = () => { CUSTOM = null; render(); };
+$('slider').oninput = front;
+$('pick').onclick = () => { PICKING = !PICKING; $('pick').classList.toggle('on', PICKING); $('pickmsg').textContent = PICKING ? 'Click a point on a river…' : 'Reuses the Oct 11 curves.'; };
+map.on('click', async e => {
+  if (!PICKING) return; PICKING = false; $('pick').classList.remove('on'); $('pickmsg').textContent = 'Computing on LinuxONE…';
+  const body = { lon: e.latlng.lng, lat: e.latlng.lat, burst: $('burst').value, warn: $('warn2').value, replay: REPLAY };
+  const t = performance.now();
+  const d = await j('/api/trigger', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const foot = await j(`/api/footprint?replay=${REPLAY}&lon=${body.lon.toFixed(4)}&lat=${body.lat.toFixed(4)}&burst=${body.burst}`);
+  CUSTOM = body; draw(d, foot);
+  $('pickmsg').textContent = `New trigger computed in ${((performance.now() - t) / 1000).toFixed(1)} s (round trip).`;
+});
+
+(async () => { TRIGGERS = (await j('/api/replays'))[REPLAY]; await loadCompare(); await render(); })();
+</script>
+</body>
+</html>
