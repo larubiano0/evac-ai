@@ -16,7 +16,7 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 |---|---|---|---|---|---|
 | `claude-luis` | Luis Rubiano (GitHub `larubiano0`) | Mac `luissmacbookpro` → drives the L1CC VM over SSH; pushes to `main` | `pipeline/`, `engine/terrain.py` `flood.py` `safety.py` `scenario.py` `alerts.py`, `api/`, `web/`, `replay/oct11.json`, VM `~/evac-ai` | Working: E (offline plan). B fallback at 15:30 | Sat 14:22 |
 | `agent-lcpizani` | `[redacted]` | Mac (lucas) → pushes to `main`; VM `~/work-agent-lcpizani` | `data/processed/`, `data/docs/`, `scripts/{common,extract_osm,extract_landslides,fetch_dem,fetch_worldpop,record_dhm}.py`, `engine/damage_model.py`, `models/damage/` | Working: **B (ML damage model)** → then C, D. Proposed B2 (needs claude-luis OK) | Sat 14:24 |
-| `agent-new` (rename to your own ID) | the human who started you | your machine; push to `main` | `replay/aug26.json`, `README.md`, `docs/` (video script) | **Start with packet C**, then F, then G | — |
+| `agent-aayush` | Aayush Poudel (GitHub `apoudel20`) | cloud session; push to `main` | `replay/aug26.json`, `README.md`, `docs/` (video script) | Working: **C** (`replay/aug26.json`), then F, then G | Sat 14:31 |
 | _(teammate 4)_ | | | | add yourself, then take packet C, E or F | |
 
 ### ⚠️ For `agent-lcpizani`: your branch vs. `main`
@@ -42,7 +42,7 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 | T | **Trishuli terrain build** on VM (same pipeline as Budhi Gandaki) | claude-luis | ✅ DONE 14:15 | — | `Terrain('data/proc_trishuli')` works: 121 km path from Rasuwagadhi, D8 99.7%. Example: `engine/debug_trishuli.py`. **Use OSM building coords, not hand-typed ones** (a 400 m error = 200 m of HAND on these slopes) |
 | B | **ML damage model** (the judged "AI/ML on LinuxONE" piece) | **agent-lcpizani** | 1.5–2 h | T (for HAND features), your damage labels | See spec below. Spatial-holdout AUC + "flagged X of Y destroyed" reported. Model file + `engine/damage_model.py` |
 | B2 | **Route reliability (PROPOSED, needs claude-luis OK)**: Monte Carlo over the flood band (height, wave speed, warning delay) + B's `p_destroyed` for bridges → P(escape route still works) and P(settlement cut off) per settlement. **Reads** packet R routes and `engine.scenario` outputs; does **not** replace or edit `engine/safety.py`/`scenario.py`. New file `engine/route_reliability.py` + optional API fields | agent-lcpizani (proposed) | 1.5 h | B, R | `route_p_works`, `p_cut_off` per settlement; list of bridges whose loss flips a route |
-| C | `replay/aug26.json` (Aug 26 timeline as a replay) | free | 45 min | — | Same schema as `replay/oct11.json`. Times and gauge readings from `nepal-disaster-research.md` §1.3 and the Wikipedia timeline. Every number has a source URL |
+| C | `replay/aug26.json` (Aug 26 timeline as a replay) | **agent-aayush** | 45 min | — | Same schema as `replay/oct11.json`. Times and gauge readings from `nepal-disaster-research.md` §1.3 and the Wikipedia timeline. Every number has a source URL |
 | D | Validation numbers for the video | free (after B, C) | 45 min | B, C | Table: Oct 11 settlements predicted vs. reported; bridges predicted vs. lost (known miss: Soti, Arughat); Aug 26 footprint vs. destroyed buildings; arrival errors |
 | R | **Route lines**: walking route from each at-risk settlement to its safe ground | claude-luis | ✅ DONE 14:20 | — | `route`, `route_len_m`, `route_climb_m` per settlement in `/api/scenario` (from r.walk `outdir`; verified that walking time falls at every step and reaches 0). Green dashed lines in the UI |
 | E | **Printable offline plan per settlement** (`web/plan.html?name=...`) | free | 45 min | API schema below | One A4 page per settlement: EN + NE full alert, arrival time, walk time, bridges to avoid, small map. Works offline once saved |
@@ -57,7 +57,7 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 |---|---|---|---|
 | `claude-luis` | E: offline plan | **B: ML model if agent-lcpizani hasn't checked in by 15:30** | D |
 | `agent-lcpizani` | **B: ML damage model** (your labels + `data/proc_trishuli`) | C: `replay/aug26.json` | D: validation numbers |
-| `agent-new` | **C: `replay/aug26.json`** | F: README | G: video script |
+| `agent-aayush` | **C: `replay/aug26.json`** | F: README | G: video script |
 | (any further agent) | X: stretch calibration | help D | — |
 | humans | **L: mandatory labs** (everyone, now) | H: Nepali review | G: record video (Sun 06:00–08:30) |
 
@@ -98,6 +98,7 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 - BIPAD API `bipadportal.gov.np/api/v1/{river,rain,incident,alert}` is public. Its query filters seem to be ignored.
 
 ## Log (newest first; one line per entry)
+- Sat 14:31 [agent-aayush] Joined (Aayush). Claimed C, then F, then G. Heads-up for C/D: the Devghat 6.57 m gauge is **Narayani at Devghat** (DHM 450, lat 27.71 lon 84.43, Chitwan), not **Devighat** near Bidur (27.86/85.11) listed in the quickstart.
 - Sat 14:24 [agent-lcpizani] Checked in. Merged data/initial-datasets into main (3ef815c). Claimed B (ML damage model; Trishuli labels, spatial holdout by river km, buildings + bridges, target: fix the Soti/Arughat miss). Proposed B2 route reliability on top of packet R: claude-luis, OK or not?
 - Sat 14:21 [claude-luis] Packet R DONE: escape route per settlement (r.walk outdir tracing, verified monotone to safe ground; e.g. Salleri 192 m/+26 m). Drawn in the UI; container rebuilt. Registered slot agent-new (queue C -> F -> G) + 'New agent quickstart' with the aug26 data contract. Fixed hand-typed times in the board. B fallback: claude-luis takes B if lcpizani hasn't checked in by 15:30.
 - Sat 14:19 [claude-luis] Packet A DONE: Docker on L1CC. Dockerfile + scripts/docker_run.sh; image builds in 91 s (1.15 GB, s390x). Container evac-ai serves the UI on 127.0.0.1:8000 (SSH tunnel), results identical to bare metal. Gotcha: run the container with --user <uid of data/> -e HOME=/tmp, or GRASS says 'MAPSET permission denied'. g.sh now finds grassdb relative to the repo. Starting R (route lines).
