@@ -65,4 +65,12 @@ def time_to_safety(T, safe, channel_idx, bridges_idx, work="data/proc/work", max
     if nd is not None:
         tts[tts == nd] = np.nan
     tts[tts < 0] = np.nan
+    # Cells r.walk could not reach (inside the 1-cell barrier strip, or enclosed bars) take the value of
+    # the nearest reached cell plus straight-line walking at 1 m/s. Count them for transparency.
+    miss = np.isnan(tts)
+    if miss.any() and (~miss).any():
+        dist, (ri, ci) = ndimage.distance_transform_edt(miss, return_indices=True)
+        filled = tts[ri, ci] + dist * 30.0 / 1.0
+        tts = np.where(miss, filled, tts)
+    time_to_safety.filled_cells = int(miss.sum())
     return tts, time.time() - t0

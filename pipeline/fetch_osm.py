@@ -8,7 +8,7 @@ LAYERS = {
     "highways":  'way["highway"]({bb});out geom tags;',
     "bridges":   '(way["bridge"]({bb});way["man_made"="bridge"]({bb}););out geom tags;',
     "buildings": 'way["building"]({bb});out center tags;',
-    "places":    'node["place"]({bb});out tags;',
+    "places":    'node["place"]({bb});out body;',
 }
 
 def main(area="budhi"):
