@@ -62,47 +62,30 @@ mode (`web/predict.html`, "where should I go?"), the Three.js replay (`viewer/`)
 
 ## Architecture
 
+Big picture below; every component, file and port is in [`docs/architecture.md`](docs/architecture.md).
+
 ```mermaid
-flowchart LR
-  subgraph Offline["Precompute per valley (once, on L1CC)"]
-    DEM["Copernicus GLO-30 DEM"] --> WARP["gdalwarp → UTM 45N, 30 m"]
-    WARP --> RW["GRASS r.watershed<br/>D8 directions, streams, accumulation"]
-    OSM["OpenStreetMap<br/>buildings, places, bridges"]
+flowchart TB
+  SEE["Someone sees a flood start<br/>(phone call from upstream, river gauge, seismic signal)<br/><i>'the river burst here, at 03:45'</i>"]
+
+  subgraph Z["IBM LinuxONE (L1CC, z17, s390x) · one Docker container · nothing leaves the machine"]
+    direction TB
+    P1["1 · Flood path<br/>follow the river downhill from that point"]
+    P2["2 · When and how high<br/>arrival time + water height for every river km,<br/>calibrated on two real 2026 Nepal floods"]
+    P3["3 · AI: what gets hit<br/>P(destroyed) for every building and bridge,<br/>P(flooded) for every 30 m square of ground"]
+    P4["4 · Time to run<br/>walking time uphill to safe ground,<br/>crossing the river only on bridges"]
+    P5["5 · Slack = arrival − warning − walk<br/>red: no time · amber: under 15 min · green"]
+    P1 --> P2 --> P3 --> P4 --> P5
   end
 
-  subgraph Inputs["Trigger"]
-    REP["Replay file<br/>replay/*.json"]
-    PIN["Pin on the map<br/>POST /api/trigger"]
-  end
-
-  subgraph Engine["engine/ (Python, in memory in FastAPI)"]
-    PATH["Snap to channel →<br/>downstream flood path"]
-    HAND["HAND vs. flood path"]
-    ENV["Flood envelope<br/>arrival(km), height(km) + bands<br/>calibrated on replay observations"]
-    FOOT["Footprint: HAND ≤ height (hi)<br/>Safe: HAND > height + 5 m"]
-    WALK["Time to safety<br/>GRASS r.walk on negated DEM<br/>channel = barrier, bridges = gaps"]
-    SLACK["Slack per building →<br/>per settlement: red / amber / green"]
-    ALERT["Template alerts EN + NE<br/>short SMS + full plan"]
-  end
-
-  RW --> PATH
-  REP --> PATH
-  PIN --> PATH
-  PATH --> HAND --> FOOT
-  REP --> ENV --> FOOT
-  FOOT --> WALK
-  OSM --> WALK
-  OSM --> SLACK
-  WALK --> SLACK
-  ENV --> SLACK
-  SLACK --> ALERT
-  ALERT --> API["FastAPI /api/*"]
-  SLACK --> API
-  API --> UI["Leaflet UI<br/>web/index.html"]
+  SEE --> P1
+  P5 --> OFF["<b>Officials</b> · planner (/)<br/>who to warn first · SMS text in Nepali + English<br/>bridges to close · who had time under each warning"]
+  P5 --> RES["<b>Residents</b> · 'Where should I go?' (/predict)<br/>tap where you are → route to safe ground,<br/>leave-by time, how sure we are"]
+  P5 --> REP["<b>Story / training</b> · 3D replay (viewer/)<br/>watch a real flood move down the valley"]
 ```
 
 Everything runs in one container on one L1CC VM (Ubuntu 24.04, z17, 3 vCPU, 7.8 GB RAM). There is no LLM and
-no GPU. The scientific stack (numpy, scipy, rasterio, pyproj, shapely, scikit-learn) comes from Ubuntu's s390x
+no GPU. Three screens: the officials' planner (`/`), the residents' "Where should I go?" (`/predict`) and a 3D replay (`viewer/`). The scientific stack (numpy, scipy, rasterio, pyproj, shapely, scikit-learn) comes from Ubuntu's s390x
 apt packages, because pip has no s390x wheels for most of them.
 
 ---

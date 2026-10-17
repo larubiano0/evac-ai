@@ -6,6 +6,18 @@
 - Code under test: `engine/escape.py` (owner `agent-lcpizani`) at `main` 5f2239b. The proposed fix is
   [`escape_fix.patch`](escape_fix.patch). It is **not applied on `main`**; it was tested only in `~/work-agent-aayush`.
 
+## Update 2, Sat 18:55 ET: lcpizani's safety fix (780405e, deployed in `evac-ai:pred4` on port 8000) verified
+
+Same script and start points (`audit_escape_{budhi,trishuli}_fixedmain.json`), Oct 11 / Aug 26:
+- **Called SAFE but fails the planner's flood-line rule: 0 % / 0 %** (was 9.4 % / 28.3 % on the previous main).
+- Routes late at the early edge of the arrival band: 0 % / 0 %.
+- Destinations outside the 500 m corridor: 0.7 % / 0.7 %.
+- Destinations below the mid flood line: 0.7 % / 3.7 %.
+- Routes on a non-bridge river cell: 0 %.
+- Honest `no_route` ("climb now") answers: 71 / 40 of 300.
+- Still worth knowing: zones drawn at > 10 % risk are 0.7 % / 7.3 % (least-risky-ground answers), and 18 % of Aug 26
+  zones contain at least one really destroyed building.
+
 ## Update, Sat ~18:30 ET: re-audit on current `main` (7b66bcb: lcpizani's area model `area_fb` + escape-route-ux)
 
 `escape.py` changed a lot after this audit (new risk grid from the `area_fb` model trained on satellite flood maps,

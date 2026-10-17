@@ -31,20 +31,21 @@ footprint yet. Two time stamps fade in on the map: **03:30 Dharche**, **06:40 SM
 
 **On screen:** "You can't predict when the mountain falls. You can compute who has time to run."
 
-## 0:50–2:10 · Live on LinuxONE (the demo)
+## 0:50–2:10 · Live on LinuxONE (the demo: three screens)
+
+The problem and solution parts are already recorded. This is the demo cut. UI via the SSH tunnel: planner
+`http://localhost:18000/`, resident view `http://localhost:18000/predict` (port 8000 container, `evac-ai:pred4`).
+Warm the caches first (one load of each page, plus a Trishuli prediction scenario, ~53 s cold).
 
 | Time | Screen | Narration |
 |---|---|---|
-| 0:50 | Terminal on the L1CC VM: `uname -m` → `s390x`, `sudo docker ps` shows `evac-ai` up. Cut to the browser; the header shows the host from `/api/scenario` (`s390x`, big-endian) | "Everything runs in one container on IBM LinuxONE: s390x, big-endian, CPU only." |
-| 1:00 | Click **Place trigger**, click the river near the Oct 11 source, burst 03:45, warning 03:30 | "A report comes in: the river has stopped upstream. We drop a pin." |
-| 1:08 | Path appears with arrival times. Drag the **wave clock** slider: the front moves downstream | "The engine traces the flood path down the river and gives an arrival-time band for every kilometre, calibrated on what really happened." |
-| 1:20 | Footprint fills in | "The footprint comes from height above the river, measured against this flood's path, not a generic flood map." |
-| 1:30 | Settlements turn red / amber / green; escape routes as green dashed lines | "For each of 112,515 buildings, GRASS works out the walking time uphill to safe ground, on the same bank. Then slack: arrival, minus warning, minus the walk." |
-| 1:45 | Alert list on the left; open the top settlement, show the EN and NE short alerts | "Alerts come out ranked: who gets hit first and who has the least time. The SMS says when, which way to go and which bridge not to cross, in Nepali and English, in one message." |
-| 1:55 | Bridges at risk highlighted; hover Dobhan / Machhakhola | "These are the bridges in the flood's path. Several of them are bridges that were really lost." |
-| 2:02 | Header badges: `s390x`, `big-endian`, `compute X s` | "A new scenario takes about five seconds on LinuxONE. A cached one, thirty milliseconds." |
-
-*(Add at ~1:35 only if `p_destroyed` is visible in the UI by recording time: "A gradient-boosting model trained on 2,759 buildings destroyed on August 26 ranks the ones most likely to go: AUC 0.97 on a part of the river it never saw." Otherwise move this line to the results card.)*
+| 0:50 | VM terminal: `uname -m` → s390x, `lscpu \| grep -E "Machine type\|Flags"` (9175 = z17, `nnpa` flag), `sudo docker ps` (`evac-ai` up) | "Everything runs in one container on an IBM z17 on LinuxONE Community Cloud." |
+| 1:00 | **Planner** (`/`). "Who had time to escape?" card: click 03:30, then 06:40 | "October 11. With the villagers' phone relay at three-thirty, nobody is left without time. With the official SMS at six-forty, all fourteen hundred are." |
+| 1:15 | Drag the **wave clock**; settlements turn red as the front passes | "Arrival times and heights come from the real flood, kilometre by kilometre." |
+| 1:25 | Open the #1 settlement: EN + NE SMS, walk time, escape route; red bridges | "Alerts come out ranked by who is hit first, in one Nepali SMS: when, which way to climb, which bridge not to cross." |
+| 1:35 | **Colour by: Damage model**. Bridge widths change; the badge shows the model's time | "A model trained on 2,759 buildings destroyed on August 26 scores every building and bridge in under a second. It found the bridges that were really lost." |
+| 1:45 | **Place trigger**: click upstream on the river; the result appears (~5 s) | "A new report comes in. A new flood, computed on LinuxONE in five seconds." |
+| 1:55 | **Resident view** (`/predict`): click a riverside house; route to the green safe zone, leave-by time, WALK/HURRY/RUN | "And for the person standing by the river: where to go, and how long they have." |
 
 ## 2:10–2:35 · Results
 
