@@ -11,7 +11,7 @@ FROM ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive PYTHONUNBUFFERED=1
 RUN apt-get update && apt-get install -y --no-install-recommends \
       python3 python3-venv python3-numpy python3-scipy python3-sklearn python3-pandas \
-      python3-rasterio python3-shapely python3-pyproj grass-core gdal-bin curl ca-certificates \
+      python3-rasterio python3-shapely python3-pyproj python3-pil grass-core gdal-bin curl ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 RUN python3 -m venv --system-site-packages /opt/venv && /opt/venv/bin/pip install --no-cache-dir fastapi uvicorn
 WORKDIR /app
