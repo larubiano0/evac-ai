@@ -1,0 +1,68 @@
+{
+ "budhi/oct11": {
+  "old_dest": {
+   "answers": 298,
+   "called_safe": 236,
+   "safe_with_satellite_label": 236,
+   "safe_but_satellite_flooded": 28,
+   "safe_but_second_product_flooded": 26,
+   "safe_below_flood_line": 28
+  },
+  "new_dest": {
+   "answers": 300,
+   "called_safe": 227,
+   "safe_with_satellite_label": 227,
+   "safe_but_satellite_flooded": 0,
+   "safe_but_second_product_flooded": 0,
+   "safe_below_flood_line": 0
+  },
+  "new_gohere": {
+   "answers": 300,
+   "called_safe": 227,
+   "safe_with_satellite_label": 227,
+   "safe_but_satellite_flooded": 0,
+   "safe_but_second_product_flooded": 0,
+   "safe_below_flood_line": 0
+  },
+  "old_safe_below_line": {
+   "n": 28,
+   "satellite_flooded": 28,
+   "satellite_dry": 0,
+   "no_label": 0,
+   "second_product_flooded": 26
+  }
+ },
+ "trishuli/aug26": {
+  "old_dest": {
+   "answers": 300,
+   "called_safe": 254,
+   "safe_with_satellite_label": 254,
+   "safe_but_satellite_flooded": 19,
+   "safe_but_second_product_flooded": 40,
+   "safe_below_flood_line": 85
+  },
+  "new_dest": {
+   "answers": 300,
+   "called_safe": 238,
+   "safe_with_satellite_label": 238,
+   "safe_but_satellite_flooded": 7,
+   "safe_but_second_product_flooded": 32,
+   "safe_below_flood_line": 0
+  },
+  "new_gohere": {
+   "answers": 300,
+   "called_safe": 238,
+   "safe_with_satellite_label": 238,
+   "safe_but_satellite_flooded": 5,
+   "safe_but_second_product_flooded": 10,
+   "safe_below_flood_line": 0
+  },
+  "old_safe_below_line": {
+   "n": 85,
+   "satellite_flooded": 10,
+   "satellite_dry": 75,
+   "no_label": 0,
+   "second_product_flooded": 6
+  }
+ }
+}
