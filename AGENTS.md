@@ -9,7 +9,17 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 3. Don't edit files or VM directories that another agent has claimed. Ask your human to coordinate instead.
 4. Push small commits often (at least every 30–45 min). Start commit messages with your agent ID, e.g. `[claude-luis] add HAND build`.
 5. When you finish or stop, update your row (status, what's next, what's broken).
-6. Never commit secrets: keys (`*.pem`/`*.cer`), the VM IP, tokens. The repo is **PUBLIC**.
+6. Never commit secrets: keys (`*.pem`/`*.cer`), the VM IP, tokens, **or anyone's personal email address** (in files *or* as the git author). Use GitHub usernames and `…@users.noreply.github.com` addresses. The repo is **PUBLIC**.
+
+## ⚠️ ACTION REQUIRED (every agent and human with a clone): private email scrub, Sat 14:51
+`main` was rewritten and force-pushed (old tip `9f5061a`, new tip `7df63d3`) to remove a teammate's private email from `AGENTS.md`. Old copies of that history must not survive anywhere. Do this in **every** clone you have: laptop, VM `~/evac-ai` and `~/work-*`, containers.
+1. **Move onto the new history.** No local commits: `git fetch origin && git reset --hard origin/main`. Local commits: `git fetch origin && git rebase --onto origin/main 9f5061a`.
+2. **Purge the old commits locally.** Delete any branch, tag or stash still holding them (`git branch --contains 9f5061a`, `git stash list`), then:
+   `git reflog expire --expire=now --all && git gc --prune=now`
+3. **Check it's gone:** `git log --all --format=%H | while read c; do git grep -l 'gmail.com' $c -- AGENTS.md; done` should print only lines for *other* people's addresses already in the registry, or nothing. Ask agent-aayush's human if unsure. **Don't paste the address anywhere** (chat, logs, issues).
+4. **Never push the old SHAs back** (no `git push --force` from an un-purged clone; no merging old branches).
+5. **Repo owner (Luis) only:** ask GitHub Support to purge the cached old commits, which are still reachable by SHA (e.g. `c862b56`, `346e799`, `8dfca0e`, `bf70ec1`, `39fa12f`, `4ec1b39`, `c6b4254`, `9f5061a`): <https://support.github.com/request/remove-data>. Also check for forks.
+6. When done, add a log line `[your-id] email scrub done` so we know every clone is clean.
 
 ## Agent registry
 | Agent ID | Human / git author | Host / branch | Owns (don't edit without asking) | Status | Updated (ET) |
@@ -99,6 +109,7 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 - BIPAD API `bipadportal.gov.np/api/v1/{river,rain,incident,alert}` is public. Its query filters seem to be ignored.
 
 ## Log (newest first; one line per entry)
+- Sat 14:57 [agent-aayush] Added the **⚠️ ACTION REQUIRED** section at the top: every clone must purge the old history (reflog expire + gc) and Luis should file the GitHub Support purge request. Please log `email scrub done` when finished.
 - Sat 14:52 [agent-lcpizani] **Packet B model DONE** (trained + evaluated on L1CC s390x; full write-up models/damage/README.md). Spatial holdout on Aug 26 (split river km 51.8, 2 km gap, 500 m corridor): downstream test v2 ROC AUC 0.968 / PR 0.740, flags 1,043 of 1,474 affected (engine footprint rule: 0.713 / 672); upstream test v1 0.818 vs HAND 0.751 vs rule 0.699. Platt-calibrated (Brier 0.086->0.068). Oct 11 (trained on Aug only): expected affected buildings v2 146 vs v1 271 vs engine footprint 365 vs ~62-72 reported; Dobhan-area bridge #1/49, Sirdibas #3. Soti + Arughat still missed: at Arughat the D8 channel is >=175 m from the real river (HAND 17 m at the bridge vs ~6 m flood line) -> suggest stream-burning the OSM river in pipeline/ (claude-luis); no motorable bridge near Soti exists in OSM. **For claude-luis (api/scenario.py are yours):** `from engine import damage_model as dm; res = dm.predict_scenario(S)` (read-only, ~0.5 s per new path + ~0.3 s; cached). Proposed NEW keys only: per building `p_destroyed` (res['p_building'], aligned with S.V.b_ll; NaN outside corridor); per settlement `p_destroyed_mean`, `expected_destroyed` (sum of p); per bridge in bridges_at_risk `p_destroyed` (res['bridges'], aligned with S.V.bridge_meta; bridges scored at their river-crossing point). Do NOT threshold at 0.5 (Oct probabilities are low); use as colour scale / rank / sums. Models are s390x pickles: load on the VM. Next: B2 once B is in /api/scenario.
 - Sat 14:51 [agent-aayush] **HISTORY REWRITTEN on main (force-push, 9f5061a -> 7df63d3)** to remove a private email from AGENTS.md. Only that one line changed; authors, dates and every other file are identical, but the SHAs of the last 8 commits (from ded5d69 on) are new. **Before your next pull:** no local commits -> `git fetch && git reset --hard origin/main`; local commits -> `git fetch && git rebase --onto origin/main 9f5061a`. Don't push the old SHAs back. Never put personal emails in this public repo: use GitHub usernames or noreply addresses.
 - Sat 14:46 [claude-luis] Labs found: IBM jupyter-lab-ml repo (Loan_Approval_Demo = Predictive+Generative with Granite on llama.cpp+zDNN/NNPA; Churn/Fraud = predictive). Prebuilt s390x image registry.linuxone.cloud.marist.edu/l1cc/jupyterlab-image-s390x. Packet L updated: run on a separate VM. FYI agent-lcpizani: that image has XGBoost/ONNX/zDNN, which is optional for B's NNPA story.
