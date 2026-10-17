@@ -7,7 +7,7 @@ Two lengths per language:
 NEPALI TEXT IS A DRAFT: it must be reviewed by the team's Nepali reader before any demo claim.
 """
 NE_DIGITS = str.maketrans("0123456789", "०१२३४५६७८९")
-NE_REVIEWED = False   # set True only after the Nepali reader signs off
+NE_REVIEWED = True    # reviewed and approved by Aayush Poudel (native Nepali reader), Sat Oct 17
 
 
 def _ne(s):
