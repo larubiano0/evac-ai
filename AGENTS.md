@@ -12,31 +12,61 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 6. Never commit secrets: keys (`*.pem`/`*.cer`), the VM IP, tokens. The repo is **PUBLIC**.
 
 ## Agent registry
-| Agent ID | Human / git author | Host | Working on (claimed) | Status | Updated (ET) |
+| Agent ID | Human / git author | Host / branch | Owns (don't edit without asking) | Status | Updated (ET) |
 |---|---|---|---|---|---|
-| `claude-luis` | Luis Rubiano (GitHub `larubiano0`) | `luissmacbookpro` (Mac) → drives the L1CC VM over SSH | **Data + terrain + flood engine**: `pipeline/`, `engine/`, VM dirs `~/evac-ai/data/{raw,proc,grassdb}` | In progress: streams + HAND | Sat 14:05 |
-| _(next agent: add yourself)_ | | | | | |
+| `claude-luis` | Luis Rubiano (GitHub `larubiano0`) | Mac `luissmacbookpro` → drives the L1CC VM over SSH; pushes to `main` | `pipeline/`, `engine/terrain.py` `flood.py` `safety.py` `scenario.py` `alerts.py`, `api/`, `web/`, `replay/oct11.json`, VM `~/evac-ai` | Working: UI polish → Docker → Trishuli terrain build (for packet B) | Sat 14:20 |
+| `agent-lcpizani` | `[redacted]` | branch `data/initial-datasets` (last push 11:44) | `data/processed/`, `data/docs/`, `scripts/{common,extract_osm,extract_landslides,fetch_dem,fetch_worldpop,record_dhm}.py` | **Please read this file, then take packet B** | — |
+| _(teammate 3)_ | | | | add yourself, then take packet C, E or F | |
+| _(teammate 4)_ | | | | add yourself, then take packet C, E or F | |
 
-## Shared L1CC VM (one machine for the whole team)
-- Login as user `linux1` with the team key (path is local to each machine, never in the repo). The IP is in the team chat.
-- Specs: z17, 3 vCPU, 7.8 GB RAM, NNPA. The scientific Python stack, **GRASS 8.3, SAGA 9.3 and GDAL 3.8** are installed via apt. **Use system `python3`; don't `pip install` numpy/scipy/sklearn.**
-- `~/evac-ai` on the VM is a working copy that `claude-luis` updates with **rsync** (not git), so don't `git pull` there or edit it. Use your own directory, e.g. `~/work-<agent-id>`.
-- **There are only 3 CPUs and 7.8 GB of RAM.** Don't start heavy jobs without telling your human, and keep jobs short (minutes, not hours).
+### ⚠️ For `agent-lcpizani`: your branch vs. `main`
+- `main` **changed direction at 13:11**. The project is now **"Time to Safety"**: trigger → flood path → arrival time and height → walking time uphill to safe ground → slack per settlement → template alerts. See `latinos-ibmz-datathon-plan.md` §3–4. The road-segment risk model in the old plan is **replaced** by packet B below.
+- Your datasets are **very useful and not duplicated**: the damage labels (2,759 destroyed and 415 damaged buildings from Aug 26), WorldPop, the 2015 landslides and the DHM recorder. `main` has its own OSM/DEM pull only for the Budhi Gandaki (VM `~/evac-ai/data/raw`, not in git).
+- **Merging into `main`:** a test merge conflicts **only in `.gitignore`** (keep both sides' lines). Please merge your branch into `main` yourself (`git merge origin/main` on your branch, fix `.gitignore`, then merge into `main`). Files are ≤45 MB each, which is fine for GitHub.
 
-## Task board (from the plan, §4.2)
-| Task | Owner | State |
-|---|---|---|
-| OSM + DEM download (Budhi Gandaki) | claude-luis | ✅ done |
-| Streams + HAND (GRASS r.watershed + own HAND in `engine/terrain.py`) | claude-luis | ✅ done |
-| Walking time to safety (`r.walk`, negated-DEM trick) `engine/safety.py` | claude-luis | ✅ done (4 s) |
-| Flood path, arrival, height envelope + Oct 11 calibration `engine/flood.py` | claude-luis | ✅ done (first version) |
-| Replay JSON `replay/oct11.json` | claude-luis | ✅ done. `replay/aug26.json` is free to take |
-| Cross-event calibration table (Chamoli 2021, Sikkim 2023, Melamchi 2021; research §8) | free | ⏳ needs numbers pulled from papers |
-| Slack + ranking `engine/scenario.py` | claude-luis | ✅ done. Bridge 'don't cross' check is free to take |
-| Alert templates (Nepali/English, ≤200-byte trigger + full plan) | free | ⏳ the Nepali reader reviews them |
-| FastAPI + Leaflet UI (`api/`, `web/`) | claude-luis | 🔄 in progress |
-| Bridge failure Monte Carlo (`bridge-failure-monte-carlo.md`) | ? (whoever wrote it, please claim it) | 📝 design only |
-| Docker on L1CC, README, libraries list | free | ⏳ |
+## Timeline (ET): freeze **Sun 02:00**, submit **Sun 09:00**
+| By | Milestone |
+|---|---|
+| Sat 16:00 | Packets A, C done. B has features built |
+| Sat 19:00 | B trained + evaluated, integrated into the API. E, F drafts |
+| Sat 22:00 | D validation numbers. Docker image on L1CC. Everything on `main` |
+| Sun 01:00 | Screenshots, video script frozen, README final |
+| Sun 02:00 | **FREEZE.** Only bug fixes and recording after this |
+| Sun 08:30 | Video recorded and uploaded |
+| Sun 09:00 | **Submitted** on Hack2Skill |
+
+## Work packets (claim by putting your agent ID in Owner, then commit and push before starting)
+| ID | Packet | Owner | Est. | Depends on | Done when |
+|---|---|---|---|---|---|
+| A | UI polish, Docker image, bounded test serving on L1CC | claude-luis | 1–1.5 h | — | `docker run` on L1CC serves the UI. Screenshot of the container |
+| T | **Trishuli terrain build** on VM (same pipeline as Budhi Gandaki) | claude-luis | 30 min | — | `Terrain('data/proc_trishuli')` loads, with HAND relative to the Bhotekoshi–Trishuli path |
+| B | **ML damage model** (the judged "AI/ML on LinuxONE" piece) | **agent-lcpizani (proposed)** | 1.5–2 h | T (for HAND features), your damage labels | See spec below. Spatial-holdout AUC + "flagged X of Y destroyed" reported. Model file + `engine/damage_model.py` |
+| C | `replay/aug26.json` (Aug 26 timeline as a replay) | free | 45 min | — | Same schema as `replay/oct11.json`. Times and gauge readings from `nepal-disaster-research.md` §1.3 and the Wikipedia timeline. Every number has a source URL |
+| D | Validation numbers for the video | free (after B, C) | 45 min | B, C | Table: Oct 11 settlements predicted vs. reported; bridges predicted vs. lost (known miss: Soti, Arughat); Aug 26 footprint vs. destroyed buildings; arrival errors |
+| E | **Printable offline plan per settlement** (`web/plan.html?name=...`) | free | 45 min | API schema below | One A4 page per settlement: EN + NE full alert, arrival time, walk time, bridges to avoid, small map. Works offline once saved |
+| F | README (architecture, run steps, **Libraries & Resources with links**, licenses), mermaid flowchart | free | 45 min | — | README meets plan §2. Attribution: Copernicus DEM, © OSM (ODbL), WorldPop CC BY 4.0, GRASS/SAGA/GDAL, FastAPI, Leaflet |
+| G | Video script (≤3:00) + screenshot list | free (human + agent) | 1 h + recording | A, D | Script follows plan §9. Shows the L1CC instance and the model |
+| H | **Nepali review** of `engine/alerts.py` templates | **human (Nepali reader)** | 15 min | — | Fix wording, set `NE_REVIEWED = True` |
+| L | **Mandatory IBM labs** (both): Predictive Hybrid multi-model + Predictive + Generative | **humans, ASAP** | ? | — | Completed on the Hack2Skill dashboard (scoring prerequisite) |
+| X | Stretch: Chamoli 2021 / Sikkim 2023 calibration points | free | 1.5 h | — | Rows of (event, km, minutes, height, source). Research §8 |
+
+### Packet B spec: building damage model
+- **Labels:** Aug 26 OSM buildings. Positive = `destroyed:building` (+ optionally `damaged:building`). Negative = other buildings in the same corridor, within ~2 km of the river.
+- **Features per building** (from `engine.terrain` on the Trishuli build + OSM): HAND relative to the flood path, river km from the source, distance to channel, local slope, valley width (cross-section), flow accumulation, channel curvature / outside of bend, building size, distance to the nearest 2015 landslide.
+- **Model:** `sklearn.ensemble.HistGradientBoostingClassifier` (installed via apt on the VM, trains in seconds). **Spatial holdout:** split by river km (e.g. train upstream ≤ X km, test below), not randomly.
+- **Report:** AUC, precision/recall at the top-k, "flagged X of Y destroyed buildings", feature importances.
+- **Integrate:** `engine/damage_model.py` with `features(scenario) -> array` and `predict(scenario) -> prob per building`. The API adds `p_destroyed` per building and a settlement mean. Train on Trishuli, apply to Budhi Gandaki Oct 11.
+- **LinuxONE angle:** train and run inference on the VM (s390x). Optional: try IBM Snap ML / zDNN on the **NNPA** accelerator (present on our VM). Only if it installs in <10 min.
+
+### Interfaces (stable, don't break without telling the others)
+- `GET /api/scenario?replay=oct11&warn=HH:MM` → `{summary, settlements[], bridges_at_risk[], path (GeoJSON line with stations[]), timing, host}`. Each settlement has `name, name_ne, lon, lat, buildings_at_risk, people_at_risk, people_without_time, river_km, arrival_early, walk_min_median, walk_min_max, slack_min, status, alert_rank, alerts{short_en, short_ne, full_en, full_ne}`.
+- `GET /api/compare?replay=oct11` · `GET /api/footprint` (GeoJSON) · `POST /api/trigger {lon, lat, burst, warn, replay}`.
+- `engine.scenario.Valley(proc, raw)` / `Scenario(V, replay_dict, ...)`. Run everything **from the repo root on the VM** with system `python3` or `~/venv/bin/python`.
+
+### VM etiquette (one shared 3-CPU / 7.8 GB machine)
+- Own working dir per agent: `~/work-<agent-id>`. Don't touch `~/evac-ai` (`claude-luis` rsyncs into it).
+- Ports: `8000` = claude-luis. Others use 8001–8003. Port 8000 is **blocked externally**, so all access goes through an SSH tunnel (`ssh -L 8001:localhost:8001 ...`).
+- Jobs must be short and bounded (`timeout`), with no unattended long runs. Tell your human before anything over ~5 min.
 
 ## Key findings other agents must know (don't rediscover these)
 - **`r.walk` cost runs FROM start TO cell** (uphill costs more). For time *to* safety, run it on a **negated DEM** with safe cells as the start. Verified with `pipeline/test_rwalk_direction.sh` (1841 s both ways).
@@ -46,6 +76,7 @@ Several agents are working on this repo at once. This file prevents duplicate wo
 - BIPAD API `bipadportal.gov.np/api/v1/{river,rain,incident,alert}` is public. Its query filters seem to be ignored.
 
 ## Log (newest first; one line per entry)
+- Sat 14:13 [claude-luis] COORDINATION: found agent-lcpizani's branch data/initial-datasets (Aug 26 damage labels, WorldPop, 3-district DEM). Rewrote AGENTS.md: registry, timeline, work packets A-X with estimates, Packet B (ML damage model) proposed for agent-lcpizani, API interfaces, VM etiquette. UI fixes (fit to valley, visible footprint, legend).
 - Sat 14:03 [claude-luis] web/index.html written (Leaflet: trigger comparison, ranked alert list with EN/NE alerts, footprint, bridges at risk, wave-clock slider, click-to-place new trigger). NOT yet tested in a browser. scripts/api_smoke.sh added.
 - Sat 14:02 [claude-luis] API works ON L1CC (s390x, big-endian): api/app.py with /api/scenario, /compare, /footprint, POST /trigger; 4.5 s per new scenario, 0.05 s cached. engine/alerts.py: EN short ~100 chars, NE short 62-69 chars (1 UCS-2 SMS, <=161 B, Meshtastic OK); Nepali is a DRAFT, needs review. Bridges at risk match the reported lost Dobhan/Machhakhola/Sirdibas bridges but MISS Soti + Arughat (lower-valley height too low; known gap). Port 8000 is blocked externally, so we use an SSH tunnel. Next: web/index.html (Leaflet).
 - Sat 13:59 [claude-luis] engine/scenario.py: per-building slack for 112,515 OSM buildings, 20 settlements at risk (~1,456 people, assuming 4 per building), 4.5 s per scenario. HEADLINE: 03:30 village relay = 0 people without time (matches no confirmed deaths); 06:40 official SMS = all 1,456 without time. Fixed r.walk gaps in the barrier strip (nearest-cell fill). Next: FastAPI + Leaflet UI (claiming api/ and web/).
