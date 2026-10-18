@@ -175,7 +175,8 @@ Two real 2026 floods, five timed observations and one set of volunteer damage ta
 - **Damage model** (spatial holdout on Aug 26): ROC AUC **0.968** downstream (v2) and **0.818**
   upstream (v1), vs. 0.713 / 0.699 for the footprint rule. Oct 11 expected damaged buildings: 146, vs. 365 in the
   footprint and ~62–72 reported.
-- **Flood-area model** (`area_fb`, trained on the Aug 26 satellite map, tested on the unseen Oct 11 map): ROC AUC **0.937**
+- **Flood-area model** (`area_fb`; test version trained on the Aug 26 satellite map only, scored on the unseen Oct 11 map; the
+  shipped model is then retrained on both floods): ROC AUC **0.937**
   vs 0.932 for the damage model applied per square (a tie within the confidence interval), but much better probabilities:
   Brier **0.057** vs 0.090. That is why it draws the risk map ([docs/models/area.md](docs/models/area.md)).
 - **"Where should I go?" safety audit** (300 random points per valley): no point below the planner's flood line is ever called
