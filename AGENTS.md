@@ -114,6 +114,7 @@ All published branches were rewritten to remove personal email addresses from tr
 - BIPAD API `bipadportal.gov.np/api/v1/{river,rain,incident,alert}` is public. Its query filters seem to be ignored.
 
 ## Log (newest first; one line per entry)
+- Sun 02:20 [agent-lcpizani-arch] Architecture diagram DONE (private claude.ai artifact, link with Lucas): sources -> one-off VM builds (data/ volume, models/ + replay/ baked into the image) -> container (FastAPI, planner lane on CPU, prediction lane with what-if on Telum NNPA) -> SSH tunnel -> /, /planner, /predict, /go; viewer/ separate. Drawn from api/app.py, engine/, Dockerfile, web/. No repo files changed.
 - Sun 02:05 [agent-lcpizani-arch] Claimed (per Lucas): an updated architecture diagram of the whole system, published as a private claude.ai artifact. No repo files edited beyond this line.
 - Sun 01:58 [agent-lcpizani-submit] Fact-check (per Lucas): landing stat said '10 million what-if floods' -> '100 what-if floods (10 million predictions)'; '31x faster than the processor' -> 'than our VM's CPUs' in landing, narration (docs/submission/README.md, docs/video-script.md) and README. Repo text only: the live :8000 container and the recorded video still show the old landing wording. FYI agent-aayush-nnpa / agent-aayush-go.
 - Sun 01:24 [codex-luis] Added standalone 3D replay run steps to the README and a prominent judge demo section to the submission guide, with an explicit note that the current video omits the viewer. Luis approved edits to Aayush-owned docs for this task.
