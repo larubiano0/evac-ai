@@ -1,6 +1,6 @@
 # evac-ai: "Time to Safety" flash-flood warning
 
-**IBM Z Datathon 2026 · team Latinos** · runs on an IBM z17 in LinuxONE Community Cloud · [AI on the Telum on-chip accelerator](docs/linuxone-ai.md)
+**IBM Z Datathon 2026 · team Latinos** · runs on an IBM z17 in LinuxONE Community Cloud · [AI on the Telum on-chip accelerator](docs/linuxone-ai.md) · [Documentation](docs/README.md) · [Sources](docs/sources.md)
 
 > Nepal can't predict when the mountain falls. It can predict who has time to run.
 
@@ -33,18 +33,22 @@ A settlement is **red** if any of its at-risk buildings has slack < 0, **amber**
 | Time to safety | [`engine/safety.py`](engine/safety.py) | GRASS **r.walk** (Naismith/Langmuir anisotropic walking cost) on the **negated** DEM, with safe cells as the start, so each step has the same climb as the real escape. The flood channel is a barrier except at OSM bridge cells. Traces a walking route to safe ground from `r.walk`'s direction output |
 | Scenario runner | [`engine/scenario.py`](engine/scenario.py) | Per OSM building: in the footprint or not, arrival, walk time, slack. Per settlement (buildings within 3 km of an OSM place): people at risk (4 per building, an assumption), people without time, status, alert rank, escape route. Bridges at risk = OSM bridges in the footprint or on the path |
 | Template alerts | [`engine/alerts.py`](engine/alerts.py) | No LLM. English and Nepali, short (1 SMS / Meshtastic / cell-broadcast page) and full (plan page). The Nepali text was reviewed by a native Nepali reader on our team (`NE_REVIEWED = True`) |
+| Damage model | [`engine/damage_model.py`](engine/damage_model.py), [`models/damage/`](models/damage/) | Gradient-boosted trees (scikit-learn) trained on the buildings tagged destroyed (2,759) or damaged (415) after the Aug 26 flood, 3,093 of them within 500 m of the river: P(destroyed) for every building and bridge near the river. [Write-up](docs/models/damage.md) |
+| Flood-area model | [`models/area/`](models/area/) | `area_fb`, trained on UNOSAT satellite flood maps: P(flooded) for every 30 m square near the river. Drives the risk map in prediction mode. [Write-up](docs/models/area.md) |
+| Prediction mode | [`engine/escape.py`](engine/escape.py), [`engine/escape_search.c`](engine/escape_search.c), [`web/predict.html`](web/predict.html) | "Where should I go?": from any point and time, the closest safe ground, the walking route (Tobler walking speed on the DEM + OSM trails, river crossed only on bridges), a leave-by time and one instruction (stay / leave / hurry / run / climb) |
+| What-if map | [`engine/whatif.py`](engine/whatif.py), [`engine/surrogate.py`](engine/surrogate.py), [`scripts/nnpa/zdnn_mlp.c`](scripts/nnpa/zdnn_mlp.c) | Scores every 30 m square under 100 possible flood heights (±30 %) with a neural copy of `area_fb`, run on the z17 Telum on-chip AI accelerator through IBM zDNN. Shows ground that is safe in this flood but not in a bigger one. [Write-up](docs/linuxone-ai.md) |
 | API | [`api/app.py`](api/app.py) | FastAPI. Keeps the valley in memory and caches scenarios. Endpoints below |
-| Map UI | [`web/index.html`](web/index.html) | Leaflet 2D: trigger comparison ("who had time to escape?"), warning-time box, wave-clock slider, footprint, ranked alert list with EN/NE alerts, bridges at risk, green dashed escape routes, click-to-place new trigger |
+| Landing page | [`web/landing.html`](web/landing.html) | `/`: the story in one screen and links to the three views |
+| Officials' planner | [`web/index.html`](web/index.html) | `/planner`, Leaflet 2D: trigger comparison ("who had time to escape?"), warning-time box, wave-clock slider, footprint, ranked alert list with EN/NE alerts, bridges at risk, green dashed escape routes, click-to-place new trigger, damage-model colours, what-if map |
 | Resident "Go" view | [`web/go.html`](web/go.html), [`web/go-sw.js`](web/go-sw.js) | `/go`: for someone in a panic on a phone. Location from GPS (or `?lat=&lon=&t=` for demos, or a tap), one big instruction (GO UPHILL NOW / HURRY / YOU ARE SAFE HERE), countdown, leave-by time, arrow and route to the safe place, EN/नेपाली. Uses the prediction API read-only. Works offline (below) |
 | Replays | [`replay/oct11.json`](replay/oct11.json), [`replay/aug26.json`](replay/aug26.json) | Event timelines: source point, burst time and band, warning triggers, observations (each marked `calibration` or `excluded` with a note and a source), reported damage, source URLs |
 | Terrain build | [`pipeline/`](pipeline/) | DEM + OSM download, GRASS `r.watershed` build per valley ([`build_valley.sh`](pipeline/build_valley.sh)), GRASS wrapper [`g.sh`](pipeline/g.sh), `r.walk` direction test |
 | Study-area data | [`data/`](docs/data/README.md), [`scripts/`](scripts/) | Committed, clipped layers for Gorkha/Rasuwa/Nuwakot: Copernicus DEM, WorldPop, OSM (incl. Aug 26 damage labels), 2015 landslides, DHM feed snapshot. Fetch/extract scripts |
-| Container | [`scripts/docker_run.sh`](scripts/docker_run.sh) | Runs the `evac-ai:latest` image on L1CC, serving on `127.0.0.1:8000` |
+| 3D replay | [`viewer/`](viewer/) | Static Three.js viewer: a real flood moving down the valley on the real terrain, with a time slider. [Docs](docs/viewer/README.md) |
+| Container | [`Dockerfile`](Dockerfile), [`scripts/docker_run.sh`](scripts/docker_run.sh) | One image with everything above, run on L1CC and served on `127.0.0.1:8000` |
 
-**Done since:** the ML building-damage model (`engine/damage_model.py` + `models/damage/`, packet B), prediction
-mode (`web/predict.html`, "where should I go?"), the Three.js replay (`viewer/`) and validation (D,
-[`docs/validation.md`](docs/validation.md)), `p_destroyed` in `/api/scenario` and the planner map, and the what-if map on
-the Telum accelerator. **Not done:** serving the Aug 26 replay from the planner API (validation runs it on the Trishuli build).
+**Not built yet:** serving the Aug 26 replay from the planner API (validation runs it on the Trishuli build), live DHM/BIPAD
+triggers, and the phone-to-phone mesh relay.
 
 ### API
 
@@ -55,9 +59,15 @@ the Telum accelerator. **Not done:** serving the Aug 26 replay from the planner 
 | `GET /api/compare?replay=oct11` | The summary for each trigger time in the replay (e.g. community relay 03:30 vs. official SMS 06:40) |
 | `GET /api/footprint?replay=oct11[&lon=&lat=&burst=]` | Conservative inundation footprint, GeoJSON |
 | `POST /api/trigger {lon, lat, burst, warn, replay}` | Full scenario for a new trigger point, reusing the wave-speed/height curves calibrated on `replay` |
-| `GET /` | Landing page: the story in one screen and links to the three views |
-| `GET /planner` | The officials' planner (Leaflet UI), with the what-if map |
-| `GET /api/predict/whatif?valley=budhi&n=100` | What-if floods: every 30 m cell under 100 flood heights (±30%), run on the Telum on-chip AI accelerator ([docs/linuxone-ai.md](docs/linuxone-ai.md)) |
+| `GET /api/predict/options` | Valleys and flood types available to prediction mode |
+| `POST /api/predict/scenario` | Builds (and caches) a prediction scenario: a trigger point + a flood type calibrated on a real flood |
+| `GET /api/predict/p.png` | The per-square flood-risk map as a PNG overlay |
+| `POST /api/predict/escape` | "Where should I go?" for one point and time: destination, route, leave-by, instruction (2–5 ms) |
+| `GET /api/predict/whatif?valley=budhi&n=100`, `/api/predict/whatif.png` | What-if floods: every 30 m square under 100 flood heights (±30 %), run on the Telum on-chip AI accelerator ([docs/linuxone-ai.md](docs/linuxone-ai.md)) |
+| `GET /` · `/planner` · `/predict` · `/go` | Landing page · officials' planner · "Where should I go?" · resident Go page (+ `/go-sw.js`, its offline service worker) |
+
+`/api/scenario` also carries the damage model's output as additional keys: `p_destroyed_mean`, `expected_destroyed` and
+`n_scored` per settlement, `p_destroyed` per bridge, and a `damage_model` block.
 
 ---
 
@@ -80,7 +90,7 @@ flowchart TB
   end
 
   SEE --> P1
-  P5 --> OFF["<b>Officials</b> · planner (/)<br/>who to warn first · SMS text in Nepali + English<br/>bridges to close · who had time under each warning"]
+  P5 --> OFF["<b>Officials</b> · planner (/planner)<br/>who to warn first · SMS text in Nepali + English<br/>bridges to close · who had time under each warning"]
   P5 --> RES["<b>Residents</b> · 'Where should I go?' (/predict)<br/>tap where you are → route to safe ground,<br/>leave-by time, how sure we are"]
   P5 --> REP["<b>Story / training</b> · 3D replay (viewer/)<br/>watch a real flood move down the valley"]
 ```
@@ -162,9 +172,17 @@ Two real 2026 floods, five timed observations and one set of volunteer damage ta
   Soti bridge isn't in OSM, and at Arughat the 30 m D8 channel drifts ≥175 m from the real river.
 - **Footprint (Aug 26):** with the flood line fitted on one half of the river, the footprint holds **83 % / 75 %** of
   destroyed buildings on the other half, and 21 % / 49 % of footprint buildings carry no damage tag.
-- **Damage model** (`agent-lcpizani`, spatial holdout on Aug 26): ROC AUC **0.968** downstream (v2) and **0.818**
+- **Damage model** (spatial holdout on Aug 26): ROC AUC **0.968** downstream (v2) and **0.818**
   upstream (v1), vs. 0.713 / 0.699 for the footprint rule. Oct 11 expected damaged buildings: 146, vs. 365 in the
   footprint and ~62–72 reported.
+- **Flood-area model** (`area_fb`, trained on the Aug 26 satellite map, tested on the unseen Oct 11 map): ROC AUC **0.937**
+  vs 0.932 for the damage model applied per square (a tie within the confidence interval), but much better probabilities:
+  Brier **0.057** vs 0.090. That is why it draws the risk map ([docs/models/area.md](docs/models/area.md)).
+- **"Where should I go?" safety audit** (300 random points per valley): no point below the planner's flood line is ever called
+  safe (0 % on both floods). Destinations called safe that the UNOSAT satellite map shows flooded: Oct 11 **0 of 227**,
+  Aug 26 **7 of 238** ([docs/validation/escape_satellite_check.md](docs/validation/escape_satellite_check.md)).
+- **Telum on-chip AI accelerator:** 100 what-if floods over 126,528 squares (12.7 M predictions) in **2.7 s**, vs 83 s for
+  the tree model on the CPU (**31×**), mean difference 0.012 in probability. Live in the planner: 10 M predictions in 2.6 s.
 - **Arrival times (leave-one-out):** **0–38 min** off between observations, and 71–119 min **early** (the safe side)
   when extrapolating past the last gauge. Oct 11 has only two timed points, so its LOO is weak. The Oct 11 wave speed
   does **not** transfer to Aug 26 (up to 163 min late), so each flood type needs its own calibration.
@@ -188,7 +206,7 @@ Two real 2026 floods, five timed observations and one set of volunteer damage ta
 - **Population is an assumption:** 4 people per OSM building, plus hard-coded trekker counts (100 in Jagat on Oct 11).
   Buildings more than 3 km from a named OSM place are not assigned to a settlement. Upper-Gorkha OSM coverage is uneven.
 - **Fixed assumptions:** 5 min from warning to people moving, 5 m safety margin above the conservative height, 15 min amber threshold.
-- **Walking only, no congestion.** `r.walk` walking cost on a 30 m DEM, with no trail network. The cells r.walk can't reach are
+- **Walking only, no congestion.** The planner uses `r.walk` walking cost on a 30 m DEM with no trail network; prediction mode adds OSM trails. The cells r.walk can't reach are
   filled by straight-line walking at 1 m/s from the nearest reached cell.
 - **The planner API serves the Budhi Gandaki valley only.** `/api/scenario?replay=aug26` returns 501 rather than running on the wrong grid.
   The Aug 26 numbers come from `docs/validation/run_aug26.py` on `data/proc_trishuli`. Prediction mode (`/api/predict/*`) has both valleys.
