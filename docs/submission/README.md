@@ -38,7 +38,7 @@ screenshot of your own SSH terminal running `sudo docker ps` if you prefer that 
 - `record_demo.py` records the whole platform with headless Chrome over the SSH tunnel and builds
   `video/out/demo.mp4` (1920×1080, 30 fps, **no audio**, 108 s). Re-run any time:
   `BASE=http://localhost:18000 python docs/submission/video/record_demo.py` (or pass segment names:
-  `landing terminal planner whatif predict go architecture`). `out/` is git-ignored; upload the mp4, don't commit it.
+  `landing terminal planner whatif predict go architecture`). `out/` is git-ignored; the current cut is committed as `video/demo.mp4`.
 - Blue chips at the top of the screen name each beat, so the video reads without sound.
 - The phone segment leaves the right third of the frame empty: a good place for the face overlay.
 - Honest-edit notes: the terminal segment replays a real SSH session on the VM captured Sat ~21:13 ET (outputs
