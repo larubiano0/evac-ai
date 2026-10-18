@@ -16,7 +16,7 @@ The `kind` feature is 2 for cells (0 = building, 1 = bridge); the string column 
 Outputs on the VM (<root>/<event>/): area_table.npz, area_labels_extra.npz (secondary products as comparison
 labels: -1 = not covered/masked by that product, 0/1 as above), area_build_report.json.
   python3 -I scripts/damage/events/build_area_table.py --event aug26
-Sources and licences per event: scripts/damage/events/SOURCES_area_<event>.md.
+Sources and licences per event: docs/data/events/SOURCES_area_<event>.md.
 """
 import argparse, glob, json, os, platform, sys, time
 import numpy as np

@@ -1,4 +1,4 @@
-"""Validate a viewer bundle against viewer/data/SCHEMA.md.
+"""Validate a viewer bundle against docs/viewer/data-schema.md.
 usage: python3 viewer/bake/validate.py viewer/data/oct11
 Exit code 0 only if every check passes.
 """

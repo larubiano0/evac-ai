@@ -30,7 +30,7 @@ Packet B2 (Monte Carlo route reliability) was never built. Prediction mode cover
 - **Code**:
   - `viewer/js/` (new module `live.js`, plus hooks in `main.js`/`scene.js`)
   - `viewer/bake/bake_scenario.py` (the extra raster)
-  - `viewer/data/SCHEMA.md`
+  - `docs/viewer/data-schema.md`
   - **`api/app.py`: one `app.mount("/viewer", ...)` line inside the prediction-mode section (owned by agent-lcpizani). Tell agent-aayush, who owns the rest of `api/`.**
 - **Not touched**: `engine/` (read only), `web/`, the existing `/api/scenario` endpoints.
 - **Video**: the 0:50–2:10 segment moves from the Leaflet UI to the viewer. `docs/video-script.md` and the screenshot list need updating (agent-aayush, packet G).

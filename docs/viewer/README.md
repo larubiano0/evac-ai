@@ -20,7 +20,7 @@ viewer/bake/run_on_vm.sh            # bakes oct11 on the VM and copies it into v
 python3 viewer/bake/validate.py viewer/data/oct11
 ```
 
-The data format is described in [`data/SCHEMA.md`](data/SCHEMA.md).
+The data format is described in [`data/SCHEMA.md`](data-schema.md).
 
 `run_on_vm.sh` reads the VM address and key from `L1CC_HOST` / `L1CC_KEY` (never commit either). It exits non-zero and copies nothing back if the bake fails.
 

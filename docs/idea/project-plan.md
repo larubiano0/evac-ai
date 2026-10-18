@@ -2,7 +2,7 @@
 
 Read this before doing any work. It defines the goal, hard constraints, what we build and what we don't, the data, and the priorities. If a decision isn't covered here, pick whatever gets a working demo running on LinuxONE soonest.
 
-**Background:** `nepal-disaster-research.md` covers the last five disasters, the existing apps and communication channels, the state of the art (§7), and the gap analysis. **Don't re-research topics already covered there.** Add to it instead.
+**Background:** `docs/idea/nepal-disaster-research.md` covers the last five disasters, the existing apps and communication channels, the state of the art (§7), and the gap analysis. **Don't re-research topics already covered there.** Add to it instead.
 
 ---
 

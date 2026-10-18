@@ -101,7 +101,7 @@ footprint or on the flood channel. Matching of reported losses to OSM bridges an
 
 - **4 of 6 reported losses are matched** (3 distinct locations, since two reports map to the same Nyak Phedi
   bridges). The engine flags **18 of 220** OSM bridges in the build (49 lie in the 500 m corridor).
-- **Root causes of the misses** (`models/damage/README.md`):
+- **Root causes of the misses** (`docs/models/damage.md`):
   - **Arughat:** the 30 m D8 channel runs ≥175 m from the real river, so HAND at the bridge is 17 m against a ~6 m
     flood line. The fix is burning the OSM river into the DEM in `pipeline/`.
   - **Soti:** the motorable bridge isn't mapped in OSM.

@@ -4,7 +4,7 @@ export const STATES = ['unaware', 'walking', 'safe', 'caught'];
 const SEVERITY = { caught: 3, walking: 2, unaware: 1, safe: 0 };
 
 // State of one people unit (one at-risk building) at time t for a warning issued at warnT.
-// unit = [settlementIndex, arrival_min, walk_min, people]   (viewer/data/SCHEMA.md "State machine")
+// unit = [settlementIndex, arrival_min, walk_min, people]   (docs/viewer/data-schema.md "State machine")
 export function unitState(arrival, walk, t, warnT, dissemination) {
   const go = warnT + dissemination;
   const done = go + walk;

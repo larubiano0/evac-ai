@@ -2,7 +2,7 @@
 
 Context file for later work. Goal: for an uncertain upstream flood trigger (landslide-dam burst, avalanche), estimate a **probability array, `P[b]`, of each bottleneck (bridge or tunnel) failing**, fast enough to run live (target: under 10 s per valley on L1CC, CPU only, numpy and scipy).
 
-Related: `latinos-ibmz-datathon-plan.md` (P1 bridge bottleneck check, P1 damage model), `nepal-disaster-research.md` (event timelines and bridge losses).
+Related: `docs/idea/project-plan.md` (P1 bridge bottleneck check, P1 damage model), `docs/idea/nepal-disaster-research.md` (event timelines and bridge losses).
 
 ---
 

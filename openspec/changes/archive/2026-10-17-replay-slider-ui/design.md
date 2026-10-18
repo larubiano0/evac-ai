@@ -87,7 +87,7 @@
   - `arrival_min` is absolute (`burst_min` + the earliest building arrival).
   - `walk_min` is the effective value from D8.
   - `engine_slack` maps each warning id to the engine's `slack_min`, and the validator uses it for the parity check.
-- **The full field list is in `viewer/data/SCHEMA.md`**:
+- **The full field list is in `docs/viewer/data-schema.md`**:
   - `grid`: `x_left`, `y_top`, `dx`, `nx`, `ny`, `dem_min`, `dem_max`
   - `flood`: `km_step`, `arrival_min` (relative to burst), `height_m`, `path` as `[[x, y, km], …]`
   - `warnings`, `settlements`, `bridges`, `events`, `cameras`, `layers`, `headline`, `checks`, `provenance`

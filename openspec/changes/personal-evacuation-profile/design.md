@@ -46,7 +46,7 @@ Status: **idea, not started**.
 - [Pace class is self-reported and may be optimistic] → default new profiles to `slow` when unsure; the 10-minute buffer absorbs some error.
 - [Sensitive list of vulnerable people] → access only for named responders and nominated neighbours; delete after the event; audit who viewed it.
 - [SMS delivery delays] → send at leave-by minus the gateway's typical delay; document the assumed delay.
-- [Model or DEM errors (e.g. channel drift at Arughat)] → the alert names safe ground the model rates P ≤ 0.10, which inherits the area model's known limits (see `models/area/README.md`).
+- [Model or DEM errors (e.g. channel drift at Arughat)] → the alert names safe ground the model rates P ≤ 0.10, which inherits the area model's known limits (see `docs/models/area.md`).
 
 ## Open Questions
 

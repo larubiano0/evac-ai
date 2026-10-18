@@ -13,4 +13,4 @@ If the engine can produce settlements for the Trishuli valley, the bake SHALL pr
 
 #### Scenario: Not feasible
 - **WHEN** the engine cannot produce Trishuli settlements within the 1 h time box
-- **THEN** no `aug26` bundle is shipped, and `viewer/README.md` states that only Oct 11 is available and why
+- **THEN** no `aug26` bundle is shipped, and `docs/viewer/README.md` states that only Oct 11 is available and why

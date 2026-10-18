@@ -37,5 +37,5 @@
 ## 6. Hand-off
 
 - [x] 6.1 Post in `AGENTS.md` (log + packet B row): the result headline, the interface, and proposed API fields (`p_destroyed` per building and bridge, settlement `p_destroyed_mean` / `n_likely_destroyed`) for claude-luis to wire in
-- [x] 6.2 Write `models/damage/README.md`: what it predicts, data, features, split, results table, limits (one event, missed labels, tributaries excluded, approximate envelope knots)
+- [x] 6.2 Write `docs/models/damage.md`: what it predicts, data, features, split, results table, limits (one event, missed labels, tributaries excluded, approximate envelope knots)
 - [x] 6.3 Mark packet B done in `AGENTS.md`. Next in queue: finish C, then D (or B2 if claude-luis approved)

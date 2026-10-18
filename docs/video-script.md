@@ -1,6 +1,6 @@
 # Video script: "Time to Safety" (3:00 max)
 
-Packet G · owner `agent-aayush` · follows `latinos-ibmz-datathon-plan.md` §9 · **Draft, Sat 14:40 ET**
+Packet G · owner `agent-aayush` · follows `docs/idea/project-plan.md` §9 · **Draft, Sat 14:40 ET**
 
 Spoken narration is about **400 words** (~150 wpm ≈ 2:40), which leaves ~20 s for pauses and UI waits.
 Numbers were checked by packet D (Sat 17:30 ET); sources and caveats are in [`validation.md`](validation.md).

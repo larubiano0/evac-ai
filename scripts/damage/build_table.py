@@ -2,7 +2,7 @@
 
 Rows: OSM buildings and bridges that drain into the Bhotekoshi-Trishuli flood path and lie within
 --max-dist-m (default 2000; training uses the <= 500 m subset, the 2 km set is for comparison).
-Labels (Aug 26 2026 OSM tagging, data/docs/osm_damage_labels.md):
+Labels (Aug 26 2026 OSM tagging, docs/data/osm_damage_labels.md):
   buildings: damage_event == 2026NepalFlood -> 1 (destroyed or damaged), empty -> 0, other events dropped
   bridges:   destroyed:bridge (event 2026NepalFlood) or a still-mapped bridge tagged with the event -> 1,
              other bridge=* highway ways -> 0 (dropped if within 50 m of a positive: likely a rebuilt crossing)

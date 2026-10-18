@@ -40,7 +40,7 @@ Reading this: bugs 1 and 4 are largely fixed by the new code. The bug 2 increase
 deliberately conservative (1.3 × height + 5 m), while `area_fb` is trained on satellite-observed extents, so some of
 these destinations may be truly dry ground. The decisive check is whether destinations fall inside the
 **satellite-observed** Aug 26 / Oct 11 flood extents (UNOSAT FL20260826NPL / FL20261011NPL, HOT extent; see
-`scripts/damage/events/SOURCES_area_*.md`). Those rasters are on `agent-lcpizani`'s VM dir, not in the repo, so that
+`docs/data/events/SOURCES_area_*.md`). Those rasters are on `agent-lcpizani`'s VM dir, not in the repo, so that
 check is not done yet. Bug 3 (mid instead of early arrival) is still present.
 
 ## Method

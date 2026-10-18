@@ -1,6 +1,6 @@
 """Retrain the damage model on three real floods (v3) and test whether it transfers.
 
-Events (all real labels, see scripts/damage/events/SOURCES_*.md and models/damage/README.md):
+Events (all real labels, see docs/data/events/SOURCES_*.md and docs/models/damage.md):
   aug26  Bhotekoshi-Trishuli, Nepal, 26 Aug 2026  OSM/HOT damage tags (buildings + bridges)
   ahr    Ahr valley, Germany, 14-15 Jul 2021       4TU damage grades, rater 1, y = D1+ (buildings)
   derna  Wadi Derna, Libya, 10-11 Sep 2023         UNOSAT damaged buildings + OSM negatives (buildings)
@@ -22,7 +22,7 @@ Rule: the app switches from v2 to v3 only if v3's mean B AUC >= v2's and C is no
   A2 (added AFTER seeing A, labelled post-hoc): leave-one-event-out on buildings only with monotone constraints
      (risk may only fall with HAND and with distance), all features vs HAND + distance only.
 Writes models/damage/events_metrics.json; the v3 model goes to ~/work-agent-lcpizani/out/v3.joblib (not the
-app's model dir) because it did not pass B (see models/damage/README.md).
+app's model dir) because it did not pass B (see docs/models/damage.md).
 
 Run on the VM from the repo root:  python3 scripts/damage/train_events.py
 """

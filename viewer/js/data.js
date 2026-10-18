@@ -1,4 +1,4 @@
-// Load a scenario bundle (viewer/data/SCHEMA.md) and decode its little-endian uint16 layers.
+// Load a scenario bundle (docs/viewer/data-schema.md) and decode its little-endian uint16 layers.
 
 export const SCHEMA = 'evac-ai/scenario@1';
 const NODATA = 65535;

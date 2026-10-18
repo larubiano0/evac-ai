@@ -1,7 +1,7 @@
 """Impacted-AREA model: P(this 30 m cell is inside the flood/debris footprint | a flood comes down this river path).
 
 Training data: the per-cell tables from scripts/damage/events/build_area_table.py (labels = published satellite
-flood/debris extents only; sources in scripts/damage/events/SOURCES_area_<event>.md):
+flood/debris extents only; sources in docs/data/events/SOURCES_area_<event>.md):
   aug26  UNOSAT FL20260826NPL        Bhotekoshi-Trishuli, Nepal   (Sentinel-2 + PlanetScope, 26-28 Aug 2026)
   oct11  UNOSAT FL20261011NPL        Budhi Gandaki, Nepal         (Sentinel-2, 11 Oct 2026)
   ahr    CEMS EMSR517 AOI15 MONIT01  Ahr, Germany                 (aerial 0.12 m 16 Jul + Pleiades 20 Jul 2021)

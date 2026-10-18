@@ -3,11 +3,11 @@
 - [ ] 1.1 Coordinate with claude-luis on how `viewer/` relates to `web/`, then add the AGENTS.md claim for `viewer/` (deferred by the user: "coordinate later")
 - [ ] 1.2 Plan edits (§4.2 Map UI, §4.3, §11) after the team agrees (deferred; drafts saved in a stash)
 - [x] 1.3 Create `viewer/` (`index.html`, `js/`, `data/`, `bake/`, `vendor/`) and vendor three@0.165.0 (core + OrbitControls, CSS2DRenderer, Line2, LineMaterial, LineGeometry, LineSegments2, LineSegmentsGeometry)
-- [x] 1.4 Add Three.js, the mountain-3d-viewer design credit and Copernicus DEM attribution to `viewer/README.md` (the root README is updated at coordination time)
+- [x] 1.4 Add Three.js, the mountain-3d-viewer design credit and Copernicus DEM attribution to `docs/viewer/README.md` (the root README is updated at coordination time)
 
 ## 2. Scenario contract and bake
 
-- [x] 2.1 Write `viewer/data/SCHEMA.md` (scenario@1 fields, units, time base, raster encoding)
+- [x] 2.1 Write `docs/viewer/data-schema.md` (scenario@1 fields, units, time base, raster encoding)
 - [x] 2.2 Write `viewer/bake/bake_scenario.py`: import `engine.scenario`; write the four `*.u16.bin` layers as `'<u2'`; envelope lookup; settlements with effective `walk_min`, routes and bridge-on-route; bridges; events; warnings; headline; cameras; checks; provenance
 - [x] 2.3 Write `viewer/bake/run_on_vm.sh`: sync code to `~/work-claude-lucas/repo`, symlink data, copy the grassdb into a private HOME, run the bake, pull results into `viewer/data/oct11/`
 - [x] 2.4 Write `viewer/bake/validate.py`: schema fields, file sizes, little-endian DEM min/max round-trip, footprint count within 1% using shader math, settlement slack parity within 0.1 min

@@ -231,7 +231,7 @@ id_rsa*
 .env
 data/raw/
 
-# Data: raw downloads stay local, re-fetch with scripts/ (see data/README.md)
+# Data: raw downloads stay local, re-fetch with scripts/ (see docs/data/README.md)
 *.part
 
 # local agent tooling caches / nested worktrees

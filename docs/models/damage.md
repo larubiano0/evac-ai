@@ -1,5 +1,7 @@
 # Damage model (packet B)
 
+Model files (bare file names on this page are in this folder): [`models/damage/`](../../models/damage/).
+
 **What it predicts:** for every building and bridge near a river, the probability that it is **affected
 (destroyed or damaged) if a flash flood comes down that river**. It doesn't predict *whether* a flood happens.
 The engine supplies the flood path and flood line, and this model says what the flood takes with it.

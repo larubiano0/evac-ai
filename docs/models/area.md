@@ -1,5 +1,7 @@
 # Impacted-area model (`area_fb`)
 
+Model files (bare file names on this page are in this folder): [`models/area/`](../../models/area/).
+
 **What it predicts:** for every 30 m square of ground near a river, the probability that the square ends up
 **inside the flood/debris footprint** when a flash flood comes down that river. "Footprint" means what satellite
 analysts mapped as flooded or covered by mud/rock after a real flood.
@@ -56,7 +58,7 @@ Rule for each square, using its centre:
 - `y = 0`: inside the area the analysts checked, outside the extent and outside any cloud/not-analysed mask.
 - Anything else gets no label.
 
-Built by `scripts/damage/events/build_area_table.py`. Citations and licences are in `scripts/damage/events/SOURCES_area_<event>.md`.
+Built by `scripts/damage/events/build_area_table.py`. Citations and licences are in `docs/data/events/SOURCES_area_<event>.md`.
 
 ## How it was tested (rules written before any result was seen; `scripts/damage/train_area.py`)
 
@@ -142,7 +144,7 @@ s390x pickle (scikit-learn from Ubuntu apt), so load it on the VM.
   map Aug 26 (with its own "not analysed" masks), it agrees with UNOSAT on 95.6% of squares.
 - **DEM channel drift.** The river path comes from the 30 m DEM, not the real river. On Oct 11, 25% of the flooded
   squares sit ≥ 20 m above the DEM channel. That is partly real (debris runs up), partly the DEM channel being off
-  the real river (≥ 175 m at Arughat, see `models/damage/README.md`). At Ahr, 31% of path cells fall outside the
+  the real river (≥ 175 m at Arughat, see `docs/models/damage.md`). At Ahr, 31% of path cells fall outside the
   mapped extent.
 - **Only two floods train it.** Both are Himalayan debris floods. A different kind of flood (slow monsoon flooding
   on the plains) is outside what it has seen.

@@ -163,7 +163,7 @@
         "https://news.mongabay.com/2026/09/during-nepal-floods-decentralized-community-based-warning-saved-lives/",
         "https://english.onlinekhabar.com/how-many-floods-to-react.html",
         "https://hydrology.gov.np (gauge coordinates and warning/danger levels, DHM live feed snapshot 20261017T151626Z)",
-        "OSM damage:event=2026NepalFlood (HOT), see data/docs/osm_damage_labels.md"
+        "OSM damage:event=2026NepalFlood (HOT), see docs/data/osm_damage_labels.md"
       ]
     }
   }

@@ -1,6 +1,6 @@
 ## Context
 
-- **Project:** "Time to Safety" (see `latinos-ibmz-datathon-plan.md`, `AGENTS.md`).
+- **Project:** "Time to Safety" (see `docs/idea/project-plan.md`, `AGENTS.md`).
   - The engine is owned by claude-luis. It computes, per event: the flood path (D8 downstream from a trigger), HAND relative to that path, an arrival/height envelope along river km, the footprint, walking time to safety (`r.walk`), escape routes, and slack per building.
   - The footprint rule is `HAND <= height(km)`. On Oct 11 it misses the lost Soti and Arughat bridges.
 - **Labels:** the only ground truth for what floods destroy is the Aug 26 OSM damage tagging in the Bhotekoshi–Trishuli corridor.

@@ -55,7 +55,7 @@
 ### D5. Aug 26 is gated
 - Bake `aug26` only if `engine.scenario.Valley` can load the Trishuli OSM layers and `Scenario(V, aug26)` returns settlements.
 - Known blockers (AGENTS.md log 14:35 and 14:37): `km_of` has no bounds check, and Kali Khola and Devghat lie outside the grid. Bake with those observations excluded and say so in the bundle `provenance`.
-- If it isn't feasible in 1 h, drop it and note that in `viewer/README.md`.
+- If it isn't feasible in 1 h, drop it and note that in `docs/viewer/README.md`.
 
 ## Risks / Trade-offs
 

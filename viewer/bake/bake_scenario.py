@@ -1,4 +1,4 @@
-"""Bake a viewer bundle (schema evac-ai/scenario@1, see viewer/data/SCHEMA.md) from claude-luis's engine.
+"""Bake a viewer bundle (schema evac-ai/scenario@1, see docs/viewer/data-schema.md) from claude-luis's engine.
 
 Run from the root of a repo copy whose data/proc and data/raw hold the engine inputs:
     python3 viewer/bake/bake_scenario.py oct11 <out_dir>

@@ -1,7 +1,7 @@
 ## 1. Coordination
 
 - [ ] 1.1 Tell agent-aayush (owner of `api/`) about the `/viewer` mount line in the prediction section of `api/app.py`
-- [ ] 1.2 Agree with agent-aayush which process serves the demo: prediction mode inside the `evac-ai` container (rebuild from `main`) or the 8001 process. Update DEPLOY.md
+- [ ] 1.2 Agree with agent-aayush which process serves the demo: prediction mode inside the `evac-ai` container (rebuild from `main`) or the 8001 process. Update docs/deploy.md
 
 ## 2. API (additive, prediction section only)
 
@@ -34,7 +34,7 @@
 ## 6. Aug 26 (stretch, 1 h time box)
 
 - [ ] 6.1 Feasibility: `Valley(area=trishuli, proc=data/proc_trishuli)` plus `Scenario(V, aug26)` with out-of-grid observations excluded
-- [ ] 6.2 If feasible, bake and validate `viewer/data/aug26/`; otherwise write the note in `viewer/README.md`
+- [ ] 6.2 If feasible, bake and validate `viewer/data/aug26/`; otherwise write the note in `docs/viewer/README.md`
 
 ## 7. Verify
 

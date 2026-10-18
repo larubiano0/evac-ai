@@ -81,7 +81,7 @@ def main():
                         "arrival_knots": ak, "arrival_observations": used,
                         "height_knots": [(k["km"], k["height_m"]) for k in env["knots"]],
                         "height_notes": [env["method"] + " (" + env["note"].split(".")[0] + ")"],
-                        "sources": rep["sources"] + ["OSM damage:event=2026NepalFlood (HOT), see data/docs/osm_damage_labels.md"]}
+                        "sources": rep["sources"] + ["OSM damage:event=2026NepalFlood (HOT), see docs/data/osm_damage_labels.md"]}
     for k, p in presets.items():
         if len(p["arrival_knots"]) < 2:
             raise RuntimeError(f"{k}: fewer than 2 arrival knots")

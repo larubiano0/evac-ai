@@ -9,7 +9,7 @@ On **Oct 11, 2026 (Budhi Gandaki, Gorkha)** a relayed phone warning reached Dhar
 official SMS went out at 06:40, after the first wave hit Arughat (about 06:30). On **Aug 26, 2026
 (Bhotekoshi–Trishuli, Rasuwa/Nuwakot)** four gauges were destroyed, DHM learned of the flood by phone, and the
 SMS was generic, Nepali-only and gave no time-to-impact. Background and sources:
-[`nepal-disaster-research.md`](nepal-disaster-research.md).
+[`docs/idea/nepal-disaster-research.md`](docs/idea/nepal-disaster-research.md).
 
 evac-ai turns **one upstream observation** (a report, a gauge going silent, a pin on the map) into a
 **per-settlement action plan within seconds**: when the wave arrives, how high it gets, how long it takes to
@@ -32,19 +32,19 @@ A settlement is **red** if any of its at-risk buildings has slack < 0, **amber**
 | Flood envelope | [`engine/flood.py`](engine/flood.py) | Not a hydrodynamic model. Two 1-D curves along river km: arrival time and peak height, linearly interpolated between calibration knots from a replay file, with ±25 % time and ±30 % height bands. Height decays exponentially toward a 3 m floor beyond the last knot |
 | Time to safety | [`engine/safety.py`](engine/safety.py) | GRASS **r.walk** (Naismith/Langmuir anisotropic walking cost) on the **negated** DEM, with safe cells as the start, so each step has the same climb as the real escape. The flood channel is a barrier except at OSM bridge cells. Traces a walking route to safe ground from `r.walk`'s direction output |
 | Scenario runner | [`engine/scenario.py`](engine/scenario.py) | Per OSM building: in the footprint or not, arrival, walk time, slack. Per settlement (buildings within 3 km of an OSM place): people at risk (4 per building, an assumption), people without time, status, alert rank, escape route. Bridges at risk = OSM bridges in the footprint or on the path |
-| Template alerts | [`engine/alerts.py`](engine/alerts.py) | No LLM. English and Nepali, short (1 SMS / Meshtastic / cell-broadcast page) and full (plan page). **The Nepali text is a draft** (`NE_REVIEWED = False`) until our Nepali reader signs off |
+| Template alerts | [`engine/alerts.py`](engine/alerts.py) | No LLM. English and Nepali, short (1 SMS / Meshtastic / cell-broadcast page) and full (plan page). The Nepali text was reviewed by a native Nepali reader on our team (`NE_REVIEWED = True`) |
 | API | [`api/app.py`](api/app.py) | FastAPI. Keeps the valley in memory and caches scenarios. Endpoints below |
 | Map UI | [`web/index.html`](web/index.html) | Leaflet 2D: trigger comparison ("who had time to escape?"), warning-time box, wave-clock slider, footprint, ranked alert list with EN/NE alerts, bridges at risk, green dashed escape routes, click-to-place new trigger |
 | Resident "Go" view | [`web/go.html`](web/go.html), [`web/go-sw.js`](web/go-sw.js) | `/go`: for someone in a panic on a phone. Location from GPS (or `?lat=&lon=&t=` for demos, or a tap), one big instruction (GO UPHILL NOW / HURRY / YOU ARE SAFE HERE), countdown, leave-by time, arrow and route to the safe place, EN/नेपाली. Uses the prediction API read-only. Works offline (below) |
 | Replays | [`replay/oct11.json`](replay/oct11.json), [`replay/aug26.json`](replay/aug26.json) | Event timelines: source point, burst time and band, warning triggers, observations (each marked `calibration` or `excluded` with a note and a source), reported damage, source URLs |
 | Terrain build | [`pipeline/`](pipeline/) | DEM + OSM download, GRASS `r.watershed` build per valley ([`build_valley.sh`](pipeline/build_valley.sh)), GRASS wrapper [`g.sh`](pipeline/g.sh), `r.walk` direction test |
-| Study-area data | [`data/`](data/README.md), [`scripts/`](scripts/) | Committed, clipped layers for Gorkha/Rasuwa/Nuwakot: Copernicus DEM, WorldPop, OSM (incl. Aug 26 damage labels), 2015 landslides, DHM feed snapshot. Fetch/extract scripts |
+| Study-area data | [`data/`](docs/data/README.md), [`scripts/`](scripts/) | Committed, clipped layers for Gorkha/Rasuwa/Nuwakot: Copernicus DEM, WorldPop, OSM (incl. Aug 26 damage labels), 2015 landslides, DHM feed snapshot. Fetch/extract scripts |
 | Container | [`scripts/docker_run.sh`](scripts/docker_run.sh) | Runs the `evac-ai:latest` image on L1CC, serving on `127.0.0.1:8000` |
 
 **Done since:** the ML building-damage model (`engine/damage_model.py` + `models/damage/`, packet B), prediction
 mode (`web/predict.html`, "where should I go?"), the Three.js replay (`viewer/`) and validation (D,
-[`docs/validation.md`](docs/validation.md)). **In progress** (see [`AGENTS.md`](AGENTS.md)): showing `p_destroyed` in
-`/api/scenario` and the map, and serving the Aug 26 replay from the API (validation already runs it on the Trishuli build).
+[`docs/validation.md`](docs/validation.md)), `p_destroyed` in `/api/scenario` and the planner map, and the what-if map on
+the Telum accelerator. **Not done:** serving the Aug 26 replay from the planner API (validation runs it on the Trishuli build).
 
 ### API
 
@@ -110,7 +110,7 @@ ssh -L 8000:localhost:8000 linux1@<VM_IP>
 
 Then browse to <http://localhost:8000>. The VM IP and key are shared in the team chat, never in this repo.
 
-The image is built from [`Dockerfile`](Dockerfile) (`sudo docker build -t evac-ai:latest .` on the VM, ~91 s). Ubuntu 24.04 s390x, with the scientific stack and GRASS from apt. `data/` is mounted at runtime. `models/` is not in the image yet, so the damage model and prediction mode run bare-metal for now.
+The image is built from [`Dockerfile`](Dockerfile) (`sudo docker build -t evac-ai:latest .` on the VM, ~91 s). Ubuntu 24.04 s390x, with the scientific stack and GRASS from apt. `data/` is mounted at runtime. The image includes `models/` and compiles `escape_search.c` and the zDNN bridge (`scripts/nnpa/zdnn_mlp.c`), so the planner, prediction mode and the what-if map all run in the container.
 
 ### Bare metal, on L1CC
 
@@ -135,7 +135,7 @@ bash scripts/api_smoke.sh
 
 ### Re-creating the committed study-area data (laptop)
 
-See [`data/README.md`](data/README.md). The OSM extract, landslide inventory and WorldPop crop need packages
+See [`docs/data/README.md`](docs/data/README.md). The OSM extract, landslide inventory and WorldPop crop need packages
 without s390x wheels (`requirements-extract.txt`), so they run on a laptop and the outputs are committed.
 
 ---
@@ -172,8 +172,8 @@ Two real 2026 floods, five timed observations and one set of volunteer damage ta
   - New scenario: **5.1 s** (r.walk 4.7 s; Aug 26 grid: 10.8 s).
   - Cached response with all alerts: **0.03 s**.
   - Prediction mode "where should I go?" query: **2–5 ms**.
-- The short Nepali alert is 62–69 characters, so it fits one UCS-2 SMS (≤161 bytes) and a Meshtastic payload. It is
-  still a draft (`NE_REVIEWED = False`).
+- The short Nepali alert is 62–69 characters, so it fits one UCS-2 SMS (≤161 bytes) and a Meshtastic payload. It was reviewed by a native
+  Nepali reader on the team (`NE_REVIEWED = True`).
 
 ---
 
@@ -193,7 +193,7 @@ Two real 2026 floods, five timed observations and one set of volunteer damage ta
 - **The planner API serves the Budhi Gandaki valley only.** `/api/scenario?replay=aug26` returns 501 rather than running on the wrong grid.
   The Aug 26 numbers come from `docs/validation/run_aug26.py` on `data/proc_trishuli`. Prediction mode (`/api/predict/*`) has both valleys.
 - **New triggers reuse the curves calibrated on a replay.** A different valley or failure type can behave very differently.
-- **Nepali alert text is an unreviewed draft.** The DHM live feed and BIPAD are recorded or probed, but **not yet used as live triggers**.
+- **Nepali alert text was reviewed by one teammate**, not by DHM or NDRRMA. The DHM live feed and BIPAD are recorded or probed, but **not yet used as live triggers**.
 - **This is a research prototype, not an official warning service.** DHM can't legally order evacuations, and neither can this.
 
 ---
@@ -214,6 +214,10 @@ All code was written during the event. Everything below is third-party.
 | [DHM, Government of Nepal](https://hydrology.gov.np) | Gauge locations and warning/danger levels, live-feed snapshots (`scripts/record_dhm.py`) | Public website, no stated license; attribution to DHM |
 | [BIPAD Portal API](https://bipadportal.gov.np/api/v1/) | Probed for river, rain, incident and alert data (not yet used by the app) | Public API, Government of Nepal (NDRRMA) |
 | Event reports: [Wikipedia timeline of the 2026 Nepal–Tibet floods](https://en.wikipedia.org/wiki/Timeline_of_the_2026_Nepal%E2%80%93Tibet_floods), [2026 Budhi Gandaki flood](https://en.wikipedia.org/wiki/2026_Budhi_Gandaki_flood), NDRRMA/BWSN SitReps, Kathmandu Post, Onlinekhabar, Mongabay, ICIMOD | Replay timelines and calibration points (each URL is in the `sources` of the replay file) | Cited as sources; Wikipedia text is CC BY-SA 4.0 |
+| [UNOSAT](https://unosat.org/products) FL20260826NPL, FL20261011NPL (via [HDX](https://data.humdata.org/dataset/2026-nepal-flash-flood)), FL20230912LBY (Derna) | Satellite flood/debris extents: training labels for the flood-area model (`area_fb`), Derna as a test flood | CC BY-SA (HDX), "UNITAR-UNOSAT" |
+| [Copernicus EMS EMSR517](https://mapping.emergency.copernicus.eu/activations/EMSR517) (Ahr 2021) | Test flood for the flood-area model | Free with attribution, "© 2021 European Union, EMSR517" |
+| [Ahr building damage, Samprogna Mohor et al. 2025](https://doi.org/10.4121/8f7a21d3-9bb9-4808-ae51-761eb3fba986) (4TU.ResearchData) | Extra damage labels for the leave-one-flood-out test of the damage model | ODbL 1.0 |
+| [Sentinel Asia](https://sentinel-asia.org/) (JAXA ALOS-2, MBRSC Sentinel-2), [HOT flood extent](https://data.humdata.org/dataset/hot_flood_npl) | Cross-checks of the UNOSAT maps only | Per provider; see [docs/data/events/](docs/data/events/) |
 | Map tiles: [OpenStreetMap](https://www.openstreetmap.org/copyright), [OpenTopoMap](https://opentopomap.org/about), [Esri World Imagery](https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9) | UI basemaps | OSM: ODbL / © OSM contributors. OpenTopoMap: CC BY-SA. Esri: Esri terms of use, attribution |
 
 ### Software
@@ -227,7 +231,13 @@ All code was written during the event. Everything below is third-party.
 | [Leaflet 1.9.4](https://leafletjs.com/) | Map UI | BSD-2-Clause |
 | [NumPy](https://numpy.org/), [SciPy](https://scipy.org/) | Arrays, KD-tree, distance transform | BSD-3-Clause |
 | [rasterio](https://rasterio.readthedocs.io/), [pyproj](https://pyproj4.github.io/pyproj/), [Shapely](https://shapely.readthedocs.io/) | Raster I/O, coordinate transforms, footprint polygons | BSD-3-Clause / MIT / BSD-3-Clause |
-| [scikit-learn](https://scikit-learn.org/) | Damage model (packet B, in progress) | BSD-3-Clause |
+| [scikit-learn](https://scikit-learn.org/), [joblib](https://joblib.readthedocs.io/) | Building damage model and flood-area model (HistGradientBoosting), model files | BSD-3-Clause |
+| [IBM zDNN](https://github.com/IBM/zDNN) (`libzdnn`, Ubuntu apt) | Runs the neural what-if model on the z17 Telum on-chip AI accelerator ([docs/linuxone-ai.md](docs/linuxone-ai.md)) | Apache-2.0 |
+| [IBM Snap ML](https://pypi.org/project/snapml/) | Benchmark only (`scripts/nnpa/`), not used by the app | IBM, see PyPI |
+| [geopandas](https://geopandas.org/), [Pillow](https://python-pillow.org/) | Satellite flood-extent tables (laptop); PNG overlays | BSD-3-Clause / MIT-CMU |
+| [Three.js r165](https://threejs.org/) | 3D replay viewer (`viewer/`, vendored with its licence) | MIT |
+| [IBM Plex](https://github.com/IBM/plex) via Google Fonts | UI typeface | SIL OFL 1.1 |
+| [websocket-client](https://github.com/websocket-client/websocket-client), headless [Chrome](https://www.google.com/chrome/), [FFmpeg](https://ffmpeg.org/) | Recording the demo video (`docs/submission/video/record_demo.py`) | Apache-2.0 / Chrome terms / LGPL-2.1+ |
 | [tifffile](https://github.com/cgohlke/tifffile), [imagecodecs](https://github.com/cgohlke/imagecodecs) | Byte-order-safe GeoTIFF reads; WorldPop decode | BSD-3-Clause |
 | [requests](https://requests.readthedocs.io/), [python-socketio](https://github.com/miguelgrinberg/python-socketio) 4.x | Data fetch; DHM Socket.IO feed recorder | Apache-2.0 / MIT |
 | [pyosmium](https://osmcode.org/pyosmium/), [pyshp](https://github.com/GeospatialPython/pyshp) | OSM extract, landslide shapefile (laptop only) | BSD-2-Clause / MIT |
@@ -250,9 +260,14 @@ web/        Leaflet UI
 replay/     event timelines (oct11, aug26)
 pipeline/   DEM/OSM fetch and GRASS terrain build per valley
 scripts/    study-area data fetch/extract, DHM recorder, serve/smoke/docker scripts
-data/       committed study-area layers + docs (raw/ is gitignored; proc*/ and grassdb/ are built on the VM, not committed)
+data/       committed study-area layers (raw/ is gitignored; proc*/ and grassdb/ are built on the VM, not committed)
+models/     trained model files (damage, area, surrogate)
+viewer/     Three.js 3D replay
+docs/       all documentation: idea, research, architecture, data and sources, models, validation, deployment, submission
 ```
 
+**Documentation index:** [`docs/README.md`](docs/README.md) (from the idea to the sources). Full source list: [`docs/sources.md`](docs/sources.md).
+
 **Team agents and teammates:** start with [`AGENTS.md`](AGENTS.md) (who's doing what, plus the task board), then
-[`latinos-ibmz-datathon-plan.md`](latinos-ibmz-datathon-plan.md) (spec) and
-[`nepal-disaster-research.md`](nepal-disaster-research.md) (background).
+[`docs/idea/project-plan.md`](docs/idea/project-plan.md) (spec) and
+[`docs/idea/nepal-disaster-research.md`](docs/idea/nepal-disaster-research.md) (background).
