@@ -21,6 +21,7 @@ steps are in the [main README](../README.md).
 - [data/events/](data/events/): satellite flood extents and the other floods used to train and test the models (`DATASETS_flood_extent.md`, one `SOURCES_*.md` per event).
 
 ## 5. Models
+- [models/README.md](models/README.md): **start here.** A plain-language overview of all four pieces, how they fit together, honest results and limits.
 - [models/damage.md](models/damage.md): building and bridge damage model (labels, features, spatial holdout, results).
 - [models/area.md](models/area.md): flood-area model `area_fb` on satellite flood maps (the per-cell risk map).
 - [models/surrogate.md](models/surrogate.md): the neural stand-in that runs on the Telum accelerator.
