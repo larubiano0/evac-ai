@@ -122,6 +122,17 @@ Then browse to <http://localhost:8000>. The VM IP and key are shared in the team
 
 The image is built from [`Dockerfile`](Dockerfile) (`sudo docker build -t evac-ai:latest .` on the VM, ~91 s). Ubuntu 24.04 s390x, with the scientific stack and GRASS from apt. `data/` is mounted at runtime. The image includes `models/` and compiles `escape_search.c` and the zDNN bridge (`scripts/nnpa/zdnn_mlp.c`), so the planner, prediction mode and the what-if map all run in the container.
 
+### Interactive 3D flood replay (runs locally)
+
+The separate [Three.js viewer](viewer/) replays the Oct 11 flood over the real terrain, with 2D/3D views, a time slider, settlement states and a time-to-safety heat map. Its precomputed replay data is committed in [`viewer/data/oct11/`](viewer/data/oct11/), so anyone can try it without a VM login or a data build:
+
+```bash
+cd viewer
+python3 -m http.server 8090 --bind 127.0.0.1
+```
+
+Open <http://localhost:8090/?scenario=oct11&view=3d>. This is a visual replay of the scenario output, not a live hydrodynamic simulation. See the [viewer guide](docs/viewer/README.md) for controls and data provenance.
+
 ### Bare metal, on L1CC
 
 ```bash

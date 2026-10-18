@@ -15,6 +15,19 @@ Title: `Latinos_IBM Z Datathon 2026 Project` · submit on Hack2Skill by **Sun Oc
 Judging (10 points each): community value / "Real-Time AI for Critical Decisions", novelty, **technical design and use
 of LinuxONE + open-source AI/ML with screenshots as evidence**, execution and pitch.
 
+## Interactive 3D replay — separate judge demo
+
+The repo includes a [2D/3D Three.js flood replay](../../viewer/) of the Oct 11 Budhi Gandaki scenario. It shows the flood advancing over the real terrain, settlement status, walking-time/slack layers and the difference between warning times. The replay data is [committed with the viewer](../../viewer/data/oct11/): judges can run it on a laptop without the VM, credentials or a terrain build.
+
+```bash
+cd viewer
+python3 -m http.server 8090 --bind 127.0.0.1
+```
+
+Open <http://localhost:8090/?scenario=oct11&view=3d>. Use the time slider or Space to play; switch between 2D and 3D in the viewer. This is a visual replay of scenario output computed from the terrain and observed flood timing, not a live hydrodynamic simulation. [Viewer guide and controls](../viewer/README.md).
+
+**Submission note:** the committed 1:48 [demo video](video/demo.mp4) does not show this separate viewer. Include the viewer link and these run steps in the written submission, or capture a short viewer clip if the final video is still being edited.
+
 ## Screenshots
 
 All are 1920×1080 stills from the demo recording, taken from the running app on the L1CC VM.
