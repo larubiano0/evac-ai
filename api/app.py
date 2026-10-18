@@ -226,6 +226,16 @@ def predict_page():
     return FileResponse(f"{ROOT}/web/predict.html")
 
 
+@app.get("/go")
+def go_page():                                    # resident "Go" view (agent-aayush-go): GPS, one instruction, offline
+    return FileResponse(f"{ROOT}/web/go.html", headers={"Cache-Control": "no-cache"})
+
+
+@app.get("/go-sw.js")
+def go_sw():                                      # its service worker, served from / so it may control /go
+    return FileResponse(f"{ROOT}/web/go-sw.js", media_type="text/javascript", headers={"Cache-Control": "no-cache"})
+
+
 @app.get("/")
 def index():
     return FileResponse(f"{ROOT}/web/index.html")

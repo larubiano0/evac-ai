@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111">
+<title>Go: Time to Safety</title>
+<link rel="icon" href="data:,">
+<!-- resident "Go" view (agent-aayush-go): one instruction, your location, works offline. Reads /api/predict/* only. -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+<style>
+  :root { --bg: #111; --fg: #fff; --stay: #15803d; --leave: #c2410c; --hurry: #dc2626; --run: #b91c1c; --climb: #7f1d1d; --wait: #374151; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg);
+    font: 16px/1.3 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Devanagari", sans-serif; }
+  body { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
+  #card { padding: 12px 16px 14px; background: var(--wait); transition: background .3s; flex: none; }
+  #card.stay { background: var(--stay); } #card.leave { background: var(--leave); } #card.hurry { background: var(--hurry); }
+  #card.run, #card.climb { background: var(--run); animation: pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse { 50% { background: var(--climb); } }
+  .top { display: flex; align-items: center; gap: 8px; font-size: 13px; opacity: .92; }
+  .top .brand { font-weight: 700; letter-spacing: .02em; }
+  .top .net { margin-left: auto; display: flex; align-items: center; gap: 5px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #4ade80; }
+  .net.off .dot { background: #fbbf24; }
+  #lang { font: inherit; font-weight: 700; color: #111; background: #fff; border: 0; border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+  #big { font-size: 40px; font-weight: 900; line-height: 1.02; margin: 10px 0 6px; text-transform: uppercase; letter-spacing: -.01em; }
+  #line { font-size: 19px; font-weight: 600; }
+  #row { display: flex; gap: 10px; margin-top: 12px; }
+  #row[hidden] { display: none; }
+  .box { flex: 1; background: rgba(0,0,0,.28); border-radius: 12px; padding: 8px 10px; min-width: 0; }
+  .box .n { font-size: 25px; font-weight: 900; white-space: nowrap; font-variant-numeric: tabular-nums; line-height: 1.05; }
+  .box .l { font-size: 13px; opacity: .9; }
+  #compass { flex: none; width: 96px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  #arrow { width: 54px; height: 54px; transition: transform .4s; }
+  #dist { font-size: 15px; font-weight: 800; margin-top: 2px; }
+  #map { flex: 1; min-height: 0; background: #ddd; }
+  #foot { flex: none; font-size: 12.5px; padding: 6px 16px calc(6px + env(safe-area-inset-bottom)); background: #111; color: #d1d5db;
+    display: flex; gap: 8px; align-items: center; }
+  #foot span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #foot #when { margin-left: auto; flex: none; }
+  .youdot { width: 20px; height: 20px; border-radius: 50%; background: #2563eb; border: 3px solid #fff; box-shadow: 0 0 0 6px rgba(37,99,235,.3); }
+  .flag { font: 800 13px system-ui, sans-serif; color: #111; background: #4ade80; border: 2px solid #111; border-radius: 8px; padding: 2px 7px; white-space: nowrap; }
+  .leaflet-container { font: inherit; }
+  @media (min-width: 700px) { body { max-width: 480px; margin: 0 auto; box-shadow: 0 0 0 1px #333; } }
+</style>
+</head>
+<body>
+<div id="card" class="wait" role="status" aria-live="assertive">
+  <div class="top">
+    <span class="brand">Time to Safety</span>
+    <span class="net" id="net"><span class="dot"></span><span id="net-t">Online</span></span>
+    <button id="lang" type="button" aria-label="Change language">नेपाली</button>
+  </div>
+  <div id="big">…</div>
+  <div id="line"></div>
+  <div id="row" hidden>
+    <div class="box"><div class="n" id="cd">–</div><div class="l" id="cd-l"></div></div>
+    <div class="box"><div class="n" id="lb">–</div><div class="l" id="lb-l"></div></div>
+    <div class="box" id="compass">
+      <svg id="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l7 18-7-4-7 4z" fill="#fff" stroke="#111" stroke-width="1.2" stroke-linejoin="round"/></svg>
+      <div id="dist">–</div>
+    </div>
+  </div>
+</div>
+<div id="map" aria-label="Map with your way to safety"></div>
+<div id="foot"><span id="src"></span><span id="when"></span></div>
+
+<script>
+// ---------- words (EN + Nepali; Nepali is the UI author's draft) ----------
+const T = {
+  en: { lang: "नेपाली", online: "Online", offline: "Offline: saved route",
+        locating: "Finding where you are…", locating_l: "Allow location. Or tap where you are on the map.",
+        tap: "Tap where you are", tap_l: "We could not get your location. Tap the map.",
+        loading: "Getting flood data…", loading_l: "The first time can take up to a minute.",
+        noserver: "No connection", noserver_l: "Go uphill, away from the river. Reconnect to get your route.",
+        outside: "Outside the map", outside_l: "Tap a place in the valley.",
+        stay: "You are safe here", stay_l: "Stay here, away from the river.",
+        leave: "Go uphill now", hurry: "Hurry uphill", run: "Run uphill now", climb: "Climb now",
+        walk_l: m => `Walk ${m} to the green flag.`, hurry_l: m => `Walk fast: ${m} to the green flag.`,
+        run_l: m => `Run: ${m} to the green flag.`, climb_l: "Climb as high as you can, away from the river.",
+        flat: "Go now", here: "Safe place", arrived: "You reached safe ground", arrived_l: "Stay here, away from the river.",
+        late: "Climb higher now", late_l: "The flood may be here. Get as high as you can.",
+        cd_l: "until the flood reaches you", cd_now: "flood may be here now", lb_l: "leave by", lb_now: "leave now",
+        min: n => `${n} min`, gps: a => `GPS ±${a} m`, demo: "Demo location", tapped: "Location you tapped",
+        start: h => `flood started ${h}`, saved: h => `answer from ${h}` },
+  ne: { lang: "EN", online: "अनलाइन", offline: "अफलाइन: सुरक्षित गरिएको बाटो",
+        locating: "तपाईं कहाँ हुनुहुन्छ खोज्दै…", locating_l: "लोकेसन दिनुहोस्, वा नक्सामा आफू भएको ठाउँ थिच्नुहोस्।",
+        tap: "आफू भएको ठाउँ थिच्नुहोस्", tap_l: "तपाईंको लोकेसन भेटिएन। नक्सामा थिच्नुहोस्।",
+        loading: "बाढीको जानकारी ल्याउँदै…", loading_l: "पहिलो पटक एक मिनेटसम्म लाग्न सक्छ।",
+        noserver: "इन्टरनेट छैन", noserver_l: "नदीबाट टाढा, माथि जानुहोस्। बाटो हेर्न फेरि जोडिनुहोस्।",
+        outside: "नक्साभन्दा बाहिर", outside_l: "उपत्यकाभित्रको ठाउँ थिच्नुहोस्।",
+        stay: "तपाईं यहाँ सुरक्षित हुनुहुन्छ", stay_l: "यहीँ बस्नुहोस्, नदीबाट टाढा।",
+        leave: "अहिले नै माथि जानुहोस्", hurry: "छिटो माथि जानुहोस्", run: "अहिले नै माथि दौडनुहोस्", climb: "अहिले नै माथि चढ्नुहोस्",
+        walk_l: m => `हरियो झण्डासम्म ${m} हिँड्नुहोस्।`, hurry_l: m => `छिटो हिँड्नुहोस्: हरियो झण्डासम्म ${m}।`,
+        run_l: m => `दौडनुहोस्: हरियो झण्डासम्म ${m}।`, climb_l: "नदीबाट टाढा, सकेसम्म माथि चढ्नुहोस्।",
+        flat: "अहिले नै जानुहोस्", here: "सुरक्षित ठाउँ", arrived: "तपाईं सुरक्षित ठाउँमा पुग्नुभयो", arrived_l: "यहीँ बस्नुहोस्, नदीबाट टाढा।",
+        late: "अझ माथि चढ्नुहोस्", late_l: "बाढी आइपुगेको हुन सक्छ। सकेसम्म माथि जानुहोस्।",
+        cd_l: "पछि बाढी तपाईंकहाँ आइपुग्छ", cd_now: "बाढी आइपुगेको हुन सक्छ", lb_l: "भित्र निस्कनुहोस्", lb_now: "अहिले नै निस्कनुहोस्",
+        min: n => `${n} मिनेट`, gps: a => `GPS ±${a} मि.`, demo: "डेमो लोकेसन", tapped: "तपाईंले थिचेको ठाउँ",
+        start: h => `बाढी सुरु ${h}`, saved: h => `${h} को जानकारी` },
+};
+const NE_DIGITS = "०१२३४५६७८९";
+let lang = (() => { try { return localStorage.getItem("go.lang") || "en"; } catch { return "en"; } })();
+const num = s => lang === "ne" ? String(s).replace(/[0-9]/g, d => NE_DIGITS[d]) : String(s);
+const w = k => T[lang][k];
+const mins = m => num(w("min")(m < 1 ? "<1" : Math.round(m)));
+const hhmm = ms => num(new Date(ms).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }));
+const els = id => document.getElementById(id);
+
+// ---------- state ----------
+const Q = new URLSearchParams(location.search);
+const qLat = parseFloat(Q.get("lat")), qLon = parseFloat(Q.get("lon"));
+const DEMO = Number.isFinite(qLat) && Number.isFinite(qLon);
+const loadedAt = Date.now();
+const T0 = Number.isFinite(parseFloat(Q.get("t"))) ? parseFloat(Q.get("t")) : 0;   // flood minutes at page load
+const floodStart = loadedAt - T0 * 60000;                       // 1 real minute = 1 flood minute
+const tNow = () => (Date.now() - floodStart) / 60000;
+let pos = null, src = null, scen = null, ans = null, ansAt = 0, ansPos = null, online = navigator.onLine;
+let srcAcc = null, heading = null, asking = false, lastAsk = 0;
+
+function save() {
+  try { localStorage.setItem("go.last", JSON.stringify({ ans, ansAt, ansPos, floodStart, scen: scen && { sid: scen.sid, valley: scen.valley, p_overlay: scen.p_overlay } })); } catch {}
+}
+function restore() {
+  try {
+    const s = JSON.parse(localStorage.getItem("go.last") || "null");
+    if (s && s.ans) { ans = s.ans; ansAt = s.ansAt; ansPos = s.ansPos; if (!scen && s.scen) scen = s.scen; return s; }
+  } catch {}
+  return null;
+}
+
+// ---------- map ----------
+const map = L.map("map", { zoomControl: false, attributionControl: true }).setView([28.29, 84.9], 13);
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18, crossOrigin: true, attribution: "© OpenStreetMap" }).addTo(map);
+const lay = { overlay: null, route: L.layerGroup().addTo(map), you: null };
+map.on("click", e => setPos(e.latlng.lat, e.latlng.lng, null, "tap"));
+
+// ---------- geometry ----------
+const R = 6371000, rad = d => d * Math.PI / 180;
+function dist(a, b) {
+  const dl = rad(b.lat - a.lat), dn = rad(b.lon - a.lon);
+  const h = Math.sin(dl / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dn / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+function bearing(a, b) {
+  const y = Math.sin(rad(b.lon - a.lon)) * Math.cos(rad(b.lat));
+  const x = Math.cos(rad(a.lat)) * Math.sin(rad(b.lat)) - Math.sin(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.cos(rad(b.lon - a.lon));
+  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+}
+const route = a => a && a.path ? a.path.concat(a.path_into_zone || []) : [];
+const goal = a => a && (a.go_here || a.destination);
+// next point to head for: the first route point past the one nearest to you that is >= 25 m away; then distance left
+function guide(a, p) {
+  const pts = route(a), g = goal(a);
+  if (!pts.length || !g) return null;
+  let i = 0, best = Infinity;
+  pts.forEach((q, k) => { const d = dist(p, q); if (d < best) { best = d; i = k; } });
+  let k = i; while (k < pts.length - 1 && dist(p, pts[k]) < 25) k++;
+  let left = dist(p, pts[k]); for (let j = k; j < pts.length - 1; j++) left += dist(pts[j], pts[j + 1]);
+  return { to: pts[k], left, atGoal: dist(p, g) < 30 };
+}
+
+// ---------- location ----------
+function setPos(lat, lon, acc, how) {
+  // a demo/tapped spot wins over a GPS fix far away (a laptop outside Nepal); a GPS fix nearby takes over
+  if ((src === "demo" || src === "tap") && how === "gps" && dist(pos, { lat, lon }) > 30000) return;
+  const first = !pos;
+  pos = { lat, lon }; src = how; srcAcc = acc;
+  const ll = [lat, lon];
+  if (first && !ans) map.setView(ll, 16, { animate: false });
+  if (!lay.you) lay.you = L.marker(ll, { icon: L.divIcon({ className: "", html: '<div class="youdot"></div>', iconSize: [20, 20], iconAnchor: [10, 10] }), keyboard: false, zIndexOffset: 900 }).addTo(map);
+  else lay.you.setLatLng(ll);
+  const moved = !ansPos || dist(ansPos, pos) > 20;
+  if (how !== "gps" || moved) ask(how !== "gps");
+  render();
+}
+if (DEMO) setPos(qLat, qLon, null, "demo");
+if ("geolocation" in navigator) {
+  navigator.geolocation.watchPosition(p => setPos(p.coords.latitude, p.coords.longitude, p.coords.accuracy, "gps"),
+    () => { if (!pos && !ans) show("wait", w("tap"), w("tap_l")); },
+    { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 });
+}
+// phone compass (absolute heading where the browser gives one); laptops keep north-up
+addEventListener("deviceorientationabsolute", e => { if (e.alpha != null) { heading = 360 - e.alpha; render(); } });
+addEventListener("deviceorientation", e => { if (e.webkitCompassHeading != null) { heading = e.webkitCompassHeading; render(); } });
+
+// ---------- API (read-only use of lcpizani's prediction API) ----------
+async function post(url, body) {
+  const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  let j = {}; try { j = await r.json(); } catch {}
+  if (!r.ok) { const e = new Error(j.detail || r.statusText); e.status = r.status; throw e; }
+  return j;
+}
+function valleyFor(p) {                                         // which modelled valley you are in
+  if (Q.get("valley")) return Q.get("valley");
+  return (p.lon > 85.0 && p.lat < 28.35) ? "trishuli" : "budhi";
+}
+async function loadScenario(valley) {
+  if (!ans) show("wait", w("loading"), w("loading_l"));
+  let preset = Q.get("preset");
+  if (!preset) {
+    const o = await (await fetch("/api/predict/options")).json();
+    preset = o.valleys[valley].default_preset;
+  }
+  const s = await post("/api/predict/scenario", { valley, preset });
+  scen = { sid: s.sid, valley, p_overlay: s.p_overlay };
+  drawOverlay();
+}
+async function ask(force) {
+  if (!pos || asking) return;
+  if (!force && Date.now() - lastAsk < 15000) return;
+  asking = true; lastAsk = Date.now();
+  const at = { ...pos };
+  try {
+    const v = valleyFor(at);
+    if (!scen || scen.valley !== v || !scen.p_overlay) await loadScenario(v);
+    let r;
+    try { r = await post("/api/predict/escape", { sid: scen.sid, lon: at.lon, lat: at.lat, minutes_after_start: Math.round(tNow() * 10) / 10, can_run: true }); }
+    catch (e) { if (e.status !== 404) throw e; await loadScenario(v); r = await post("/api/predict/escape", { sid: scen.sid, lon: at.lon, lat: at.lat, minutes_after_start: Math.round(tNow() * 10) / 10, can_run: true }); }
+    ans = r; ansAt = Date.now(); ansPos = at; setNet(true);
+    save(); render(); drawRoute(true); prefetchTiles();
+  } catch (e) {
+    setNet(false);
+    if (!ans) restore() ? (render(), drawOverlay(), drawRoute(true)) : show("wait", w("noserver"), w("noserver_l"));
+  } finally { asking = false; render(); }
+}
+setInterval(() => { if (pos) ask(false); render(); }, 5000);  // countdown ticks; re-ask every 15 s while online
+addEventListener("online", () => { setNet(true); ask(true); });
+addEventListener("offline", () => setNet(false));
+function setNet(on) {
+  online = on;
+  els("net").classList.toggle("off", !on);
+  els("net-t").textContent = on ? w("online") : w("offline");
+}
+
+// ---------- drawing ----------
+function drawOverlay() {
+  if (!scen || !scen.p_overlay) return;
+  if (lay.overlay) map.removeLayer(lay.overlay);
+  lay.overlay = L.imageOverlay(scen.p_overlay.url, scen.p_overlay.bounds, { opacity: .45, interactive: false }).addTo(map);
+}
+function drawRoute(fit) {
+  lay.route.clearLayers();
+  const pts = route(ans).map(p => [p.lat, p.lon]), g = goal(ans);
+  if (pts.length) {
+    if (ansPos) pts.unshift([ansPos.lat, ansPos.lon]);
+    L.polyline(pts, { color: "#111", weight: 11, opacity: .85, lineCap: "round", lineJoin: "round" }).addTo(lay.route);
+    L.polyline(pts, { color: "#fff", weight: 6, lineCap: "round", lineJoin: "round" }).addTo(lay.route);
+  }
+  if (g && ans.status === "route" || g && ans.status === "no_route") {
+    L.marker([g.lat, g.lon], { keyboard: false, zIndexOffset: 800, icon: L.divIcon({ className: "", html: `<span class="flag">⚑ ${w("here")}</span>`, iconSize: null, iconAnchor: [8, 26] }) }).addTo(lay.route);
+  }
+  if (fit && ansPos) {
+    map.invalidateSize();                                        // the card above may have changed height
+    const b = L.latLngBounds([[ansPos.lat, ansPos.lon]].concat(pts));
+    map.fitBounds(b.pad(.6), { maxZoom: 16, animate: false });
+  }
+}
+// cache the map around you and your route for offline use (the service worker stores what we fetch here)
+function prefetchTiles() {
+  if (!navigator.serviceWorker || !navigator.serviceWorker.controller || !ansPos) return;
+  const pts = route(ans).concat([ansPos]);
+  const lat = pts.map(p => p.lat), lon = pts.map(p => p.lon), pad = 0.006;
+  const box = [Math.min(...lat) - pad, Math.min(...lon) - pad, Math.max(...lat) + pad, Math.max(...lon) + pad];
+  const tx = (x, z) => Math.floor((x + 180) / 360 * 2 ** z);
+  const ty = (y, z) => Math.floor((1 - Math.log(Math.tan(rad(y)) + 1 / Math.cos(rad(y))) / Math.PI) / 2 * 2 ** z);
+  const urls = [];
+  for (let z = 13; z <= 17; z++)
+    for (let x = tx(box[1], z); x <= tx(box[3], z); x++)
+      for (let y = ty(box[2], z); y <= ty(box[0], z); y++) urls.push(`https://tile.openstreetmap.org/${z}/${x}/${y}.png`);
+  urls.slice(0, 120).forEach(u => fetch(u, { mode: "cors" }).catch(() => {}));
+}
+
+function show(cls, big, line) {
+  els("card").className = cls;
+  els("big").textContent = big; els("line").textContent = line;
+}
+function render() {
+  els("lang").textContent = w("lang");
+  els("src").textContent = !src ? "" : src === "gps" ? w("gps")(num(Math.round(srcAcc || 0))) : (src === "demo" ? w("demo") : w("tapped"));
+  els("net-t").textContent = online ? w("online") : w("offline");
+  els("when").textContent = ans ? (online ? w("start")(hhmm(floodStart)) : w("saved")(hhmm(ansAt))) : w("start")(hhmm(floodStart));
+  if (!ans) { els("row").hidden = true; if (!pos) show("wait", w("locating"), w("locating_l")); return; }
+  const a = ans, p = pos || ansPos, since = (Date.now() - ansAt) / 60000;
+  const st = a.status, act = a.action;
+  if (st === "outside_terrain") { els("row").hidden = true; return show("wait", w("outside"), w("outside_l")); }
+  if (st === "safe_here" || st === "outside_impact_zone" || act === "stay") { els("row").hidden = true; return show("stay", w("stay"), w("stay_l")); }
+  const gd = guide(a, p);
+  if (gd && gd.atGoal) { els("row").hidden = true; return show("stay", w("arrived"), w("arrived_l")); }
+  const left = a.minutes_until_flood_here == null ? null : a.minutes_until_flood_here - since;
+  const margin = a.min_margin_before_flood_min == null ? null : a.min_margin_before_flood_min - since;
+  const walk = a.walk_min == null ? null : mins(Math.max(a.walk_min, 1));
+  const up = (a.climb_m || 0) > 5;
+  if (left != null && left <= 0 && !online) show("climb", w("late"), w("late_l"));      // offline and out of time
+  else if (act === "climb" || st === "no_route") show("climb", w("climb"), walk ? w("run_l")(walk) + " " + w("climb_l") : w("climb_l"));
+  else if (act === "run") show("run", up ? w("run") : w("flat"), w("run_l")(walk));
+  else if (act === "hurry") show("hurry", up ? w("hurry") : w("flat"), w("hurry_l")(walk));
+  else show("leave", up ? w("leave") : w("flat"), w("walk_l")(walk));
+  // countdown, leave-by, arrow
+  els("row").hidden = false;
+  if (left == null) { els("cd").textContent = "–"; els("cd-l").textContent = ""; }
+  else if (left <= 0) { els("cd").textContent = "!"; els("cd-l").textContent = w("cd_now"); }
+  else { els("cd").textContent = mins(left); els("cd-l").textContent = w("cd_l"); }
+  if (margin == null || margin <= 1 || act === "run" || act === "climb") { els("lb").textContent = "!"; els("lb-l").textContent = w("lb_now"); }
+  else { els("lb").textContent = hhmm(ansAt + a.min_margin_before_flood_min * 60000); els("lb-l").textContent = w("lb_l"); }
+  if (gd) {
+    const b = bearing(p, gd.to) - (heading || 0);
+    els("arrow").style.transform = `rotate(${b}deg)`;
+    els("dist").textContent = num(Math.round(gd.left / 10) * 10) + (lang === "ne" ? " मि." : " m");
+  }
+}
+els("lang").onclick = () => { lang = lang === "en" ? "ne" : "en"; document.documentElement.lang = lang; try { localStorage.setItem("go.lang", lang); } catch {} drawRoute(false); render(); };
+document.documentElement.lang = lang;
+
+// ---------- offline: service worker + last answer ----------
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/go-sw.js", { scope: "/go" }).catch(() => {});
+  navigator.serviceWorker.addEventListener("controllerchange", () => { if (ans) prefetchTiles(); });
+}
+if (!navigator.onLine) { setNet(false); if (restore()) { render(); drawOverlay(); drawRoute(true); } }
+render();
+</script>
+</body>
+</html>
