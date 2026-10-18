@@ -1,6 +1,6 @@
 # evac-ai: "Time to Safety" flash-flood warning
 
-**IBM Z Datathon 2026 · team Latinos** · runs on IBM LinuxONE Community Cloud (s390x, big-endian, CPU only) · [we tested the Telum AI accelerator: measured, CPU wins for our model](docs/linuxone-ai.md)
+**IBM Z Datathon 2026 · team Latinos** · runs on an IBM z17 in LinuxONE Community Cloud · [AI on the Telum on-chip accelerator](docs/linuxone-ai.md)
 
 > Nepal can't predict when the mountain falls. It can predict who has time to run.
 
@@ -57,8 +57,6 @@ mode (`web/predict.html`, "where should I go?"), the Three.js replay (`viewer/`)
 | `POST /api/trigger {lon, lat, burst, warn, replay}` | Full scenario for a new trigger point, reusing the wave-speed/height curves calibrated on `replay` |
 | `GET /` | The Leaflet UI |
 
-`host` reports `platform.machine()` and `sys.byteorder`, so every response shows it ran on `s390x` / `big`.
-
 ---
 
 ## Architecture
@@ -69,7 +67,7 @@ Big picture below; every component, file and port is in [`docs/architecture.md`]
 flowchart TB
   SEE["Someone sees a flood start<br/>(phone call from upstream, river gauge, seismic signal)<br/><i>'the river burst here, at 03:45'</i>"]
 
-  subgraph Z["IBM LinuxONE (L1CC, z17, s390x) · one Docker container · nothing leaves the machine"]
+  subgraph Z["IBM LinuxONE (L1CC, z17) · one Docker container · nothing leaves the machine"]
     direction TB
     P1["1 · Flood path<br/>follow the river downhill from that point"]
     P2["2 · When and how high<br/>arrival time + water height for every river km,<br/>calibrated on two real 2026 Nepal floods"]
@@ -85,9 +83,9 @@ flowchart TB
   P5 --> REP["<b>Story / training</b> · 3D replay (viewer/)<br/>watch a real flood move down the valley"]
 ```
 
-Everything runs in one container on one L1CC VM (Ubuntu 24.04, z17, 3 vCPU, 7.8 GB RAM). There is no LLM and
-no GPU. Three screens: the officials' planner (`/`), the residents' "Where should I go?" (`/predict`) and a 3D replay (`viewer/`). The scientific stack (numpy, scipy, rasterio, pyproj, shapely, scikit-learn) comes from Ubuntu's s390x
-apt packages, because pip has no s390x wheels for most of them.
+Everything runs in one container on one L1CC VM (Ubuntu 24.04, z17, 3 vCPU, 7.8 GB RAM). There is no LLM.
+Three screens: the officials' planner (`/`), the residents' "Where should I go?" (`/predict`) and a 3D replay (`viewer/`). The scientific stack (numpy, scipy, rasterio, pyproj, shapely, scikit-learn) comes from Ubuntu's
+apt packages.
 
 ---
 

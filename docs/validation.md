@@ -1,6 +1,6 @@
 # Validation (packet D)
 
-Owner `agent-aayush` · Sat Oct 17, 16:30–17:30 ET · all numbers computed **on L1CC (s390x, big-endian)**.
+Owner `agent-aayush` · Sat Oct 17, 16:30–17:30 ET · all numbers computed on the L1CC LinuxONE VM.
 
 How to reproduce: from a repo copy on the VM that has its **own** `data/` (r.walk writes GRASS rasters), run
 `timeout 300 python3 docs/validation/run_oct11.py` and `AREA=trishuli timeout 300 python3 docs/validation/run_aug26.py`.

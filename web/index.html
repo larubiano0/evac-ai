@@ -157,8 +157,7 @@ function draw(d, foot) {
   document.querySelectorAll('.s').forEach(el => el.onclick = () => { const s = d.settlements[+el.dataset.i]; map.setView([s.lat, s.lon], 14); s._m.openPopup(); });
   const sm = d.summary;
   $('summary').innerHTML = `<b style="color:var(--red)">${Math.round(sm.people_without_time)}</b> of ${Math.round(sm.people_at_risk)} without time · ${sm.red} red / ${sm.amber} amber`;
-  $('host').innerHTML = `<span class="badge">${d.host.machine}</span><span class="badge">${d.host.byteorder}-endian</span>` +
-    `<span class="badge">compute ${d.timing.scenario_compute_s}s</span>` +
+  $('host').innerHTML = `<span class="badge">computed in ${d.timing.scenario_compute_s}s on IBM LinuxONE</span>` +
     (d.damage_model && d.damage_model.available ? `<span class="badge">damage model ${d.damage_model.version} · ${d.damage_model.runtime_s}s</span>` : '');
   $('dmgnote').textContent = d.damage_model && d.damage_model.available
     ? `Damage model ${d.damage_model.version}: ${d.damage_model.buildings_scored} buildings scored on LinuxONE in ${d.damage_model.runtime_s}s · ~${d.damage_model.expected_destroyed_total} expected destroyed in this flood. Trained on Aug 26 damage (AUC 0.97 on an unseen part of the river).`

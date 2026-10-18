@@ -39,8 +39,8 @@ Warm the caches first (one load of each page, plus a Trishuli prediction scenari
 
 | Time | Screen | Narration |
 |---|---|---|
-| 0:50 | VM terminal: `uname -m` → s390x, `lscpu \| grep -E "Machine type\|Flags"` (9175 = z17, `nnpa` flag), `sudo docker ps` (`evac-ai` up) | "Everything runs in one container on an IBM z17 on LinuxONE Community Cloud." |
-| 0:55 | Same terminal: the profile/benchmark lines from [linuxone-ai.md](linuxone-ai.md) (126,528 cells: CPU 0.16 s, NNPA 1.02 s) | "We tested the Telum AI accelerator through Snap ML and zDNN. For our 300-tree model the CPU is faster, and AI is under 5% of the work, so we serve on the CPU." |
+| 0:50 | VM terminal: `lscpu \| grep -E "Machine type\|Flags"` (9175 = z17, `nnpa` = the Telum AI accelerator), `sudo docker ps` (`evac-ai` up) | "Everything runs in one container on an IBM z17 on LinuxONE Community Cloud." |
+| 0:55 | Same terminal: `bench_mlp.py` output from [linuxone-ai.md](linuxone-ai.md) (same neural network, 262,144 cells: CPU 1.15 s, Telum accelerator 0.06 s) | "The z17 has an AI accelerator on the chip. On the same neural network it scores our map 18 times faster than the processor." |
 | 1:00 | **Planner** (`/`). "Who had time to escape?" card: click 03:30, then 06:40 | "October 11. With the villagers' phone relay at three-thirty, nobody is left without time. With the official SMS at six-forty, all fourteen hundred are." |
 | 1:15 | Drag the **wave clock**; settlements turn red as the front passes | "Arrival times and heights come from the real flood, kilometre by kilometre." |
 | 1:25 | Open the #1 settlement: EN + NE SMS, walk time, escape route; red bridges | "Alerts come out ranked by who is hit first, in one Nepali SMS: when, which way to climb, which bridge not to cross." |
@@ -81,10 +81,10 @@ Warm the caches first (one load of each page, plus a Trishuli prediction scenari
 
 | # | What | How | Used in |
 |---|---|---|---|
-| S1 | **L1CC instance page** (dashboard showing the VM, s390x, Ubuntu 24.04) | L1CC web console | Submission, video 0:50 |
+| S1 | **L1CC instance page** (dashboard showing the z17 VM) | L1CC web console | Submission, video 0:50 |
 | S2 | **Terminal: `uname -a`, `lscpu` (z17 / 3 vCPU), `free -h`** on the VM | SSH session (crop out the IP) | Submission |
 | S3 | **`sudo docker ps`** showing container `evac-ai` up, plus `sudo docker images` (evac-ai, 1.15 GB) | `bash scripts/docker_run.sh` output | Submission, video 0:50 |
-| S4 | `curl localhost:8000/api/scenario?replay=oct11&warn=06:40` with `host.machine = s390x`, `byteorder = big`, `timing` | VM terminal | Submission, README |
+| S4 | `curl localhost:8000/api/scenario?replay=oct11&warn=06:40` with `timing` | VM terminal | Submission, README |
 | S5 | UI: full Oct 11 view at the 06:40 warning (footprint, red settlements, alert list) | Browser via tunnel | README, video 2:10 |
 | S6 | UI: same at the 03:30 warning (all green/amber) | Browser | README, video 2:10 |
 | S7 | UI: one settlement's alerts open (EN + NE short and full) | Browser | Video 1:45 |
