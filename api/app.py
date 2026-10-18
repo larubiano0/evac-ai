@@ -275,3 +275,5 @@ def index():
 
 
 app.mount("/static", StaticFiles(directory=f"{ROOT}/web"), name="static")
+# 3D/2D flood replay (Three.js, pre-baked bundle in viewer/data/): same port as everything else, at /viewer/
+app.mount("/viewer", StaticFiles(directory=f"{ROOT}/viewer", html=True), name="viewer")

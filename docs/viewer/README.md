@@ -2,13 +2,18 @@
 
 A static Three.js viewer that replays a flood scenario on the real DEM. It has a 2D shaded-relief contour map and a 3D terrain view, a time slider, a slack heat map and settlement states. Everything runs in the browser from a baked bundle in `data/<id>/`. Nothing is computed on a server during the replay.
 
-It lives in its own directory, separate from `web/` (the Leaflet UI, owned by claude-luis). How the two relate is still to be coordinated.
+It lives in its own directory, separate from `web/` (the Leaflet UI), and is served by the same app on the same port
+at `/viewer/`.
 
 ## Run
 
+With the app running (see [deploy.md](../deploy.md)), open <http://localhost:8000/viewer/?scenario=oct11&view=3d>.
+
+Without the app, serve the repo root on the same port and open the same URL:
+
 ```bash
-cd viewer && python3 -m http.server 8090
-# open http://localhost:8090/?scenario=oct11
+python3 -m http.server 8000 --bind 127.0.0.1    # from the repo root
+# open http://localhost:8000/viewer/?scenario=oct11&view=3d
 ```
 
 ## Bake the data (on the L1CC VM)
@@ -37,7 +42,7 @@ Keyboard: **Space** plays and pauses; **← →** step one minute (**Shift** for
 ```bash
 python3 viewer/bake/validate.py viewer/data/oct11   # bundle vs schema; footprint and slack parity with the engine
 node viewer/test/state.test.mjs                      # state machine (spec scenarios) + counts vs engine headline
-(cd viewer && python3 -m http.server 8090 &) && node viewer/test/ui.cdp.mjs   # headless Chrome: UX, a11y and layouts (390/768/1280/1440)
+(python3 -m http.server 8000 &) && node viewer/test/ui.cdp.mjs   # headless Chrome: UX, a11y and layouts (390/768/1280/1440)
 ```
 
 ## Libraries & resources

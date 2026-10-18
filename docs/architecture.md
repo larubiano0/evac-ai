@@ -88,7 +88,7 @@ flowchart LR
   A1 --> UI1["web/index.html<br/>planner (Leaflet)"]
   A2 --> UI2["web/predict.html<br/>resident view"]
   A2 --> UI4["web/go.html + go-sw.js<br/>Go view, offline"]
-  SCN -. baked once .-> UI3["viewer/<br/>Three.js 3D replay (static)"]
+  SCN -. baked once .-> UI3["viewer/ at /viewer/<br/>Three.js 3D replay (static)"]
 
   USER(["Browser"]) -->|SSH tunnel only, no open ports| API
 ```

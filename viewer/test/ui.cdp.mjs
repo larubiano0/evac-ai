@@ -1,5 +1,5 @@
 // End-to-end UX check in headless Chrome over the DevTools protocol (no extra packages; node >= 22).
-// usage: (cd viewer && python3 -m http.server 8090 &) ; node viewer/test/ui.cdp.mjs [http://127.0.0.1:8090/]
+// usage: (python3 -m http.server 8000 &) ; node viewer/test/ui.cdp.mjs [http://127.0.0.1:8000/viewer/]   (from the repo root, or with the app running)
 // env SHOTS=<dir> writes screenshots of each layout checked.
 import { spawn } from 'node:child_process';
 import { mkdtempSync, writeFileSync, readFileSync } from 'node:fs';
@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import assert from 'node:assert/strict';
 
-const URL0 = process.argv[2] || 'http://127.0.0.1:8090/';
+const URL0 = process.argv[2] || 'http://127.0.0.1:8000/viewer/';
 const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const PORT = 9333;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

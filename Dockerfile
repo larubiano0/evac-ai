@@ -23,6 +23,11 @@ COPY engine/ engine/
 COPY models/ models/
 COPY api/ api/
 COPY web/ web/
+# 3D replay, served by the API at /viewer/ (bake scripts and tests stay out of the image)
+COPY viewer/index.html viewer/
+COPY viewer/js/ viewer/js/
+COPY viewer/vendor/ viewer/vendor/
+COPY viewer/data/ viewer/data/
 COPY replay/ replay/
 COPY pipeline/ pipeline/
 # data/ (DEM products, OSM, GRASS db) is mounted at runtime: -v $PWD/data:/app/data

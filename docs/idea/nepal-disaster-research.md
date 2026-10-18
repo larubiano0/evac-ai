@@ -1,6 +1,6 @@
 # Nepal Disaster Research: Recent Floods, Response, and Communications
 
-Researched Oct 17, 2026. This is background for `docs/idea/project-plan.md`. Read it before narrowing §3 (what we build) and §4 (data).
+Researched Oct 17, 2026. This is the background research behind evac-ai.
 Sources are linked inline. Anything marked **[unverified]** comes from memory or a single weak source. Confirm it before putting it in the pitch.
 
 ---

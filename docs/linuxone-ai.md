@@ -103,8 +103,7 @@ lr 0.05) to reproduce area_fb's own call on those rows. It matches area_fb's cal
 - The CPU and NNPA outputs are identical (max abs difference ≤ 2e-16; AUC 0.999 both ways). Accuracy is not the
   issue. Speed is.
 - Larger batches don't help: NNPA time scales linearly (×10 rows → ×10 time). So the gap is not a one-off setup cost.
-- This matches the earlier synthetic test in [judge-review.md](judge-review.md) (0.44 s NNPA vs 0.05 s CPU for 23.6k
-  rows).
+- An earlier synthetic test showed the same (0.44 s NNPA vs 0.05 s CPU for 23.6k rows).
 - Why (our reading, not measured): Snap ML's zDNN path turns each tree into dense tensor operations. A depth-4 tree is only 15 comparisons per row. The CPU walks it in a few nanoseconds, while the tensor
   route pays for layout conversion and data movement on every call. The NNPA is built for large dense layers
   (LSTMs, transformers, wide MLPs), not for 8-feature shallow trees.

@@ -96,7 +96,7 @@ flowchart TB
 ```
 
 Everything runs in one container on one L1CC VM (Ubuntu 24.04, z17, 3 vCPU, 7.8 GB RAM). There is no LLM.
-One service on one port (8000) serves the landing page (`/`) and three screens: the officials' planner (`/planner`), the residents' "Where should I go?" (`/predict`) and the phone view (`/go`), plus every `/api/...` endpoint. The 3D replay (`viewer/`) is a separate static page, not part of the container. The scientific stack (numpy, scipy, rasterio, pyproj, shapely, scikit-learn) comes from Ubuntu's
+One service on one port (8000) serves everything: the landing page (`/`), the officials' planner (`/planner`), the residents' "Where should I go?" (`/predict`), the phone view (`/go`), the 3D flood replay (`/viewer/`) and every `/api/...` endpoint. The scientific stack (numpy, scipy, rasterio, pyproj, shapely, scikit-learn) comes from Ubuntu's
 apt packages.
 
 ---
@@ -122,16 +122,17 @@ Then browse to <http://localhost:8000>. The VM IP and key are shared in the team
 
 The image is built from [`Dockerfile`](Dockerfile) (`sudo docker build -t evac-ai:latest .` on the VM, ~91 s). Ubuntu 24.04 s390x, with the scientific stack and GRASS from apt. `data/` is mounted at runtime. The image includes `models/` and compiles `escape_search.c` and the zDNN bridge (`scripts/nnpa/zdnn_mlp.c`), so the planner, prediction mode and the what-if map all run in the container.
 
-### Interactive 3D flood replay (runs locally)
+### Interactive 3D flood replay
 
-The separate [Three.js viewer](viewer/) replays the Oct 11 flood over the real terrain, with 2D/3D views, a time slider, settlement states and a time-to-safety heat map. Its precomputed replay data is committed in [`viewer/data/oct11/`](viewer/data/oct11/), so anyone can try it without a VM login or a data build:
+The [Three.js viewer](viewer/) replays the Oct 11 flood over the real terrain, with 2D/3D views, a time slider, settlement states and a time-to-safety heat map. The container serves it at <http://localhost:8000/viewer/?scenario=oct11&view=3d> (also linked from the landing page).
+
+Its precomputed replay data is committed in [`viewer/data/oct11/`](viewer/data/oct11/), so you can also try it with no VM and no data build. Serve the repo root on the same port and open the same URL:
 
 ```bash
-cd viewer
-python3 -m http.server 8090 --bind 127.0.0.1
+python3 -m http.server 8000 --bind 127.0.0.1   # from the repo root
 ```
 
-Open <http://localhost:8090/?scenario=oct11&view=3d>. This is a visual replay of the scenario output, not a live hydrodynamic simulation. See the [viewer guide](docs/viewer/README.md) for controls and data provenance.
+Open <http://localhost:8000/viewer/?scenario=oct11&view=3d>. This is a visual replay of the scenario output, not a live hydrodynamic simulation. See the [viewer guide](docs/viewer/README.md) for controls and data provenance.
 
 ### Bare metal, on L1CC
 
@@ -267,7 +268,6 @@ All code was written during the event. Everything below is third-party.
 | [geopandas](https://geopandas.org/), [Pillow](https://python-pillow.org/) | Satellite flood-extent tables (laptop); PNG overlays | BSD-3-Clause / MIT-CMU |
 | [Three.js r165](https://threejs.org/) | 3D replay viewer (`viewer/`, vendored with its licence) | MIT |
 | [IBM Plex](https://github.com/IBM/plex) via Google Fonts | UI typeface | SIL OFL 1.1 |
-| [websocket-client](https://github.com/websocket-client/websocket-client), headless [Chrome](https://www.google.com/chrome/), [FFmpeg](https://ffmpeg.org/) | Recording the demo video (`docs/submission/video/record_demo.py`) | Apache-2.0 / Chrome terms / LGPL-2.1+ |
 | [tifffile](https://github.com/cgohlke/tifffile), [imagecodecs](https://github.com/cgohlke/imagecodecs) | Byte-order-safe GeoTIFF reads; WorldPop decode | BSD-3-Clause |
 | [requests](https://requests.readthedocs.io/), [python-socketio](https://github.com/miguelgrinberg/python-socketio) 4.x | Data fetch; DHM Socket.IO feed recorder | Apache-2.0 / MIT |
 | [pyosmium](https://osmcode.org/pyosmium/), [pyshp](https://github.com/GeospatialPython/pyshp) | OSM extract, landslide shapefile (laptop only) | BSD-2-Clause / MIT |
@@ -293,11 +293,7 @@ scripts/    study-area data fetch/extract, DHM recorder, serve/smoke/docker scri
 data/       committed study-area layers (raw/ is gitignored; proc*/ and grassdb/ are built on the VM, not committed)
 models/     trained model files (damage, area, surrogate)
 viewer/     Three.js 3D replay
-docs/       all documentation: idea, research, architecture, data and sources, models, validation, deployment, submission
+docs/       all documentation: research, architecture, data and sources, models, validation, deployment, screenshots
 ```
 
 **Documentation index:** [`docs/README.md`](docs/README.md) (from the idea to the sources). Full source list: [`docs/sources.md`](docs/sources.md).
-
-**Team agents and teammates:** start with [`AGENTS.md`](AGENTS.md) (who's doing what, plus the task board), then
-[`docs/idea/project-plan.md`](docs/idea/project-plan.md) (spec) and
-[`docs/idea/nepal-disaster-research.md`](docs/idea/nepal-disaster-research.md) (background).
