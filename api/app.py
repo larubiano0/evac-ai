@@ -221,6 +221,34 @@ def predict_escape(q: PredictEscape):
             "host": {"machine": platform.machine(), "byteorder": sys.byteorder}}
 
 
+# ---------------- what-if floods on the IBM Telum on-chip AI accelerator (agent-aayush-nnpa; engine/whatif.py) ----------------
+_WHATIF_LOCK = threading.Lock()
+
+
+@app.get("/api/predict/whatif")
+def predict_whatif(valley: str = "budhi", preset: Optional[str] = None, n: int = 100):
+    from engine import whatif
+    n = max(10, min(int(n), 200))
+    t = time.time()
+    sid, S = _pred_scenario(valley, None, None, preset)
+    with _WHATIF_LOCK:                                    # one accelerator job at a time
+        r = whatif.compute(S, n)
+        if "_png" not in r:
+            r["_png"] = whatif.png(S, r)
+    out = {k: v for k, v in r.items() if k not in ("grid", "_png")}
+    return {"sid": sid, **out, "overlay": {"url": f"/api/predict/whatif.png?sid={sid}&n={n}", "bounds": r["_png"][1]},
+            "response_s": round(time.time() - t, 2)}
+
+
+@app.get("/api/predict/whatif.png")
+def predict_whatif_png(sid: str, n: int = 100):
+    S = _PRED.get(sid)
+    r = getattr(S, "_whatif", {}).get(n) if S is not None else None
+    if r is None or "_png" not in r:
+        raise HTTPException(404, "unknown or expired what-if; GET /api/predict/whatif again")
+    return Response(r["_png"][0], media_type="image/png")
+
+
 @app.get("/predict")
 def predict_page():
     return FileResponse(f"{ROOT}/web/predict.html")

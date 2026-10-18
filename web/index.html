@@ -70,6 +70,14 @@
     </div>
 
     <div class="card">
+      <h2>What if the flood is bigger?</h2>
+      <div class="row"><button id="wi">Show what-if map</button></div>
+      <div class="sub" id="winote">Scores every 30 m of ground under 100 possible flood heights (±30% of this flood) on
+        the IBM z17's on-chip AI accelerator. <span style="color:#7c3aed;font-weight:600">Purple</span> = safe in this
+        flood, floods if it is bigger.</div>
+    </div>
+
+    <div class="card">
       <h2>Alert order</h2>
       <div id="list"></div>
     </div>
@@ -201,6 +209,23 @@ map.on('click', async e => {
 });
 
 (async () => { TRIGGERS = (await j('/api/replays'))[REPLAY]; await loadCompare(); await render(); })();
+
+// What-if floods (engine/whatif.py): 100 flood heights per 30 m cell, run on the Telum AI accelerator
+let wiLayer = null;
+$('wi').onclick = async () => {
+  const b = $('wi');
+  if (wiLayer) { map.removeLayer(wiLayer); wiLayer = null; b.classList.remove('on'); b.textContent = 'Show what-if map'; return; }
+  b.disabled = true; b.textContent = 'Scoring 100 floods…';
+  try {
+    const d = await j('/api/predict/whatif?valley=budhi&preset=oct11&n=100');
+    wiLayer = L.imageOverlay(d.overlay.url, d.overlay.bounds, { opacity: 1, interactive: false }).addTo(map);
+    b.classList.add('on'); b.textContent = 'Hide what-if map';
+    const acc = d.backend === 'nnpa' ? 'on the IBM Telum on-chip AI accelerator' : 'on the CPU (accelerator not available)';
+    $('winote').innerHTML = `<b style="color:#7c3aed">${d.safe_now_unsafe_if_bigger_km2} km²</b> looks safe in this flood but floods if it is bigger (purple).` +
+      ` ${(d.predictions / 1e6).toFixed(1)} million predictions (${d.cells.toLocaleString()} cells × ${d.flood_heights + 1} flood heights) in <b>${d.run_s} s</b> ${acc}.`;
+  } catch (e) { $('winote').textContent = 'What-if map unavailable: ' + e.message; b.textContent = 'Show what-if map'; }
+  b.disabled = false;
+};
 </script>
 </body>
 </html>
