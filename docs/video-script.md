@@ -34,7 +34,7 @@ footprint yet. Two time stamps fade in on the map: **03:30 Dharche**, **06:40 SM
 ## 0:50–2:10 · Live on LinuxONE (the demo: three screens)
 
 The problem and solution parts are already recorded. This is the demo cut. UI via the SSH tunnel: planner
-`http://localhost:18000/`, resident view `http://localhost:18000/predict` (port 8000 container, `evac-ai:pred4`).
+`http://localhost:18000/planner` (landing page at `/`), resident view `http://localhost:18000/predict` (port 8000 container, `evac-ai:pred4`).
 Warm the caches first (one load of each page, plus a Trishuli prediction scenario, ~53 s cold).
 
 | Time | Screen | Narration |

@@ -265,6 +265,11 @@ def go_sw():                                      # its service worker, served f
 
 
 @app.get("/")
+def landing():                                    # one-screen story + the three doors (planner, predict, go)
+    return FileResponse(f"{ROOT}/web/landing.html")
+
+
+@app.get("/planner")
 def index():
     return FileResponse(f"{ROOT}/web/index.html")
 

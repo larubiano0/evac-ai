@@ -214,7 +214,7 @@ def seg_terminal(c):
 
 def seg_planner(c):
     c.device(1280, 720, 1.5)
-    c.go(BASE + "/"); c.until("typeof DATA !== 'undefined' && DATA && document.querySelectorAll('.trig').length > 1", 120)
+    c.go(BASE + "/planner"); c.until("typeof DATA !== 'undefined' && DATA && document.querySelectorAll('.trig').length > 1", 120)
     time.sleep(2.5)                                                      # tiles
     c.start("Planner · for district officials")
     time.sleep(1.0)

@@ -37,6 +37,16 @@ Scripts: [`engine/surrogate.py`](../engine/surrogate.py) (the stand-in, with CPU
 - **Why it's useful:** 11% of the corridor cells have a 10–90% range wider than 0.2. That is ground whose risk
   depends on how big the flood turns out to be. A single run can't show which cells those are.
 
+## Live in the app
+
+The planner (`/planner`) has a **"What if the flood is bigger?"** card. It calls `GET /api/predict/whatif`
+([`engine/whatif.py`](../engine/whatif.py)), which runs the 100 flood heights on the accelerator inside the
+container. Measured in the container on the Budhi Oct 11 scenario: 98,652 cells × 101 flood heights =
+**10.0 M predictions in 2.6 s** (`"backend": "nnpa"`), cached after the first call. The map shows in purple the
+ground that is safe in this flood (P ≤ 0.10) but unsafe in a bigger one (90th-percentile P > 0.10): 0.91 km², a
+fringe along the edge of the flood footprint. The image builds `zdnn_mlp.so` against Ubuntu's `libzdnn` (see
+`Dockerfile`). Without the accelerator, the same endpoint falls back to numpy and says so.
+
 ## The gate: the same dense network, CPU vs Telum accelerator
 
 Scripts: [`scripts/nnpa/zdnn_mlp.c`](../scripts/nnpa/zdnn_mlp.c) calls IBM's zDNN library directly

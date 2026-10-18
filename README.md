@@ -55,7 +55,9 @@ mode (`web/predict.html`, "where should I go?"), the Three.js replay (`viewer/`)
 | `GET /api/compare?replay=oct11` | The summary for each trigger time in the replay (e.g. community relay 03:30 vs. official SMS 06:40) |
 | `GET /api/footprint?replay=oct11[&lon=&lat=&burst=]` | Conservative inundation footprint, GeoJSON |
 | `POST /api/trigger {lon, lat, burst, warn, replay}` | Full scenario for a new trigger point, reusing the wave-speed/height curves calibrated on `replay` |
-| `GET /` | The Leaflet UI |
+| `GET /` | Landing page: the story in one screen and links to the three views |
+| `GET /planner` | The officials' planner (Leaflet UI), with the what-if map |
+| `GET /api/predict/whatif?valley=budhi&n=100` | What-if floods: every 30 m cell under 100 flood heights (±30%), run on the Telum on-chip AI accelerator ([docs/linuxone-ai.md](docs/linuxone-ai.md)) |
 
 ---
 
@@ -84,7 +86,7 @@ flowchart TB
 ```
 
 Everything runs in one container on one L1CC VM (Ubuntu 24.04, z17, 3 vCPU, 7.8 GB RAM). There is no LLM.
-Three screens: the officials' planner (`/`), the residents' "Where should I go?" (`/predict`) and a 3D replay (`viewer/`). The scientific stack (numpy, scipy, rasterio, pyproj, shapely, scikit-learn) comes from Ubuntu's
+A landing page (`/`) and three screens: the officials' planner (`/planner`), the residents' "Where should I go?" (`/predict`) and a 3D replay (`viewer/`). The scientific stack (numpy, scipy, rasterio, pyproj, shapely, scikit-learn) comes from Ubuntu's
 apt packages.
 
 ---

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Time to Safety</title>
+<meta name="description" content="Flash-flood warning planner for Nepal: who has time to reach safe ground, and where to go.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1f1f1f; --ink-2: #44474e; --ink-3: #5f6368;
+    --bg: #f5f4f1; --surface: #fff; --line: #dcd9d2;
+    --accent: #0b57d0; --red: #c5221f; --green: #188038; --purple: #7c3aed;
+    --sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  }
+  * { box-sizing: border-box }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font: 400 16px/1.55 var(--sans) }
+  a { color: inherit }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px }
+  header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0 }
+  .mark { font-weight: 700; letter-spacing: -.01em }
+  .mark span { color: var(--red) }
+  header small { color: var(--ink-3) }
+  .hero { padding: 28px 0 8px }
+  .hero h1 { font-size: clamp(30px, 5vw, 52px); line-height: 1.08; letter-spacing: -.02em; margin: 0 0 16px; max-width: 24ch }
+  .hero p { font-size: 18px; color: var(--ink-2); max-width: 62ch; margin: 0 }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line);
+           border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin: 28px 0 }
+  .stat { background: var(--surface); padding: 22px 22px 20px }
+  .stat b { display: block; font: 600 clamp(30px, 4vw, 40px)/1.1 var(--mono); letter-spacing: -.02em; margin-bottom: 6px }
+  .stat .g { color: var(--green) } .stat .r { color: var(--red) } .stat .p { color: var(--purple) }
+  .stat span { color: var(--ink-2); font-size: 15px }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); margin: 0 0 14px; font-weight: 600 }
+  .doors { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 44px }
+  .door { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+          padding: 22px; text-decoration: none; transition: border-color .15s, transform .15s, box-shadow .15s; min-height: 210px }
+  .door:hover { border-color: var(--ink-2); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.08) }
+  .door .who { font-size: 13px; color: var(--ink-3); margin-bottom: 6px }
+  .door h3 { font-size: 22px; margin: 0 0 8px; letter-spacing: -.01em }
+  .door p { margin: 0; color: var(--ink-2); font-size: 15px; flex: 1 }
+  .door .go { margin-top: 16px; font-weight: 600; color: var(--accent) }
+  .door .go::after { content: " →" }
+  .door.primary { background: var(--ink); color: #fff; border-color: var(--ink) }
+  .door.primary .who, .door.primary p { color: #d6d3cc } .door.primary .go { color: #fff }
+  .chip { border-top: 1px solid var(--line); padding: 26px 0 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 32px }
+  .chip p { margin: 0 0 10px; color: var(--ink-2) }
+  .chip strong { color: var(--ink) }
+  footer { color: var(--ink-3); font-size: 13px; padding: 28px 0 40px; border-top: 1px solid var(--line); margin-top: 28px }
+  @media (max-width: 820px) {
+    .stats, .doors, .chip { grid-template-columns: 1fr }
+    .door { min-height: 0 }
+    .hero { padding-top: 24px }
+    .wrap { padding: 0 16px }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark">Time to <span>Safety</span></div>
+    <small>Team Latinos · IBM Z Datathon 2026</small>
+  </header>
+
+  <section class="hero">
+    <h1>Nepal can't predict when the mountain falls. It can predict who has time to run.</h1>
+    <p>On the night of Oct 11, 2026, a flash flood came down the Budhi Gandaki in Gorkha. A villagers' phone relay
+      reached Dharche at 03:30. The official SMS went out at 06:40, after the first wave had hit Arughat. Time to
+      Safety turns a trigger upstream into the minutes each village has, and the nearest ground the water won't reach.</p>
+  </section>
+
+  <section class="stats" aria-label="Oct 11 in numbers">
+    <div class="stat"><b class="g">0</b><span>people left without time to reach safety with a warning at 03:30</span></div>
+    <div class="stat"><b class="r">1,456</b><span>people left without time with the official 06:40 SMS</span></div>
+    <div class="stat"><b class="p">2.6 s</b><span>to score 10 million what-if floods on the IBM z17's on-chip AI accelerator</span></div>
+  </section>
+
+  <h2>Open the demo</h2>
+  <nav class="doors">
+    <a class="door primary" href="/planner">
+      <div class="who">For district officials</div>
+      <h3>Plan the warning</h3>
+      <p>Replay Oct 11, move the warning time and see who still makes it, in alert order. Turn on the what-if map to
+        see ground that floods only if the flood is bigger.</p>
+      <div class="go">Open the planner</div>
+    </a>
+    <a class="door" href="/predict">
+      <div class="who">For anyone in the valley</div>
+      <h3>Where should I go?</h3>
+      <p>Drop a pin anywhere along the river. Get the nearest safe ground, the walking route and how many minutes
+        you have before the water arrives.</p>
+      <div class="go">Find safe ground</div>
+    </a>
+    <a class="door" href="/go">
+      <div class="who">On your phone, during a flood</div>
+      <h3>Go</h3>
+      <p>One instruction, a countdown and an arrow, from your GPS. English and नेपाली. Keeps working when the
+        network drops.</p>
+      <div class="go">Open Go</div>
+    </a>
+  </nav>
+
+  <section class="chip">
+    <div>
+      <h2>How it works</h2>
+      <p>The flood's arrival time and height come from the real Oct 11 and Aug 26 floods, kilometre by kilometre down the river.
+        A model trained on satellite flood maps scores every 30 m of ground. A terrain-aware walk finds who can reach
+        safe ground before the wave.</p>
+    </div>
+    <div>
+      <h2>Why the z17</h2>
+      <p>A flood's height is never certain. We score every spot under <strong>100 possible floods</strong>, about 10
+        million predictions, on the Telum on-chip AI accelerator in <strong>under 3 seconds</strong>, 31× faster than
+        the processor in our benchmark. It runs where the data lives, with nothing sent off the machine.</p>
+    </div>
+  </section>
+
+  <footer>
+    Data: Copernicus GLO-30 DEM, © OpenStreetMap contributors (ODbL), WorldPop (CC BY 4.0), UNOSAT flood maps.
+    Built with GRASS GIS, scikit-learn, IBM zDNN, FastAPI and Leaflet.
+    <a href="https://github.com/larubiano0/evac-ai">Source and method on GitHub</a>.
+  </footer>
+</div>
+</body>
+</html>
