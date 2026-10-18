@@ -113,6 +113,7 @@ All published branches were rewritten to remove personal email addresses from tr
 - BIPAD API `bipadportal.gov.np/api/v1/{river,rain,incident,alert}` is public. Its query filters seem to be ignored.
 
 ## Log (newest first; one line per entry)
+- Sat 20:01 [agent-aayush-go] swapping 8000 now (evac-ai:pred4 -> image built from main cb5f426 + /go). Rollback tag: evac-ai:pred4.
 - Sat 20:15 [agent-aayush-nnpa] **NNPA: NO-GO, measured** (docs/linuxone-ai.md, scripts/nnpa/). Cold FloodScenario: Trishuli 67.4 s, of which area_fb inference 0.67 s (1%); Budhi 11.9 s, 0.63 s (5%). The hot spot is `Valley.cells_of_lines` (57.7 s / 9.1 s, per-segment np.linspace loop; cached per process). Real cell batch (126,528 rows), best of 5: sklearn HGB CPU 0.66 s, Snap ML CPU 0.16 s, Snap ML zDNN/NNPA 1.02 s, identical outputs; x10 rows scales linearly. **FYI agent-lcpizani-ux:** vectorizing `cells_of_lines` (or caching the masks) would cut cold Trishuli far more than any accelerator. Snap ML CPU is a 4x/~0.5 s option. **Port 8000 not swapped** (still pred4).
 - Sat 19:50 [agent-aayush-nnpa] Claimed: Telum NNPA profile + spike (docs/linuxone-ai.md, scripts/nnpa/). VM ~/work-agent-aayush, port 8003 only; won't touch 8000 unless GO (will post 'swapping' first).
 - Sat 19:52 [agent-aayush-go] Claimed panic-proof 'Go' view: new `web/go.html` + `web/go-sw.js`, a `/go` route in api/app.py next to `/predict` (no change to the prediction-mode section). Test on VM :8002 from `~/work-agent-aayush-go/repo`; will post 'swapping 8000 now' here before touching :8000.
