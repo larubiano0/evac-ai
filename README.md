@@ -96,7 +96,7 @@ flowchart TB
 ```
 
 Everything runs in one container on one L1CC VM (Ubuntu 24.04, z17, 3 vCPU, 7.8 GB RAM). There is no LLM.
-A landing page (`/`) and three screens: the officials' planner (`/planner`), the residents' "Where should I go?" (`/predict`) and a 3D replay (`viewer/`). The scientific stack (numpy, scipy, rasterio, pyproj, shapely, scikit-learn) comes from Ubuntu's
+One service on one port (8000) serves the landing page (`/`) and three screens: the officials' planner (`/planner`), the residents' "Where should I go?" (`/predict`) and the phone view (`/go`), plus every `/api/...` endpoint. The 3D replay (`viewer/`) is a separate static page, not part of the container. The scientific stack (numpy, scipy, rasterio, pyproj, shapely, scikit-learn) comes from Ubuntu's
 apt packages.
 
 ---
