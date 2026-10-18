@@ -194,7 +194,7 @@ Two real 2026 floods, five timed observations and one set of volunteer damage ta
   safe (0 % on both floods). Destinations called safe that the UNOSAT satellite map shows flooded: Oct 11 **0 of 227**,
   Aug 26 **7 of 238** ([docs/validation/escape_satellite_check.md](docs/validation/escape_satellite_check.md)).
 - **Telum on-chip AI accelerator:** 100 what-if floods over 126,528 squares (12.7 M predictions) in **2.7 s**, vs 83 s for
-  the tree model on the CPU (**31×**), mean difference 0.012 in probability. Live in the planner: 10 M predictions in 2.6 s.
+  the tree model on the VM's 3 CPUs (**31×**), mean difference 0.012 in probability. Live in the planner: 10 M predictions in 2.6 s.
 - **Arrival times (leave-one-out):** **0–38 min** off between observations, and 71–119 min **early** (the safe side)
   when extrapolating past the last gauge. Oct 11 has only two timed points, so its LOO is weak. The Oct 11 wave speed
   does **not** transfer to Aug 26 (up to 163 min late), so each flood type needs its own calibration.

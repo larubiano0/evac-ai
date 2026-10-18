@@ -40,7 +40,7 @@ Warm the caches first (one load of each page, plus a Trishuli prediction scenari
 | Time | Screen | Narration |
 |---|---|---|
 | 0:50 | VM terminal: `lscpu \| grep -E "Machine type\|Flags"` (9175 = z17, `nnpa` = the Telum AI accelerator), `sudo docker ps` (`evac-ai` up) | "Everything runs in one container on an IBM z17 on LinuxONE Community Cloud." |
-| 0:55 | Same terminal: `bench_ensemble.py` output from [linuxone-ai.md](linuxone-ai.md) (100 what-if floods × 126,528 cells: CPU 83 s, Telum accelerator 2.7 s) | "A flood's height is never certain, so we score every spot under a hundred possible floods: 12 million predictions. The z17's on-chip AI accelerator does it in under 3 seconds, 31 times faster than the processor." |
+| 0:55 | Same terminal: `bench_ensemble.py` output from [linuxone-ai.md](linuxone-ai.md) (100 what-if floods × 126,528 cells: CPU 83 s, Telum accelerator 2.7 s) | "A flood's height is never certain, so we score every spot under a hundred possible floods: 12 million predictions. The z17's on-chip AI accelerator does it in under 3 seconds, 31 times faster than our VM's CPUs." |
 | 1:00 | **Planner** (`/`). "Who had time to escape?" card: click 03:30, then 06:40 | "October 11. With the villagers' phone relay at three-thirty, nobody is left without time. With the official SMS at six-forty, all fourteen hundred are." |
 | 1:15 | Drag the **wave clock**; settlements turn red as the front passes | "Arrival times and heights come from the real flood, kilometre by kilometre." |
 | 1:25 | Open the #1 settlement: EN + NE SMS, walk time, escape route; red bridges | "Alerts come out ranked by who is hit first, in one Nepali SMS: when, which way to climb, which bridge not to cross." |

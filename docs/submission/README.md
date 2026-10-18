@@ -69,7 +69,7 @@ screenshot of your own SSH terminal running `sudo docker ps` if you prefer that 
 | 0:36 | Damage model colours | "An AI model trained on 2,759 buildings destroyed on August 26 scores every building and bridge in about a second." |
 | 0:42 | Place trigger upstream → new flood computed | "A new report comes in: the river burst here. A new flood, computed in seconds." |
 | 0:48 | #1 settlement: ranked alert, English + Nepali SMS | "Alerts are ranked by who is hit first. One SMS each, English and Nepali." |
-| 0:55 | What-if map: purple fringe, card "0.91 km² … 2.58 s on the Telum accelerator" | "A flood's height is never certain, so we score every spot under a hundred possible floods: 12 million predictions. The z17's on-chip AI accelerator does it in under 3 seconds, 31 times faster than the processor." |
+| 0:55 | What-if map: purple fringe, card "0.91 km² … 2.58 s on the Telum accelerator" | "A flood's height is never certain, so we score every spot under a hundred possible floods: 12 million predictions. The z17's on-chip AI accelerator does it in under 3 seconds, 31 times faster than our VM's CPUs." |
 | 1:06 | Where should I go? Tap a riverside house, then move time forward | "For a resident: tap where you are. Closest safe ground, the route, how long you have." |
 | 1:21 | Go page on a phone: GO UPHILL NOW, countdown, arrow; Nepali | "In a panic nobody reads a map. This page finds you, gives one instruction and a countdown, in Nepali too." |
 | 1:28 | Network off, page still works; reach the green flag → safe | "When the network drops, it still knows your way out." |
