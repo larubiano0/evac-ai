@@ -1,0 +1,21 @@
+{
+ "teacher": "models/area/area_fb.joblib (calibrated P)",
+ "hidden": [
+  256,
+  256,
+  256
+ ],
+ "train_rows": 405324,
+ "test_rows": 45036,
+ "epochs": 30,
+ "fit_s_cpu": 131.0,
+ "mae_p": 0.0119,
+ "p95_abs_err_p": 0.0572,
+ "corr_p": 0.9965,
+ "auc_vs_area_fb_call": 0.9993,
+ "same_call_at_0.5": 0.9904,
+ "height_scale_range": [
+  0.7,
+  1.3
+ ]
+}

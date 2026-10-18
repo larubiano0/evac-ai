@@ -1,12 +1,12 @@
 /* Dense MLP forward pass on the IBM Telum on-chip AI accelerator (NNPA), through IBM's zDNN library.
  *
- * Built as a shared library and driven from scripts/nnpa/bench_mlp.py (ctypes):
+ * Built as a shared library and driven from Python (ctypes; engine/surrogate.py, scripts/nnpa/bench_mlp.py):
  *   gcc -O2 -shared -fPIC -I<zdnn>/usr/include zdnn_mlp.c -L<zdnn>/usr/lib/s390x-linux-gnu -lzdnn -o zdnn_mlp.so
  *
- * Rows are stacked as a 3DS tensor [s, m, n] (s * m = rows); each layer is one zdnn_matmul_bcast_op
+ * Rows are stacked as a 3DS tensor [s, m, n] (s * m = rows per chunk); each layer is one zdnn_matmul_bcast_op
  * (x @ W + b, weights broadcast over the stack) followed by zdnn_relu, and the last layer by zdnn_sigmoid.
- * Weights are transformed to the accelerator format once (as a server would at start-up); the timed part is
- * fp32 input -> accelerator format -> all layers -> fp32 output.
+ * nnpa_create() converts the weights to the accelerator format and allocates the activations once (as a server
+ * does at start-up); nnpa_run() is fp32 rows in -> accelerator format -> all layers -> fp32 out.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,8 +14,15 @@
 #include <time.h>
 #include <zdnn.h>
 
+#define MAXL 16
 #define CHECK(x) do { zdnn_status st_ = (x); if (st_ != ZDNN_OK) { \
   fprintf(stderr, "zdnn error 0x%x at %s:%d\n", st_, __FILE__, __LINE__); return -1; } } while (0)
+
+typedef struct {
+  int nl;
+  zdnn_tensor_desc pre[4 * MAXL + 4], tf[4 * MAXL + 4];
+  zdnn_ztensor w[MAXL], b[MAXL], h[MAXL + 1], a[MAXL + 1];
+} net_t;
 
 static double now(void) {
   struct timespec t;
@@ -34,48 +41,78 @@ static int make(zdnn_ztensor *zt, zdnn_tensor_desc *pre, zdnn_tensor_desc *tf, z
 }
 
 uint32_t nnpa_max_dim(void) { return zdnn_get_nnpa_max_dim_idx_size(); }
-int nnpa_available(void) { return zdnn_is_nnpa_installed(); }
+int nnpa_available(void) { zdnn_init(); return zdnn_is_nnpa_installed(); }
 
 /* dims[0] = inputs, dims[1..nl] = layer widths; W[l] is dims[l] x dims[l+1] row-major, B[l] has dims[l+1].
- * x is s*m x dims[0]; out gets s*m x dims[nl]. times[0] = best end-to-end, times[1] = best layers-only. */
-int mlp_nnpa(const float *x, uint32_t s, uint32_t m, int nl, const int *dims, const float **W, const float **B,
-             float *out, int reps, double *times) {
+ * Each nnpa_run() call scores exactly s*m rows. */
+void *nnpa_create(uint32_t s, uint32_t m, int nl, const int *dims, const float **W, const float **B) {
+  if (nl < 1 || nl > MAXL) return NULL;
   zdnn_init();
-  zdnn_tensor_desc pre[64], tf[64];
-  zdnn_ztensor w[16], b[16], h[17], a[17];
+  net_t *n = calloc(1, sizeof(net_t));
   int k = 0;
+  n->nl = nl;
   for (int l = 0; l < nl; l++) {
-    if (make(&w[l], &pre[k], &tf[k], ZDNN_2D, dims[l], dims[l + 1], 0)) return -1; k++;
-    if (make(&b[l], &pre[k], &tf[k], ZDNN_1D, dims[l + 1], 0, 0)) return -1; k++;
-    CHECK(zdnn_transform_ztensor(&w[l], W[l]));
-    CHECK(zdnn_transform_ztensor(&b[l], B[l]));
+    if (make(&n->w[l], &n->pre[k], &n->tf[k], ZDNN_2D, dims[l], dims[l + 1], 0)) return NULL;
+    k++;
+    if (make(&n->b[l], &n->pre[k], &n->tf[k], ZDNN_1D, dims[l + 1], 0, 0)) return NULL;
+    k++;
+    if (zdnn_transform_ztensor(&n->w[l], W[l]) != ZDNN_OK) return NULL;
+    if (zdnn_transform_ztensor(&n->b[l], B[l]) != ZDNN_OK) return NULL;
   }
   for (int l = 0; l <= nl; l++) {
-    if (make(&a[l], &pre[k], &tf[k], ZDNN_3DS, s, m, dims[l])) return -1; k++;   /* activations */
-    if (l > 0) { if (make(&h[l], &pre[k], &tf[k], ZDNN_3DS, s, m, dims[l])) return -1; k++; }  /* pre-act */
+    if (make(&n->a[l], &n->pre[k], &n->tf[k], ZDNN_3DS, s, m, dims[l])) return NULL;            /* activations */
+    k++;
+    if (l > 0 && make(&n->h[l], &n->pre[k], &n->tf[k], ZDNN_3DS, s, m, dims[l])) return NULL;   /* pre-act */
+    k++;
   }
+  return n;
+}
+
+/* t (may be NULL): t[0] += wall seconds for the whole call, t[1] += seconds for the layers only. */
+int nnpa_run(void *net, const float *x, float *out, double *t) {
+  net_t *n = net;
+  double t0 = now();
+  n->a[0].is_transformed = false;
+  CHECK(zdnn_transform_ztensor(&n->a[0], x));
+  double t1 = now();
+  for (int l = 0; l < n->nl; l++) {
+    n->h[l + 1].is_transformed = false;
+    n->a[l + 1].is_transformed = false;
+    CHECK(zdnn_matmul_bcast_op(&n->a[l], &n->w[l], &n->b[l], MATMUL_BCAST_OP_ADDITION, &n->h[l + 1]));
+    if (l + 1 < n->nl) CHECK(zdnn_relu(&n->h[l + 1], NULL, &n->a[l + 1]));
+    else CHECK(zdnn_sigmoid(&n->h[l + 1], &n->a[l + 1]));
+  }
+  double t2 = now();
+  CHECK(zdnn_transform_origtensor(&n->a[n->nl], out));
+  if (t) { t[0] += now() - t0; t[1] += t2 - t1; }
+  return 0;
+}
+
+void nnpa_free(void *net) {
+  net_t *n = net;
+  if (!n) return;
+  for (int l = 0; l < n->nl; l++) { zdnn_free_ztensor_buffer(&n->w[l]); zdnn_free_ztensor_buffer(&n->b[l]); }
+  for (int l = 0; l <= n->nl; l++) {
+    zdnn_free_ztensor_buffer(&n->a[l]);
+    if (l > 0) zdnn_free_ztensor_buffer(&n->h[l]);
+  }
+  free(n);
+}
+
+/* One-shot benchmark helper: times[0] = best end-to-end, times[1] = best layers-only, over reps after a warm-up. */
+int mlp_nnpa(const float *x, uint32_t s, uint32_t m, int nl, const int *dims, const float **W, const float **B,
+             float *out, int reps, double *times) {
+  void *n = nnpa_create(s, m, nl, dims, W, B);
+  if (!n) return -1;
   times[0] = times[1] = 1e30;
-  for (int r = 0; r <= reps; r++) {       /* r == 0 is the warm-up */
-    double t0 = now();
-    a[0].is_transformed = false;
-    CHECK(zdnn_transform_ztensor(&a[0], x));
-    double t1 = now();
-    for (int l = 0; l < nl; l++) {
-      h[l + 1].is_transformed = false;
-      a[l + 1].is_transformed = false;
-      CHECK(zdnn_matmul_bcast_op(&a[l], &w[l], &b[l], MATMUL_BCAST_OP_ADDITION, &h[l + 1]));
-      if (l + 1 < nl) CHECK(zdnn_relu(&h[l + 1], NULL, &a[l + 1]));
-      else CHECK(zdnn_sigmoid(&h[l + 1], &a[l + 1]));
-    }
-    double t2 = now();
-    CHECK(zdnn_transform_origtensor(&a[nl], out));
-    double t3 = now();
+  for (int r = 0; r <= reps; r++) {
+    double t[2] = {0, 0};
+    if (nnpa_run(n, x, out, t)) { nnpa_free(n); return -1; }
     if (r > 0) {
-      if (t3 - t0 < times[0]) times[0] = t3 - t0;
-      if (t2 - t1 < times[1]) times[1] = t2 - t1;
+      if (t[0] < times[0]) times[0] = t[0];
+      if (t[1] < times[1]) times[1] = t[1];
     }
   }
-  for (int l = 0; l < nl; l++) { zdnn_free_ztensor_buffer(&w[l]); zdnn_free_ztensor_buffer(&b[l]); }
-  for (int l = 0; l <= nl; l++) { zdnn_free_ztensor_buffer(&a[l]); if (l > 0) zdnn_free_ztensor_buffer(&h[l]); }
+  nnpa_free(n);
   return 0;
 }
