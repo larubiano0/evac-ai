@@ -47,6 +47,7 @@ Warm the caches first (one load of each page, plus a Trishuli prediction scenari
 | 1:35 | **Colour by: Damage model**. Bridge widths change; the badge shows the model's time | "A model trained on 2,759 buildings destroyed on August 26 scores every building and bridge in under a second. It found the bridges that were really lost." |
 | 1:45 | **Place trigger**: click upstream on the river; the result appears (~5 s) | "A new report comes in. A new flood, computed on LinuxONE in five seconds." |
 | 1:55 | **Resident view** (`/predict`): click a riverside house; route to the green safe zone, leave-by time, WALK/HURRY/RUN | "And for the person standing by the river: where to go, and how long they have." |
+| 2:02 | **Go view** (`/go?lat=28.2955&lon=84.9059&t=10`, DevTools phone mode; on a phone it uses GPS): GO UPHILL NOW, 20 min countdown, leave-by, arrow, route. Tap **नेपाली**. DevTools Network → **Offline**, reload: same screen, "Offline: saved route". Tap the green flag: "You reached safe ground" | "In a panic, nobody reads a map. This page finds you, gives one instruction and a countdown, in Nepali too. And when the network drops, it still knows your way out." (~25 s: trim the 1:55 row to compensate) |
 
 ## 2:10–2:35 · Results
 

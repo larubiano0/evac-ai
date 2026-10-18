@@ -35,6 +35,7 @@ A settlement is **red** if any of its at-risk buildings has slack < 0, **amber**
 | Template alerts | [`engine/alerts.py`](engine/alerts.py) | No LLM. English and Nepali, short (1 SMS / Meshtastic / cell-broadcast page) and full (plan page). **The Nepali text is a draft** (`NE_REVIEWED = False`) until our Nepali reader signs off |
 | API | [`api/app.py`](api/app.py) | FastAPI. Keeps the valley in memory and caches scenarios. Endpoints below |
 | Map UI | [`web/index.html`](web/index.html) | Leaflet 2D: trigger comparison ("who had time to escape?"), warning-time box, wave-clock slider, footprint, ranked alert list with EN/NE alerts, bridges at risk, green dashed escape routes, click-to-place new trigger |
+| Resident "Go" view | [`web/go.html`](web/go.html), [`web/go-sw.js`](web/go-sw.js) | `/go`: for someone in a panic on a phone. Location from GPS (or `?lat=&lon=&t=` for demos, or a tap), one big instruction (GO UPHILL NOW / HURRY / YOU ARE SAFE HERE), countdown, leave-by time, arrow and route to the safe place, EN/नेपाली. Uses the prediction API read-only. Works offline (below) |
 | Replays | [`replay/oct11.json`](replay/oct11.json), [`replay/aug26.json`](replay/aug26.json) | Event timelines: source point, burst time and band, warning triggers, observations (each marked `calibration` or `excluded` with a note and a source), reported damage, source URLs |
 | Terrain build | [`pipeline/`](pipeline/) | DEM + OSM download, GRASS `r.watershed` build per valley ([`build_valley.sh`](pipeline/build_valley.sh)), GRASS wrapper [`g.sh`](pipeline/g.sh), `r.walk` direction test |
 | Study-area data | [`data/`](data/README.md), [`scripts/`](scripts/) | Committed, clipped layers for Gorkha/Rasuwa/Nuwakot: Copernicus DEM, WorldPop, OSM (incl. Aug 26 damage labels), 2015 landslides, DHM feed snapshot. Fetch/extract scripts |
@@ -138,6 +139,12 @@ See [`data/README.md`](data/README.md). The OSM extract, landslide inventory and
 without s390x wheels (`requirements-extract.txt`), so they run on a laptop and the outputs are committed.
 
 ---
+
+### Offline + mesh
+`/go` registers a service worker that caches the page, Leaflet, the flood overlay and the map tiles around you and your
+route; the last answer is kept on the phone. With the network gone (try DevTools → Offline) the page still opens, shows
+your route and counts down, and the arrow follows your GPS. **Mesh relay is not built:** our SMS alerts already fit one
+Meshtastic/LoRa packet (≤161 bytes), so a phone-to-phone relay is the next step, not a feature today.
 
 ## Results so far (validated on L1CC, details in [`docs/validation.md`](docs/validation.md))
 
