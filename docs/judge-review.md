@@ -43,6 +43,10 @@ Validation numbers are in [`validation.md`](validation.md).
 
 ## NNPA / Snap ML: verified on the demo VM today
 
+> **Superseded (Sat 21:11):** this was true for tree models only. A dense neural stand-in now runs on the
+> accelerator in the live app: 100 what-if floods (10 M predictions) in 2.6 s, 31× faster than the CPU path in our
+> benchmark. See [linuxone-ai.md](linuxone-ai.md).
+
 - The z17 guest exposes the **`nnpa`** CPU flag.
 - **Snap ML 1.17.2** installs from a binary s390x wheel in seconds (`pip install snapml` in a `--system-site-packages` venv).
 - Without zDNN it warns "Falling back to CPU-only mode". `libzdnn0` is in Ubuntu's apt repo. Extracted without sudo
