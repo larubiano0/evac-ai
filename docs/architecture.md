@@ -3,6 +3,15 @@
 Two diagrams. The first shows the big picture: who uses what, and what happens in between. The second shows every
 component, the file it lives in, and what it runs on. GitHub renders both.
 
+**Figures (PNG, for slides and the submission):** rendered from [`architecture.html`](architecture.html), the long-form
+architecture page (open it in a browser).
+
+| | |
+|---|---|
+| ![Core loop](figures/fig1-core-loop.png) | ![Deployment on LinuxONE](figures/fig2-deployment-linuxone.png) |
+| ![Data and training](figures/fig3-data-training.png) | ![Request paths](figures/fig4-request-paths.png) |
+| ![Go page offline](figures/fig5-go-offline.png) | ![Telum accelerator](figures/fig6-telum-accelerator.png) |
+
 ## 1. Big picture
 
 ```mermaid
@@ -23,6 +32,7 @@ flowchart TB
   P5 --> OFF["<b>Officials</b> · planner (/)<br/>who to warn first · SMS text in Nepali + English<br/>bridges to close · who had time under each warning"]
   P5 --> RES["<b>Residents</b> · 'Where should I go?' (/predict)<br/>tap where you are → route to safe ground,<br/>leave-by time, how sure we are"]
   P5 --> REP["<b>Story / training</b> · 3D replay (viewer/)<br/>watch a real flood move down the valley"]
+  P5 --> GO["<b>Residents in a panic</b> · Go (/go)<br/>GPS → one instruction, countdown, arrow,<br/>EN/नेपाली, works offline"]
 ```
 
 ## 2. Components
@@ -77,6 +87,7 @@ flowchart LR
 
   A1 --> UI1["web/index.html<br/>planner (Leaflet)"]
   A2 --> UI2["web/predict.html<br/>resident view"]
+  A2 --> UI4["web/go.html + go-sw.js<br/>Go view, offline"]
   SCN -. baked once .-> UI3["viewer/<br/>Three.js 3D replay (static)"]
 
   USER(["Browser"]) -->|SSH tunnel only, no open ports| API
