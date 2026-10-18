@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>latinos-vm</title>
-<!-- Replays a real SSH session on our L1CC VM, captured Sat Oct 17 2026 ~20:45 ET (outputs verbatim, IP omitted). -->
+<!-- Replays a real SSH session on our L1CC VM, captured Sat Oct 17 2026 ~21:13 ET (outputs verbatim, IP omitted). -->
 <style>
   html, body { margin: 0; height: 100%; background: #0b0f14; }
   body { display: flex; align-items: center; justify-content: center; font: 17px/1.45 "Cascadia Mono", Consolas, monospace; color: #d6dde6; }
@@ -21,11 +21,13 @@ const steps = [
    'Architecture:                            s390x\nByte Order:                              Big Endian\nCPU(s):                                  3\nMachine type:                            <span class="hl">9175</span>          <span style="color:#8b98a8"># IBM z17</span>'],
   ['grep -o -w nnpa /proc/cpuinfo | head -1', '<span class="hl">nnpa</span>          <span style="color:#8b98a8"># Telum on-chip AI accelerator</span>'],
   ['sudo docker ps --format "table {{.Names}}\\t{{.Image}}\\t{{.Status}}\\t{{.Ports}}"',
-   'NAMES     IMAGE         STATUS                    PORTS\n<span class="hl">evac-ai</span>   evac-ai:go2   Up 38 minutes (healthy)   127.0.0.1:8000->8000/tcp'],
+   'NAMES     IMAGE           STATUS                   PORTS\n<span class="hl">evac-ai</span>   evac-ai:nnpa4   Up 3 minutes (healthy)   127.0.0.1:8000->8000/tcp'],
   ['curl -s "localhost:8000/api/scenario?replay=oct11&warn=03:30" | jq -c .summary',
    '{"warning":"03:30","settlements_at_risk":20,"people_at_risk":1456.0,"people_without_time":<span class="hl">0.0</span>,"red":0,"amber":2}'],
   ['curl -s "localhost:8000/api/scenario?replay=oct11&warn=06:40" | jq -c .summary',
    '{"warning":"06:40","settlements_at_risk":20,"people_at_risk":1456.0,"people_without_time":<span class="hl">1456.0</span>,"red":20,"amber":0}'],
+  ["curl -s 'localhost:8000/api/predict/whatif?valley=budhi&preset=oct11' | python3 -m json.tool | grep -E 'backend|run_s|predictions'",
+   ['    "predictions": 9963852,', '    "run_s": <span class="hl">2.58</span>,', '    "backend": <span class="hl">"nnpa"</span>,', '    "predictions_per_s": 3864441,'].join('\n')],
 ];
 const el = document.getElementById('t'); let html = '';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -34,13 +36,13 @@ window.done = false;
   await sleep(500);
   for (const [cmd, out] of steps) {
     for (let i = 1; i <= cmd.length; i++) {
-      el.innerHTML = html + P + '<span class="c">' + cmd.slice(0, i).replace(/</g, '&lt;') + '</span><span class="cur"></span>';
-      await sleep(cmd.length > 60 ? 14 : 24);
+      el.innerHTML = html + P + '<span class="c">' + cmd.slice(0, i).replace(/</g, '&lt;') + '</span><span class="cur"></span>'; el.scrollTop = el.scrollHeight;
+      await sleep(cmd.length > 60 ? 9 : 18);
     }
     await sleep(250);
     html += P + '<span class="c">' + cmd.replace(/</g, '&lt;') + '</span>\n<span class="o">' + out + '</span>\n';
-    el.innerHTML = html + P + '<span class="cur"></span>';
-    await sleep(1300);
+    el.innerHTML = html + P + '<span class="cur"></span>'; el.scrollTop = el.scrollHeight;
+    await sleep(1150);
   }
   window.done = true;
 })();

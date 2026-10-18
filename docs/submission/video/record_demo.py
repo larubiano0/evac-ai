@@ -203,6 +203,17 @@ def encode(frames, name, pad=None, end=None):
 
 
 # ------------------------------------------------------------------ the demo
+def seg_landing(c):
+    c.device(1280, 720, 1.5)
+    c.go(BASE + "/"); c.until("document.readyState === 'complete'"); time.sleep(1.5)
+    c.js("document.getElementById('__cur').style.opacity = 0")
+    c.start()
+    time.sleep(2.8)
+    c.js("(() => { const h = [...document.querySelectorAll('h2')].find(e => /Open the demo/.test(e.textContent)); window.scrollTo({top: h.getBoundingClientRect().top + scrollY - 40, behavior: 'smooth'}); })()")
+    time.sleep(2.7)
+    return c.stop("0-landing")
+
+
 def seg_terminal(c):
     c.device(1280, 720, 1.5)
     c.go((HERE / "term.html").as_uri()); c.until("document.readyState === 'complete'")
@@ -235,6 +246,20 @@ def seg_planner(c):
     c.chip("Ranked alerts: one SMS each in English and Nepali")
     c.click_sel(".s[data-i='0']", 0.6); time.sleep(5.0)
     return c.stop("2-planner")
+
+
+def seg_whatif(c):
+    c.device(1280, 720, 1.5)
+    c.go(BASE + "/planner"); c.until("typeof DATA !== 'undefined' && DATA && document.querySelectorAll('.trig').length > 1", 120)
+    c.js("document.getElementById('wi').scrollIntoView({block: 'center'})")
+    c.js("void map.setView([28.06, 84.81], 13, {animate: false})"); time.sleep(2.5)
+    c.start("What if the flood is bigger? 100 flood heights on the Telum AI accelerator")
+    time.sleep(1.0)
+    c.click_sel("#wi", 0.7)
+    c.until("document.getElementById('winote').textContent.indexOf('accelerator') >= 0", 60); time.sleep(1.5)
+    c.js("void map.flyTo([28.06, 84.81], 14, {duration: 1.2})"); time.sleep(2.0)
+    x, y = c.center("#winote"); c.move(x, y, 0.6); time.sleep(3.5)
+    return c.stop("2b-whatif")
 
 
 def seg_predict(c):
@@ -295,8 +320,8 @@ def seg_architecture(c):
 
 def main():
     (OUT / "segments").mkdir(parents=True, exist_ok=True)
-    only = sys.argv[1:] or ["terminal", "planner", "predict", "go", "architecture"]
-    segs = {"terminal": seg_terminal, "planner": seg_planner, "predict": seg_predict, "go": seg_go, "architecture": seg_architecture}
+    only = sys.argv[1:] or ["landing", "terminal", "planner", "whatif", "predict", "go", "architecture"]
+    segs = {"landing": seg_landing, "whatif": seg_whatif, "terminal": seg_terminal, "planner": seg_planner, "predict": seg_predict, "go": seg_go, "architecture": seg_architecture}
     for name in only:
         c = Chrome()                                                     # fresh profile per segment
         try:
