@@ -66,3 +66,16 @@ and IBM zDNN for the Telum on-chip AI accelerator. The 3D viewer's own credits: 
 ## 6. Infrastructure
 
 [IBM LinuxONE Community Cloud](https://linuxone.cloud.marist.edu/): an IBM z17 VM (Ubuntu 24.04 s390x), free community-cloud terms.
+
+## 7. Impact figures (pitch)
+
+Global numbers quoted on the impact slide. Not used by the app or the models. Our own figures (people without time,
+latency) come from [validation.md](validation.md).
+
+| Figure | Source |
+|---|---|
+| Countries with comprehensive multi-hazard early warning have about **8× lower** disaster mortality than those with limited coverage (UNDRR/WMO report, Oct 2022) | [UNDRR, "The first step to zero climate disasters is early warning"](https://iddrr.undrr.org/2022/news/first-step-zero-climate-disasters-early-warning.html) |
+| Only about **half** of the world's countries have a multi-hazard early warning system | [UN Fast Facts: Early Warnings](https://www.un.org/sites/un2.un.org/files/2025-12-02-fast-facts/EarlyWarnings_FastFacts.pdf) |
+| **24 hours'** notice can cut damage by up to **30%**; US$800M invested in developing countries could avoid $3–16B in losses a year (Global Commission on Adaptation estimate) | [WMO, About EW4All](https://wmo.int/ru/node/25761) |
+| UN Secretary-General: disaster mortality is at least **6× lower** in countries with good early warning (the 8× figure above is from the 2022 report) | [UN Geneva, Oct 2025](https://www.ungeneva.org/en/news-media/news/2025/10/112023/climate-science-and-early-warnings-key-saving-lives) |
+| About **15 million** people exposed to glacial lake outburst floods worldwide, **9.3 million** in High Mountain Asia | Taylor et al. (2023), *Glacial lake outburst floods threaten millions globally*, [Nature Communications 14, 487](https://www.nature.com/articles/s41467-023-36033-x); summary in [Scientific American](https://www.scientificamerican.com/article/15-million-people-are-at-risk-from-bursting-glacial-lakes) |
